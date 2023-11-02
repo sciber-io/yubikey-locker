@@ -21,7 +21,9 @@ class ykLock:
         result = loginPF.SACLockScreenImmediate()
 
     def lockLinux(self):
-         pass
+        #dbus-send --type=method_call --dest=org.gnome.ScreenSaver /org/gnome/ScreenSaver org.gnome.ScreenSaver.Lock
+        pass
+        
     
     def os_detect(self):
         if platform.system() == 'Darwin':

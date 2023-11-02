@@ -1,0 +1,1 @@
+pyinstaller -F --paths=".\venv\lib\site-packages" -n "sciber-yklocker" ..\src\main.py

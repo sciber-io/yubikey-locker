@@ -15,12 +15,17 @@ jobs:
     steps:
     - uses: actions/checkout@v2
 
-    - name: Package Application
+    - name: "Package Windows Application"
       uses: JackMcKew/pyinstaller-action-windows@python3-10-pyinstaller-5-3
       with:
         path: src
 
-    - uses: actions/upload-artifact@v2
+    - name: "Package Linux Application"
+      uses: JackMcKew/pyinstaller-action-linux@python3.10
+      with:
+        path: src
+
+    - uses: actions/upload-artifact@v3
       with:
         name: name-of-artifact
-        path: src/dist/windows
+        path: src/dist/*/
