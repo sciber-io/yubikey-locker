@@ -2,7 +2,7 @@
 
 
 a = Analysis(
-    ['main.py'],
+    ['sciber-yklocker.py'],
     pathex=['.\\venv\\lib\\site-packages'],
     binaries=[],
     datas=[],
