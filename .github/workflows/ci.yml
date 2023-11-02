@@ -39,4 +39,4 @@ jobs:
         tag_name: "v0.1-beta"
         prerelease: True
         files: |
-          src/dist/*
+          src/dist/*/*
