@@ -21,8 +21,8 @@ class ykLock:
         result = loginPF.SACLockScreenImmediate()
 
     def lockLinux(self):
-        #dbus-send --type=method_call --dest=org.gnome.ScreenSaver /org/gnome/ScreenSaver org.gnome.ScreenSaver.Lock
-        pass
+        import os
+        os.popen('dbus-send --type=method_call --dest=org.gnome.ScreenSaver /org/gnome/ScreenSaver org.gnome.ScreenSaver.Lock')
         
     
     def os_detect(self):

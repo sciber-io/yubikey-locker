@@ -4,9 +4,11 @@ name: Package Application with Pyinstaller
 on:
   push:
     branches: [ main ]
-  pull_request:
-    branches: [ main ]
 
+permissions:
+  contents: write # to enable releases
+
+      
 jobs:
   build:
 
@@ -29,3 +31,12 @@ jobs:
       with:
         name: name-of-artifact
         path: src/dist/*/
+  
+    - name: "Release"
+      uses: softprops/action-gh-release@v1
+      with:
+        repo_token: "${{ secrets.GITHUB_TOKEN }}"
+        tag_name: "v0.1-beta"
+        prerelease: True
+        files: |
+          src/dist/*
