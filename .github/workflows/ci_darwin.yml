@@ -38,9 +38,11 @@ jobs:
           pip install -r src/requirements.txt
       - name: Build with pyinstaller for ${{matrix.TARGET}}
         run: ${{matrix.CMD_BUILD}}
-      - name: Upload Release Asset
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: "Release"
+        uses: softprops/action-gh-release@v1
         with:
-          asset_path: ./src/dist/${{ matrix.build_filename}}
+          repo_token: "${{ secrets.GITHUB_TOKEN }}"
+          tag_name: "v0.1-beta"
+          prerelease: True
+          files: /src/dist/${{ matrix.build_filename}}
