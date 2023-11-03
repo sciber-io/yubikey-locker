@@ -17,11 +17,14 @@ jobs:
         python-version: ["3.10"]
         exclude:
           - os: macos-latest
-          - os: windows-latest
-        include:
           - os: ubuntu-latest
-            build_cmd: build_it_yourself/build.sh && mv src/dist/sciber-yklocker src/dist/sciber-yklocker.linux
-            build_filename: sciber-yklocker.linux
+          build_cmd: build_it_yourself/build.sh && mv src/dist/sciber-yklocker src/dist/sciber-yklocker.linux
+          build_filename: sciber-yklocker.linux
+        include:
+          - os: windows-latest
+            build_cmd: build_it_yourself/build.bat
+            build_filename: sciber-yklocker.exe
+         
 
     steps:
       - uses: actions/checkout@v4
@@ -31,7 +34,6 @@ jobs:
           python-version: '3.10'
       - name: Install dependencies
         run: |
-          apt install libpcsclite-dev -y
           python -m pip install --upgrade pip
           pip install -r src/requirements.txt
       - name: Build with pyinstaller for ${{matrix.TARGET}}
