@@ -1,10 +1,10 @@
 
 # Yubikey Autolocker by Sciber
 
-To enable automatic lock when removing the yubikey
+To enable automatic lock when removing the yubikey  
 
 ### Windows
-Download sciber-yklocker.exe to execeutable at C:\Program Files\Sciber\sciber-yklocker\sciber-yklocker.exe
-Execute register-service.bat
+Download sciber-yklocker.exe to at C:\Program Files\Sciber\sciber-yklocker\sciber-yklocker.exe  
+Execute register-service.bat  
 
 ### Linux

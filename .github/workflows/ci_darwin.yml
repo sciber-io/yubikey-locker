@@ -17,13 +17,13 @@ jobs:
         python-version: ["3.10"]
         exclude:
           - os: macos-latest
-          - os: ubuntu-latest
-            #build_cmd: cd build/build.sh && ./build.sh && mv dist/sciber-yklocker dist/sciber-yklocker.linux
-            #build_filename: sciber-yklocker.linux
         include:
           - os: windows-latest
             build_cmd: cd build && .\build.bat
             build_filename: sciber-yklocker.exe
+          - os: ubuntu-latest
+            build_cmd: cd build && ./build.sh && mv dist/sciber-yklocker dist/sciber-yklocker.linux
+            build_filename: sciber-yklocker.linux
          
 
     steps:
