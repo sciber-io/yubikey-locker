@@ -28,7 +28,7 @@ class ykLock:
 
     def getOS(self):
         return self.osversion
-    
+
 if ykLock.getOS == 1:
     #Windows service dependancies
     import win32serviceutil
@@ -38,56 +38,57 @@ if ykLock.getOS == 1:
     import socket
 
 
-         
-#Windows service definition
-class AppServerSvc (win32serviceutil.ServiceFramework):
-    _svc_name_ = "SciberYkLocker"
-    _svc_display_name_ = "Sciber YubiKey Locker"
+            
+    #Windows service definition
+    class AppServerSvc (win32serviceutil.ServiceFramework):
+        _svc_name_ = "SciberYkLocker"
+        _svc_display_name_ = "Sciber YubiKey Locker"
 
-    def __init__(self,args):
-        win32serviceutil.ServiceFramework.__init__(self,args)
-        self.hWaitStop = win32event.CreateEvent(None,0,0,None)
-        socket.setdefaulttimeout(60)
+        def __init__(self,args):
+            win32serviceutil.ServiceFramework.__init__(self,args)
+            self.hWaitStop = win32event.CreateEvent(None,0,0,None)
+            socket.setdefaulttimeout(60)
 
-    def SvcStop(self):
-        self.ReportServiceStatus(win32service.SERVICE_STOP_PENDING)
-        win32event.SetEvent(self.hWaitStop)
+        def SvcStop(self):
+            self.ReportServiceStatus(win32service.SERVICE_STOP_PENDING)
+            win32event.SetEvent(self.hWaitStop)
 
-    def SvcDoRun(self):
-        servicemanager.LogMsg(servicemanager.EVENTLOG_INFORMATION_TYPE,
-                              servicemanager.PYS_SERVICE_STARTED,
-                              (self._svc_name_,''))
-        self.main()
+        def SvcDoRun(self):
+            servicemanager.LogMsg(servicemanager.EVENTLOG_INFORMATION_TYPE,
+                                servicemanager.PYS_SERVICE_STARTED,
+                                (self._svc_name_,''))
+            self.main()
 
-    def main(self):
-        servicemanager.LogMsg(servicemanager.EVENTLOG_INFORMATION_TYPE,
-                              servicemanager.PYS_SERVICE_STARTED,
-                              (self._svc_name_,''))
-        servicemanager.LogInfoMsg("Started scan for YubiKeys")
-        import win32process
-        import win32con
-        import win32ts
-        import win32profile
-        from ykman.device import list_all_devices, scan_devices
-        state = None
-        while True:
-            sleep(10)
-            pids, new_state = scan_devices()
-            if new_state != state:
-                state = new_state  # State has changed
-                for device, info in list_all_devices():
-                    servicemanager.LogInfoMsg(f"YubiKey Connected with serial: {info.serial}")
-                if len(list_all_devices()) == 0:
-                    servicemanager.LogInfoMsg(f"YubiKey Disconnected. Locking workstation")
-                    #As the service will be running as System you require a session handle to interact with the Desktop logon
-                    console_session_id = win32ts.WTSGetActiveConsoleSessionId()
-                    console_user_token = win32ts.WTSQueryUserToken(console_session_id)
-                    startup = win32process.STARTUPINFO()
-                    priority = win32con.NORMAL_PRIORITY_CLASS
-                    environment = win32profile.CreateEnvironmentBlock(console_user_token, False)
-                    handle, thread_id ,pid, tid = win32process.CreateProcessAsUser(console_user_token, None, "rundll32.exe user32.dll,LockWorkStation", None, None, True, priority, environment, None, startup)
-            if win32event.WaitForSingleObject(self.hWaitStop, 5000) == win32event.WAIT_OBJECT_0: 
-                break
+        def main(self):
+            servicemanager.LogMsg(servicemanager.EVENTLOG_INFORMATION_TYPE,
+                                servicemanager.PYS_SERVICE_STARTED,
+                                (self._svc_name_,''))
+            servicemanager.LogInfoMsg("Started scan for YubiKeys")
+            import win32process
+            import win32con
+            import win32ts
+            import win32profile
+            from ykman.device import list_all_devices, scan_devices
+            state = None
+            while True:
+                sleep(10)
+                pids, new_state = scan_devices()
+                if new_state != state:
+                    state = new_state  # State has changed
+                    for device, info in list_all_devices():
+                        servicemanager.LogInfoMsg(f"YubiKey Connected with serial: {info.serial}")
+                    if len(list_all_devices()) == 0:
+                        servicemanager.LogInfoMsg(f"YubiKey Disconnected. Locking workstation")
+                        #As the service will be running as System you require a session handle to interact with the Desktop logon
+                        console_session_id = win32ts.WTSGetActiveConsoleSessionId()
+                        console_user_token = win32ts.WTSQueryUserToken(console_session_id)
+                        startup = win32process.STARTUPINFO()
+                        priority = win32con.NORMAL_PRIORITY_CLASS
+                        environment = win32profile.CreateEnvironmentBlock(console_user_token, False)
+                        handle, thread_id ,pid, tid = win32process.CreateProcessAsUser(console_user_token, None, "rundll32.exe user32.dll,LockWorkStation", None, None, True, priority, environment, None, startup)
+                if win32event.WaitForSingleObject(self.hWaitStop, 5000) == win32event.WAIT_OBJECT_0: 
+                    break
+
 
 def main(argv):
     import getopt
