@@ -42,7 +42,7 @@ jobs:
       - name: "Release"
         uses: softprops/action-gh-release@v1
         with:
-          repo_token: "${{ secrets.GITHUB_TOKEN }}"
+          token: "${{ secrets.GITHUB_TOKEN }}"
           tag_name: "v0.1-beta"
           prerelease: True
-          files: /src/dist/*/*
+          files: /src/dist/*/${{ matrix.build_filename}}
