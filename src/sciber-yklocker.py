@@ -23,7 +23,6 @@ class ykLock:
         import os
         os.popen('dbus-send --type=method_call --dest=org.gnome.ScreenSaver /org/gnome/ScreenSaver org.gnome.ScreenSaver.Lock')
         
-    
     def os_detect(self):
         if platform.system() == 'Darwin':
             self.osversion = 0
@@ -61,7 +60,7 @@ class AppServerSvc (win32serviceutil.ServiceFramework):
         servicemanager.LogMsg(servicemanager.EVENTLOG_INFORMATION_TYPE,
                               servicemanager.PYS_SERVICE_STARTED,
                               (self._svc_name_,''))
-        servicemanager.LogInfoMsg("Started scan for yubikeys")
+        servicemanager.LogInfoMsg("Started scan for YubiKeys")
         import win32process
         import win32con
         import win32ts
@@ -74,9 +73,10 @@ class AppServerSvc (win32serviceutil.ServiceFramework):
             if new_state != state:
                 state = new_state  # State has changed
                 for device, info in list_all_devices():
-                    servicemanager.LogInfoMsg(f"Yubikey Connected with serial: {info.serial}")
+                    servicemanager.LogInfoMsg(f"YubiKey Connected with serial: {info.serial}")
                 if len(list_all_devices()) == 0:
-                    servicemanager.LogInfoMsg(f"Yubikey Disconnected. Locking workstation")
+                    servicemanager.LogInfoMsg(f"YubiKey Disconnected. Locking workstation")
+                    #As the service will be running as System you require a session handle to interact with the Desktop logon
                     console_session_id = win32ts.WTSGetActiveConsoleSessionId()
                     console_user_token = win32ts.WTSQueryUserToken(console_session_id)
                     startup = win32process.STARTUPINFO()
@@ -94,13 +94,12 @@ def main(argv):
     for opt, arg in opts:
         if opt == '-o':
             if arg == "win":
-                #win32serviceutil.HandleCommandLine(AppServerSvc)
-                #To solve starting in a timely fashion....
+                #Start as a service in Windows
                 servicemanager.Initialize()
                 servicemanager.PrepareToHostSingle(AppServerSvc)
                 servicemanager.StartServiceCtrlDispatcher()
         else:
-            print("Nein")
+            print("Please specify -o and the os <win,mac,lx> to start. Example: yklocker.exe -o win")
 
 if __name__ == '__main__':
     import sys
