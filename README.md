@@ -10,7 +10,7 @@ To enable automatic lock when removing the YubiKey.
 4. Follow Jonas guide on his blog: https://swjm.blog/locking-the-workstation-on-fido2-security-key-removal-part-2-80962c944c78 to set up GPO/Intune control to decide what you want to do if the YubiKey is removed.
 
 ### Linux
-Download sciber-yklocker.linux and execute it in a terminal  
+Download sciber-yklocker.linux and execute it in a terminal (requires you to keep that terminal window open).
 
 ### Mac  
 SoonTM
@@ -25,5 +25,3 @@ Thank you for letting us reuse your AD/Intune templates to enable control via GP
 - https://swjm.blog/locking-the-workstation-on-fido2-security-key-removal-part-2-80962c944c78
 
 
-### TODO:  
-1. User choise between lockout and logout
