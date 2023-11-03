@@ -26,7 +26,7 @@ jobs:
           - os: ubuntu-latest
             build_setup: sudo apt install -y libpcsclite-dev
             build_req: pip install -r src/requirements.txt
-            build_cmd: cd build && ./build.sh && mv dist/sciber-yklocker dist/sciber-yklocker.linux
+            build_cmd: cd build && chmod +x build.sh && ./build.sh && mv dist/sciber-yklocker dist/sciber-yklocker.linux
             build_filename: sciber-yklocker.linux
          
 # swig pcscd
