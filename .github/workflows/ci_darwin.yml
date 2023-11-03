@@ -16,7 +16,7 @@ jobs:
 
     - name: "pyinstaller"
       run: |
-      pyinstaller -F -n "sciber-yklocker" src/sciber-yklocker.py
+        pyinstaller -F -n "sciber-yklocker" src/sciber-yklocker.py
 
 
   
