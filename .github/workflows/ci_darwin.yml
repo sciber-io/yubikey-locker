@@ -18,11 +18,11 @@ jobs:
         exclude:
           - os: macos-latest
           - os: ubuntu-latest
-            #build_cmd: build_it_yourself/build.sh && mv src/dist/sciber-yklocker src/dist/sciber-yklocker.linux
+            #build_cmd: cd build/build.sh && ./build.sh && mv dist/sciber-yklocker dist/sciber-yklocker.linux
             #build_filename: sciber-yklocker.linux
         include:
           - os: windows-latest
-            build_cmd: cd build_it_yourself && .\build.bat
+            build_cmd: cd build && .\build.bat
             build_filename: sciber-yklocker.exe
          
 
@@ -45,4 +45,4 @@ jobs:
           token: "${{ secrets.GITHUB_TOKEN }}"
           tag_name: "v0.1-beta"
           prerelease: True
-          files: ./src/dist/*/${{ matrix.build_filename}}
+          files: build/dist/${{ matrix.build_filename}}

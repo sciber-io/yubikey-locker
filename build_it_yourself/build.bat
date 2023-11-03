@@ -3,4 +3,3 @@
 echo "Windows build initiated"
 pyinstaller --clean -F -n "sciber-yklocker" "..\src\sciber-yklocker.py"
 echo "Pyinstaller finished"
-dir ..\src\dist
