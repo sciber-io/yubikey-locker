@@ -1,4 +1,3 @@
-
 #General imports
 import platform
 from time import sleep
@@ -41,7 +40,7 @@ class ykLock:
 #Windows service definition
 class AppServerSvc (win32serviceutil.ServiceFramework):
     _svc_name_ = "SciberYkLocker"
-    _svc_display_name_ = "Sciber Yubikey Locker"
+    _svc_display_name_ = "Sciber YubiKey Locker"
 
     def __init__(self,args):
         win32serviceutil.ServiceFramework.__init__(self,args)
