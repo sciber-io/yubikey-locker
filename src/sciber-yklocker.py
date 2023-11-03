@@ -29,6 +29,7 @@ class ykLock:
     def getOS(self):
         return self.osversion
 
+# Only use Windows imports if program is running on Windows
 if ykLock.getOS == 1:
     #Windows service dependancies
     import win32serviceutil
@@ -101,6 +102,8 @@ def main(argv):
                 servicemanager.Initialize()
                 servicemanager.PrepareToHostSingle(AppServerSvc)
                 servicemanager.StartServiceCtrlDispatcher()
+            else: 
+                print("Please specify win|linux|mac")
         else:
             print("Please specify -o and the os <win,mac,lx> to start. Example: yklocker.exe -o win")
 
