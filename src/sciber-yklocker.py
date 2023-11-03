@@ -15,6 +15,21 @@ class ykLock:
     def lockLinux(self):
         import os
         os.popen('dbus-send --type=method_call --dest=org.gnome.ScreenSaver /org/gnome/ScreenSaver org.gnome.ScreenSaver.Lock')
+
+    def lockWindows(self):
+        import win32process
+        import win32con
+        import win32ts
+        import win32profile
+        #As the service will be running as System you require a session handle to interact with the Desktop logon
+        console_session_id = win32ts.WTSGetActiveConsoleSessionId()
+        console_user_token = win32ts.WTSQueryUserToken(console_session_id)
+        startup = win32process.STARTUPINFO()
+        priority = win32con.NORMAL_PRIORITY_CLASS
+        environment = win32profile.CreateEnvironmentBlock(console_user_token, False)
+        handle, thread_id ,pid, tid = win32process.CreateProcessAsUser(console_user_token, None, "rundll32.exe user32.dll,LockWorkStation", None, None, True, priority, environment, None, startup)
+
+
         
     def os_detect(self):
         if platform.system() == 'Darwin':
@@ -29,7 +44,7 @@ class ykLock:
     def getOS(self):
         return self.osversion
 
-# Only use Windows imports if program is running on Windows
+# Only define Windows code if program is running on Windows
 if ykLock.getOS == 1:
     #Windows service dependancies
     import win32serviceutil
@@ -38,8 +53,6 @@ if ykLock.getOS == 1:
     import servicemanager
     import socket
 
-
-            
     #Windows service definition
     class AppServerSvc (win32serviceutil.ServiceFramework):
         _svc_name_ = "SciberYkLocker"
@@ -64,11 +77,9 @@ if ykLock.getOS == 1:
             servicemanager.LogMsg(servicemanager.EVENTLOG_INFORMATION_TYPE,
                                 servicemanager.PYS_SERVICE_STARTED,
                                 (self._svc_name_,''))
+            
             servicemanager.LogInfoMsg("Started scan for YubiKeys")
-            import win32process
-            import win32con
-            import win32ts
-            import win32profile
+
             from ykman.device import list_all_devices, scan_devices
             state = None
             while True:
@@ -80,32 +91,52 @@ if ykLock.getOS == 1:
                         servicemanager.LogInfoMsg(f"YubiKey Connected with serial: {info.serial}")
                     if len(list_all_devices()) == 0:
                         servicemanager.LogInfoMsg(f"YubiKey Disconnected. Locking workstation")
-                        #As the service will be running as System you require a session handle to interact with the Desktop logon
-                        console_session_id = win32ts.WTSGetActiveConsoleSessionId()
-                        console_user_token = win32ts.WTSQueryUserToken(console_session_id)
-                        startup = win32process.STARTUPINFO()
-                        priority = win32con.NORMAL_PRIORITY_CLASS
-                        environment = win32profile.CreateEnvironmentBlock(console_user_token, False)
-                        handle, thread_id ,pid, tid = win32process.CreateProcessAsUser(console_user_token, None, "rundll32.exe user32.dll,LockWorkStation", None, None, True, priority, environment, None, startup)
+                        ykLock.lockWindows()
+
                 if win32event.WaitForSingleObject(self.hWaitStop, 5000) == win32event.WAIT_OBJECT_0: 
                     break
+
+# Only define Linux code if program is running on Linux
+elif ykLock.getOS == 2:
+    class LinuxCode():
+        def main():
+            from ykman.device import list_all_devices, scan_devices
+            state = None
+            while True:
+                sleep(10)
+                pids, new_state = scan_devices()
+                if new_state != state:
+                    state = new_state  # State has changed
+                for device, info in list_all_devices():
+                    print("YubiKey Connected with serial: " + info.serial)
+                if len(list_all_devices()) == 0:
+                    print("YubiKey Disconnected. Locking workstation")
+                    ykLock.lockLinux()
+
 
 
 def main(argv):
     import getopt
 
-    opts, args = getopt.getopt(argv,"o:",["ostype="])
-    for opt, arg in opts:
-        if opt == '-o':
-            if arg == "win":
-                #Start as a service in Windows
-                servicemanager.Initialize()
-                servicemanager.PrepareToHostSingle(AppServerSvc)
-                servicemanager.StartServiceCtrlDispatcher()
-            else: 
-                print("Please specify win|linux|mac")
-        else:
-            print("Please specify -o and the os <win,mac,lx> to start. Example: yklocker.exe -o win")
+    # Handle wrong arguments a little bit more smoothly with a try statement
+    try:
+        opts, args = getopt.getopt(argv,"o:",["ostype="])
+        for opt, arg in opts:
+            if opt == '-o':
+                if arg == "win":
+                    #Start as a service in Windows
+                    servicemanager.Initialize()
+                    servicemanager.PrepareToHostSingle(AppServerSvc)
+                    servicemanager.StartServiceCtrlDispatcher()
+                elif arg == "lx":
+                    LinuxCode.main()
+                else: 
+                    print("Please specify win|mac|lx")
+            else:
+                print("Please specify -o and the os <win,mac,lx> to start. Example: yklocker.exe -o win")
+    except:
+        print("Please specify -o and the os <win,mac,lx> to start. Example: yklocker.exe -o win")
+
 
 if __name__ == '__main__':
     import sys
