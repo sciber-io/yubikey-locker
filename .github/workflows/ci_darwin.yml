@@ -20,7 +20,7 @@ jobs:
           - os: windows-latest
         include:
           - os: ubuntu-latest
-            build_cmd: build_it_yourself/build.sh && mv src/dist/sciber-yklocker src/dist/sciber-yklocker.linux
+            build_cmd: apt install libpcsclite-dev -y && build_it_yourself/build.sh && mv src/dist/sciber-yklocker src/dist/sciber-yklocker.linux
             build_filename: sciber-yklocker.linux
 
     steps:
