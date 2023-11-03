@@ -7,8 +7,6 @@ on:
 
 permissions:
   contents: write # to enable releases
-  name: Python package
-
 
 jobs:
   build:
