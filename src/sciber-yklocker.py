@@ -51,7 +51,7 @@ def windowsCode(yklocker):
     import win32event
     import servicemanager
     import socket
-    
+
     #Windows service definition
     class AppServerSvc (win32serviceutil.ServiceFramework):
         _svc_name_ = "SciberYkLocker"
@@ -115,7 +115,19 @@ def linuxCode(yklocker):
             print("YubiKey Disconnected. Locking workstation")
             yklocker.lockLinux()
 
-
+def macCode(yklocker):
+    from ykman.device import list_all_devices, scan_devices
+    state = None
+    while True:
+        sleep(10)
+        pids, new_state = scan_devices()
+        if new_state != state:
+            state = new_state  # State has changed
+        for device, info in list_all_devices():
+            print("YubiKey Connected with serial: " + info.serial)
+        if len(list_all_devices()) == 0:
+            print("YubiKey Disconnected. Locking workstation")
+            yklocker.lockMacOS()
 
 def main(argv):
     import getopt
@@ -131,6 +143,8 @@ def main(argv):
                 windowsCode(yklocker)
             elif arg == "lx":
                 linuxCode(yklocker)
+            elif arg == "mac":
+                macCode(yklocker)
             else: 
                 print("Please specify win|mac|lx")
         else:
