@@ -3,37 +3,52 @@ name: Package Application with Pyinstaller
 
 on:
   push:
-    branches: [ NOPE ]
+    branches: [ main ]
 
 permissions:
   contents: write # to enable releases
 
 jobs:
-  build-yklocker:
-    runs-on: ubuntu-latest
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        python-version: ["3.10"]
+        exclude:
+          - os: macos-latest
+        include:
+          - os: windows-latest
+            build_setup: echo "No Windows setup"
+            build_req: pip install -r src/requirements.txt
+            build_cmd: cd build && .\build.bat
+            build_filename: sciber-yklocker.exe
+          - os: ubuntu-latest
+            build_setup: sudo apt install -y libpcsclite-dev
+            build_req: pip install -r src/requirements.txt
+            build_cmd: cd build && chmod +x build.sh && ./build.sh && mv dist/sciber-yklocker dist/sciber-yklocker.linux
+            build_filename: sciber-yklocker.linux
+         
+# swig pcscd
     steps:
-    - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+      - name: Install dependencies # Common for all OS's
+        run: |
+          python -m pip install --upgrade pip
+      - name: Build with pyinstaller for ${{matrix.os}}
+        run: |
+          ${{matrix.build_setup}} # Linux needs an apt-get before pip install
+          ${{matrix.build_req}}
+          ${{matrix.build_cmd}}
 
-    - name: "Package Windows Application"
-      uses: JackMcKew/pyinstaller-action-windows@python3-10-pyinstaller-5-3
-      with:
-        path: src
-
-    - name: "Package Linux Application"
-      uses: JackMcKew/pyinstaller-action-linux@python3.10
-      with:
-        path: src
-
-    - uses: actions/upload-artifact@v3
-      with:
-        name: name-of-artifact
-        path: src/dist/*/
-  
-    - name: "Release"
-      uses: softprops/action-gh-release@v1
-      with:
-        repo_token: "${{ secrets.GITHUB_TOKEN }}"
-        tag_name: "v0.1-beta"
-        prerelease: True
-        files: |
-          src/dist/*/*
+      - name: "Release"
+        uses: softprops/action-gh-release@v1
+        with:
+          token: "${{ secrets.GITHUB_TOKEN }}"
+          tag_name: "v0.1-beta"
+          prerelease: True
+          files: build/dist/${{ matrix.build_filename}}

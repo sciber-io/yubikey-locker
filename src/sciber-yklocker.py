@@ -5,15 +5,8 @@ from time import sleep
 #Yubikey imports
 from ykman.device import list_all_devices, scan_devices
 
-#Windows service dependancies
-import win32serviceutil
-import win32service
-import win32event
-import servicemanager
-import socket
 
 class ykLock:
-
     def lockMacOS(self):
         from ctypes import CDLL
         loginPF = CDLL('/System/Library/PrivateFrameworks/login.framework/Versions/Current/login')
@@ -35,6 +28,16 @@ class ykLock:
 
     def getOS(self):
         return self.osversion
+    
+if ykLock.getOS == 1:
+    #Windows service dependancies
+    import win32serviceutil
+    import win32service
+    import win32event
+    import servicemanager
+    import socket
+
+
          
 #Windows service definition
 class AppServerSvc (win32serviceutil.ServiceFramework):
@@ -87,7 +90,6 @@ class AppServerSvc (win32serviceutil.ServiceFramework):
                 break
 
 def main(argv):
-
     import getopt
 
     opts, args = getopt.getopt(argv,"o:",["ostype="])
