@@ -19,26 +19,31 @@ jobs:
           - os: macos-latest
         include:
           - os: windows-latest
+            build_setup: echo "No Windows setup"
+            build_req: pip install -r src/requirements.txt
             build_cmd: cd build && .\build.bat
             build_filename: sciber-yklocker.exe
           - os: ubuntu-latest
+            build_setup: sudo apt install -y libpcsclite-dev
+            build_req: pip install -r src/requirements.txt
             build_cmd: cd build && ./build.sh && mv dist/sciber-yklocker dist/sciber-yklocker.linux
             build_filename: sciber-yklocker.linux
          
-
+# swig pcscd
     steps:
       - uses: actions/checkout@v4
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
           python-version: '3.10'
-      - name: Install dependencies
+      - name: Install dependencies # Common for all OS's
         run: |
-          sudo apt install -y libpcsclite-dev # swig pcscd
           python -m pip install --upgrade pip
-          pip install -r src/requirements.txt
       - name: Build with pyinstaller for ${{matrix.os}}
-        run: ${{matrix.build_cmd}}
+        run: |
+          ${{matrix.build_setup}} # Linux needs an apt-get before pip install
+          ${{matrix.build_req}}
+          ${{matrix.build_cmd}}
 
       - name: "Release"
         uses: softprops/action-gh-release@v1
