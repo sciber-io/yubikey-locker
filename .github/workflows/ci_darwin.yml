@@ -22,7 +22,7 @@ jobs:
             #build_filename: sciber-yklocker.linux
         include:
           - os: windows-latest
-            build_cmd: build_it_yourself/build.bat
+            build_cmd: cd build_it_yourself && build.bat
             build_filename: sciber-yklocker.exe
          
 
