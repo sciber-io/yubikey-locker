@@ -8,12 +8,9 @@ on:
 permissions:
   contents: write # to enable releases
 
-      
 jobs:
-  build:
-
+  build-yklocker:
     runs-on: ubuntu-latest
-
     steps:
     - uses: actions/checkout@v2
 
