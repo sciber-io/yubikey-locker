@@ -3,7 +3,7 @@ name: Package Application with Pyinstaller
 
 on:
   push:
-    branches: [ main ]
+    branches: [ NOPE ]
 
 permissions:
   contents: write # to enable releases
