@@ -100,8 +100,7 @@ def windowsCode(yklocker):
     servicemanager.PrepareToHostSingle(AppServerSvc)
     servicemanager.StartServiceCtrlDispatcher()
 
-
-def linuxCode(yklocker):
+def nixCode(yklocker,os):
     from ykman.device import list_all_devices, scan_devices
     state = None
     while True:
@@ -110,24 +109,14 @@ def linuxCode(yklocker):
         if new_state != state:
             state = new_state  # State has changed
         for device, info in list_all_devices():
-            print("YubiKey Connected with serial: " + info.serial)
+            print(f"YubiKey Connected with serial: {info.serial}")
         if len(list_all_devices()) == 0:
             print("YubiKey Disconnected. Locking workstation")
-            yklocker.lockLinux()
+            if os == "lx":
+                yklocker.lockLinux()
+            elif os == "mac":
+                yklocker.lockMacOS()
 
-def macCode(yklocker):
-    from ykman.device import list_all_devices, scan_devices
-    state = None
-    while True:
-        sleep(10)
-        pids, new_state = scan_devices()
-        if new_state != state:
-            state = new_state  # State has changed
-        for device, info in list_all_devices():
-            print("YubiKey Connected with serial: " + info.serial)
-        if len(list_all_devices()) == 0:
-            print("YubiKey Disconnected. Locking workstation")
-            yklocker.lockMacOS()
 
 def main(argv):
     import getopt
@@ -142,9 +131,9 @@ def main(argv):
             if arg == "win":
                 windowsCode(yklocker)
             elif arg == "lx":
-                linuxCode(yklocker)
+                nixCode(yklocker,"lx")
             elif arg == "mac":
-                macCode(yklocker)
+                 nixCode(yklocker,"mac")
             else: 
                 print("Please specify win|mac|lx")
         else:
