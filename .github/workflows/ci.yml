@@ -24,7 +24,7 @@ jobs:
             build_cmd: cd build && .\build.bat
             build_filename: sciber-yklocker.exe
           - os: ubuntu-latest
-            build_setup: sudo 
+            build_setup: sudo apt install -y libpcsclite-dev
             build_req: pip install -r src/requirements.txt
             build_cmd: cd build && chmod +x build.sh && ./build.sh && mv dist/sciber-yklocker dist/sciber-yklocker.linux
             build_filename: sciber-yklocker.linux
@@ -44,7 +44,7 @@ jobs:
       - if: matrix.os == 'ubuntu-latest'
         name: "Ubuntu specific APT install"
         run: |
-          apt install -y libpcsclite-dev
+          sudo apt install -y libpcsclite-dev
 
       - name: Install dependencies # Common for all OS's
         run: |
