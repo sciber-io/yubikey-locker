@@ -1,6 +1,7 @@
 #General imports
 import platform
 from time import sleep
+import getopt
 
 #Yubikey imports
 from ykman.device import list_all_devices, scan_devices
@@ -78,8 +79,6 @@ def windowsCode(yklocker):
                                 (self._svc_name_,''))
             
             servicemanager.LogInfoMsg("Started scan for YubiKeys")
-
-            from ykman.device import list_all_devices, scan_devices
             state = None
             while True:
                 sleep(10)
@@ -92,6 +91,7 @@ def windowsCode(yklocker):
                         servicemanager.LogInfoMsg(f"YubiKey Disconnected. Locking workstation")
                         yklocker.lockWindows()
 
+                # Stops the loop if hWaitStop has been issued
                 if win32event.WaitForSingleObject(self.hWaitStop, 5000) == win32event.WAIT_OBJECT_0: 
                     break
 
@@ -100,44 +100,48 @@ def windowsCode(yklocker):
     servicemanager.PrepareToHostSingle(AppServerSvc)
     servicemanager.StartServiceCtrlDispatcher()
 
-def nixCode(yklocker,os):
-    from ykman.device import list_all_devices, scan_devices
+    
+
+def nixCode(yklocker,os,servicemanager):
+    print("Started scan for YubiKeys")
     state = None
     while True:
         sleep(10)
         pids, new_state = scan_devices()
         if new_state != state:
             state = new_state  # State has changed
-        for device, info in list_all_devices():
-            print(f"YubiKey Connected with serial: {info.serial}")
-        if len(list_all_devices()) == 0:
-            print("YubiKey Disconnected. Locking workstation")
-            if os == "lx":
-                yklocker.lockLinux()
-            elif os == "mac":
-                yklocker.lockMacOS()
-
+            for device, info in list_all_devices():
+                 print(f"YubiKey Connected with serial: {info.serial}")
+            if len(list_all_devices()) == 0:
+                print("YubiKey Disconnected. Locking workstation")
+                if os == "lx":
+                    yklocker.lockLinux()
+                elif os == "mac":
+                    yklocker.lockMacOS()
+            
 
 def main(argv):
-    import getopt
     # Create ykLock object
     yklocker = ykLock()
     yklocker.os_detect()
 
-    # Handle wrong arguments a little bit more smoothly with a try statement
     opts, args = getopt.getopt(argv,"o:",["ostype="])
-    for opt, arg in opts:
-        if opt == '-o':
-            if arg == "win":
-                windowsCode(yklocker)
-            elif arg == "lx":
-                nixCode(yklocker,"lx")
-            elif arg == "mac":
-                 nixCode(yklocker,"mac")
-            else: 
-                print("Please specify win|mac|lx")
-        else:
-            print("Please specify -o and the os <win,mac,lx> to start. Example: yklocker.exe -o win")
+    if len(opts) > 0:
+        for opt, arg in opts:
+            if opt == '-o':
+                if arg == "win":
+                    windowsCode(yklocker)
+                elif arg == "lx":
+                    nixCode(yklocker,"lx")
+                elif arg == "mac":
+                    nixCode(yklocker,"mac")
+                else: 
+                    print("Please specify win|mac|lx")
+            else:
+                print("Please specify -o and the os <win,mac,lx> to start. Example: yklocker.exe -o win")
+    else:
+        print("No arguments specified. Please specify -o and the os <win,mac,lx> to start. Example: yklocker.exe -o win")
+
 
 if __name__ == '__main__':
     import sys
