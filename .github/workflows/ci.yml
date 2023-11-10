@@ -53,12 +53,12 @@ jobs:
           ####${{matrix.build_req}}
           ${{matrix.build_cmd}}
       
-      - name: "Windows ISO"
+     
       - if: matrix.os == 'windows-latest'
-          #- name: Build Windows Installer MSI from exe file
-          uses: AliceOh/CreateWindowsInstaller@1.0.0
-          with:
-            exefile: 'build/dist/sciber-yklocker.exe'
+        name: Build Windows Installer MSI from exe file
+        uses: AliceOh/CreateWindowsInstaller@1.0.0
+        with:
+          exefile: 'build/dist/sciber-yklocker.exe'
 
       - name: "Release"
         uses: softprops/action-gh-release@v1
