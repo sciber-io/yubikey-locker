@@ -3,8 +3,17 @@
 
 To enable automatic lock when removing the YubiKey. 
 
+### Comandline options (ALL OS's)
+```bash
+# Defaults to LOCKOUT, can be set to LOGOUT with
+sciber-yklocker.exe -l logout
+
+# Defaults to checking for a yubikey every 10 seconds, can be changed with
+sciber-yklocker.exe -t 20
+```
+
 ### Windows
-1. Download sciber-yklocker.exe to at C:\Program Files\Sciber\sciber-yklocker\sciber-yklocker.exe  
+1. Download sciber-yklocker.exe to C:\Program Files\Sciber\sciber-yklocker\sciber-yklocker.exe  
 2. Open a command shell as Administrator
 3. Execute register-service.bat
 4. Follow Jonas guide on his blog: https://swjm.blog/locking-the-workstation-on-fido2-security-key-removal-part-2-80962c944c78 to set up GPO/Intune control to decide what you want to do if the YubiKey is removed.
@@ -13,7 +22,8 @@ To enable automatic lock when removing the YubiKey.
 Download sciber-yklocker.linux and execute it in a terminal (requires you to keep that terminal window open).
 
 ### Mac  
-SoonTM
+Download sciber-yklocker.darwin and execute it in a terminal (requires you to keep that terminal window open).
+- Only supports lockout
 
 ### Warning
 Avoid running this tool without a YubiKey present as it will then lock your computer. 
