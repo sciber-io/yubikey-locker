@@ -4,21 +4,23 @@ from time import sleep
 import getopt
 from enum import Enum
 
+#Yubikey imports
+from ykman.device import list_all_devices, scan_devices
+
 class OS(Enum):
     MAC = 0
     WIN = 1
     LX = 2
     UNKNOWN = -1
 
-#Yubikey imports
-from ykman.device import list_all_devices, scan_devices
-
+class lockMethod(Enum):
+    LOCKOUT = 0
+    LOGOUT = 1
 
 class ykLock:
-    def setLogoff(self):
-        self.lockType = "logoff"
-    def setLockOut(self):
-        self.lockType = "lockout"
+    def setLockMethod(self,method):
+        self.lockType = method
+
     def getLockType(self):
         return self.lockType
 
@@ -30,7 +32,7 @@ class ykLock:
     def lockLinux(self):
         import os
         command = 'dbus-send --type=method_call --dest=org.gnome.ScreenSaver /org/gnome/ScreenSaver org.gnome.ScreenSaver.Lock'
-        if self.getLockType() == "logoff":
+        if self.getLockType() == lockMethod.LOGOUT:
             command= 'dbus-send --session --type=method_call --print-reply --dest=org.gnome.SessionManager /org/gnome/SessionManager org.gnome.SessionManager.Logout uint32:1'
 
         os.popen(command)
@@ -50,7 +52,7 @@ class ykLock:
 
         # Determine what type of lock-action to take. Defaults to lock
         command = "\\Windows\\system32\\rundll32.exe user32.dll,LockWorkStation"
-        if self.getLockType() == "logoff":
+        if self.getLockType() == lockMethod.LOGOUT:
             command = "\\Windows\\system32\\logoff.exe"
 
         handle, thread_id ,pid, tid = win32process.CreateProcessAsUser(console_user_token, None, command, None, None, True, priority, environment, None, startup)
@@ -127,7 +129,7 @@ def windowsCode(yklocker,looptime):
 
     
 
-def nixCode(yklocker,input_os,looptime):
+def nixCode(yklocker,looptime):
     print("Started scan for YubiKeys")
     state = None
     while True:
@@ -139,9 +141,9 @@ def nixCode(yklocker,input_os,looptime):
                  print(f"YubiKey Connected with serial: {info.serial}")
             if len(list_all_devices()) == 0:
                 print("YubiKey Disconnected. Locking workstation")
-                if input_os == OS.LX:
+                if yklocker.getOS() == OS.LX:
                     yklocker.lockLinux()
-                elif input_os == OS.MAC:
+                elif yklocker.getOS() == OS.MAC:
                     yklocker.lockMacOS()
             
 
@@ -150,6 +152,8 @@ def main(argv):
     yklocker = ykLock()
     yklocker.os_detect()
 
+    # Set defaults
+    yklocker.setLockMethod(lockMethod.LOCKOUT)
     input_os = yklocker.getOS()
     default_looptime = 10
 
@@ -165,8 +169,8 @@ def main(argv):
             else:
                 print("Please specify win|mac|lx for -o")
         elif opt == '-l':
-            if arg == "logoff":
-                yklocker.setLogoff()
+            if arg == "logout":
+                yklocker.setLockMethod(lockMethod.LOGOUT)
         elif opt == '-t':
             if arg.isdecimal():
                 newtime = int(arg)
@@ -179,7 +183,7 @@ def main(argv):
     if input_os == OS.WIN:
         windowsCode(yklocker,default_looptime)
     elif input_os == OS.LX or input_os == OS.MAC:
-        nixCode(yklocker,input_os,default_looptime)
+        nixCode(yklocker,default_looptime)
         
 
 
