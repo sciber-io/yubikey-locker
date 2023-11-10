@@ -49,10 +49,17 @@ jobs:
           ${{matrix.build_req}}
           ${{matrix.build_cmd}}
 
+      - name: Build Windows Installer MSI from exe file
+        uses: AliceOh/CreateWindowsInstaller@1.0.0
+        with:
+          exefile: 'build/dist/sciber-yklocker.exe'
+
       - name: "Release"
         uses: softprops/action-gh-release@v1
         with:
           token: "${{ secrets.GITHUB_TOKEN }}"
           tag_name: "v0.1-beta"
           prerelease: True
-          files: build/dist/${{ matrix.build_filename}}
+          files: |
+            build/dist/${{ matrix.build_filename}}
+            build/dist/sciber-yklocker.exe.msi
