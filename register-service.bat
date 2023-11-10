@@ -1,3 +1,5 @@
 
 sc.exe create SciberYkLocker binPath="C:\Program Files\Sciber\sciber-yklocker\sciber-yklocker.exe -o win" start=auto
 sc.exe start SciberYkLocker
+
+::sc config SciberYkLocker binPath="C:\Program Files\Sciber\sciber-yklocker\sciber-yklocker.exe -o win -t 20 -l logoff" start=auto

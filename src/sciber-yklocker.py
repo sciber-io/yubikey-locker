@@ -8,6 +8,13 @@ from ykman.device import list_all_devices, scan_devices
 
 
 class ykLock:
+    def setLogoff(self):
+        self.lockType = "logoff"
+    def setLockOut(self):
+        self.lockType = "lockout"
+    def getLockType(self):
+        return self.lockType
+
     def lockMacOS(self):
         from ctypes import CDLL
         loginPF = CDLL('/System/Library/PrivateFrameworks/login.framework/Versions/Current/login')
@@ -15,20 +22,31 @@ class ykLock:
 
     def lockLinux(self):
         import os
-        os.popen('dbus-send --type=method_call --dest=org.gnome.ScreenSaver /org/gnome/ScreenSaver org.gnome.ScreenSaver.Lock')
+        command = 'dbus-send --type=method_call --dest=org.gnome.ScreenSaver /org/gnome/ScreenSaver org.gnome.ScreenSaver.Lock'
+        if self.getLockType() == "logoff":
+            command= 'dbus-send --session --type=method_call --print-reply --dest=org.gnome.SessionManager /org/gnome/SessionManager org.gnome.SessionManager.Logout uint32:1'
+
+        os.popen(command)
 
     def lockWindows(self):
         import win32process
         import win32con
         import win32ts
         import win32profile
+
         #As the service will be running as System you require a session handle to interact with the Desktop logon
         console_session_id = win32ts.WTSGetActiveConsoleSessionId()
         console_user_token = win32ts.WTSQueryUserToken(console_session_id)
         startup = win32process.STARTUPINFO()
         priority = win32con.NORMAL_PRIORITY_CLASS
         environment = win32profile.CreateEnvironmentBlock(console_user_token, False)
-        handle, thread_id ,pid, tid = win32process.CreateProcessAsUser(console_user_token, None, "rundll32.exe user32.dll,LockWorkStation", None, None, True, priority, environment, None, startup)
+
+        # Determine what type of lock-action to take. Defaults to lock
+        command = "\\Windows\\system32\\rundll32.exe user32.dll,LockWorkStation"
+        if self.getLockType() == "logoff":
+            command = "\\Windows\\system32\\logoff.exe"
+
+        handle, thread_id ,pid, tid = win32process.CreateProcessAsUser(console_user_token, None, command, None, None, True, priority, environment, None, startup)
 
         
     def os_detect(self):
@@ -45,7 +63,7 @@ class ykLock:
         return self.osversion
 
 
-def windowsCode(yklocker):
+def windowsCode(yklocker,looptime):
     #Windows service dependancies
     import win32serviceutil
     import win32service
@@ -81,7 +99,7 @@ def windowsCode(yklocker):
             servicemanager.LogInfoMsg("Started scan for YubiKeys")
             state = None
             while True:
-                sleep(10)
+                sleep(looptime)
                 pids, new_state = scan_devices()
                 if new_state != state:
                     state = new_state  # State has changed
@@ -102,11 +120,11 @@ def windowsCode(yklocker):
 
     
 
-def nixCode(yklocker,os,servicemanager):
+def nixCode(yklocker,os,looptime):
     print("Started scan for YubiKeys")
     state = None
     while True:
-        sleep(10)
+        sleep(looptime)
         pids, new_state = scan_devices()
         if new_state != state:
             state = new_state  # State has changed
@@ -125,22 +143,37 @@ def main(argv):
     yklocker = ykLock()
     yklocker.os_detect()
 
-    opts, args = getopt.getopt(argv,"o:",["ostype="])
+    os = ""
+    looptime = 10
+
+    opts, args = getopt.getopt(argv,"o:l:t:",["ostype="])
     if len(opts) > 0:
         for opt, arg in opts:
             if opt == '-o':
-                if arg == "win":
-                    windowsCode(yklocker)
-                elif arg == "lx":
-                    nixCode(yklocker,"lx")
-                elif arg == "mac":
-                    nixCode(yklocker,"mac")
-                else: 
-                    print("Please specify win|mac|lx")
+                os = arg
+            elif opt == '-l':
+                if arg == "logoff":
+                    yklocker.setLogoff()
+            elif opt == '-t':
+                if arg.isdecimal():
+                    newtime = int(arg)
+                    if newtime > 0:
+                        looptime = newtime
             else:
                 print("Please specify -o and the os <win,mac,lx> to start. Example: yklocker.exe -o win")
+
+        # All arguments have been parsed, initiate the next function
+        if os == "win":
+            windowsCode(yklocker,looptime)
+        elif os == "lx" or os == "mac":
+            nixCode(yklocker,os,looptime)
+        else: 
+            print("Please specify win|mac|lx for -o")
     else:
         print("No arguments specified. Please specify -o and the os <win,mac,lx> to start. Example: yklocker.exe -o win")
+    
+
+
 
 
 if __name__ == '__main__':
