@@ -21,7 +21,7 @@ class ykLock:
     def setLockMethod(self,method):
         self.lockType = method
 
-    def getLockType(self):
+    def getLockMethod(self):
         return self.lockType
 
     def lockMacOS(self):
@@ -32,7 +32,7 @@ class ykLock:
     def lockLinux(self):
         import os
         command = 'dbus-send --type=method_call --dest=org.gnome.ScreenSaver /org/gnome/ScreenSaver org.gnome.ScreenSaver.Lock'
-        if self.getLockType() == lockMethod.LOGOUT:
+        if self.getLockMethod() == lockMethod.LOGOUT:
             command= 'dbus-send --session --type=method_call --print-reply --dest=org.gnome.SessionManager /org/gnome/SessionManager org.gnome.SessionManager.Logout uint32:1'
 
         os.popen(command)
@@ -52,7 +52,7 @@ class ykLock:
 
         # Determine what type of lock-action to take. Defaults to lock
         command = "\\Windows\\system32\\rundll32.exe user32.dll,LockWorkStation"
-        if self.getLockType() == lockMethod.LOGOUT:
+        if self.getLockMethod() == lockMethod.LOGOUT:
             command = "\\Windows\\system32\\logoff.exe"
 
         handle, thread_id ,pid, tid = win32process.CreateProcessAsUser(console_user_token, None, command, None, None, True, priority, environment, None, startup)
@@ -104,7 +104,11 @@ def windowsCode(yklocker,looptime):
             servicemanager.LogMsg(servicemanager.EVENTLOG_INFORMATION_TYPE,
                                 servicemanager.PYS_SERVICE_STARTED,
                                 (self._svc_name_,''))
-            
+            if yklocker.getLockMethod() == lockMethod.LOCKOUT:
+                servicemanager.LogInfoMsg(f"Initiated Sciber-YkLocker with lockMethod LOCKOUT after {looptime} seconds without a detected YubiKey")
+            else:
+                servicemanager.LogInfoMsg(f"Initiated Sciber-YkLocker with lockMethod LOGOUT after {looptime} seconds without a detected YubiKey")
+
             servicemanager.LogInfoMsg("Started scan for YubiKeys")
             state = None
             while True:
@@ -130,6 +134,11 @@ def windowsCode(yklocker,looptime):
     
 
 def nixCode(yklocker,looptime):
+    if yklocker.getLockMethod() == lockMethod.LOCKOUT:
+        print(f"Initiated Sciber-YkLocker with lockMethod LOCKOUT after {looptime} seconds without a detected YubiKey")
+    else:
+        print(f"Initiated Sciber-YkLocker with lockMethod LOGOUT after {looptime} seconds without a detected YubiKey")
+
     print("Started scan for YubiKeys")
     state = None
     while True:
@@ -154,21 +163,11 @@ def main(argv):
 
     # Set defaults
     yklocker.setLockMethod(lockMethod.LOCKOUT)
-    input_os = yklocker.getOS()
     default_looptime = 10
 
-    opts, args = getopt.getopt(argv,"o:l:t:",["ostype="])
+    opts, args = getopt.getopt(argv,"l:t:")
     for opt, arg in opts:
-        if opt == '-o':
-            if arg == "win":
-                input_os = OS.WIN
-            elif arg == "lx":
-                input_os = OS.LX
-            elif arg == "mac":
-                input_os = OS.MAC
-            else:
-                print("Please specify win|mac|lx for -o")
-        elif opt == '-l':
+        if opt == '-l':
             if arg == "logout":
                 yklocker.setLockMethod(lockMethod.LOGOUT)
         elif opt == '-t':
@@ -176,13 +175,11 @@ def main(argv):
                 newtime = int(arg)
                 if newtime > 0:
                     default_looptime = newtime
-        else:
-            print("Please specify -o and the os <win,mac,lx> to start. Example: yklocker.exe -o win")
 
     # All arguments have been parsed, initiate the next function
-    if input_os == OS.WIN:
+    if yklocker.getOS() == OS.WIN:
         windowsCode(yklocker,default_looptime)
-    elif input_os == OS.LX or input_os == OS.MAC:
+    elif yklocker.getOS()  == OS.LX or yklocker.getOS()  == OS.MAC:
         nixCode(yklocker,default_looptime)
         
 
