@@ -24,7 +24,7 @@ jobs:
             build_cmd: cd build && .\build.bat
             build_filename: sciber-yklocker.exe
           - os: ubuntu-latest
-            build_setup: sudo apt install -y libpcsclite-dev
+            build_setup: sudo 
             build_req: pip install -r src/requirements.txt
             build_cmd: cd build && chmod +x build.sh && ./build.sh && mv dist/sciber-yklocker dist/sciber-yklocker.linux
             build_filename: sciber-yklocker.linux
@@ -45,14 +45,20 @@ jobs:
           python -m pip install --upgrade pip
       - name: Build with pyinstaller for ${{matrix.os}}
         run: |
-          ${{matrix.build_setup}} # Linux needs an apt-get before pip install
-          ${{matrix.build_req}}
+          if [ "$RUNNER_OS" == "Linux" ]; then
+            apt install -y libpcsclite-dev
+          fi
+          pip install -r src/requirements.txt
+          ####${{matrix.build_setup}} # Linux needs an apt-get before pip install
+          ####${{matrix.build_req}}
           ${{matrix.build_cmd}}
-
-      - name: Build Windows Installer MSI from exe file
-        uses: AliceOh/CreateWindowsInstaller@1.0.0
-        with:
-          exefile: 'build/dist/sciber-yklocker.exe'
+      
+      - name: Windows ISO
+      - if: matrix.os == 'windows-latest'
+          #- name: Build Windows Installer MSI from exe file
+          uses: AliceOh/CreateWindowsInstaller@1.0.0
+          with:
+            exefile: 'build/dist/sciber-yklocker.exe'
 
       - name: "Release"
         uses: softprops/action-gh-release@v1
@@ -60,6 +66,13 @@ jobs:
           token: "${{ secrets.GITHUB_TOKEN }}"
           tag_name: "v0.1-beta"
           prerelease: True
-          files: |
-            build/dist/${{ matrix.build_filename}}
-            build/dist/sciber-yklocker.exe.msi
+          files: build/dist/${{ matrix.build_filename}}
+
+    
+
+## RUN WINDOWS OUTSIDE THE MATRIX?!
+        # build/dist/sciber-yklocker.exe.msi
+ # build2:
+ #   runs-on: "windows-latest"
+ #     job2: 
+        
