@@ -2,6 +2,13 @@
 import platform
 from time import sleep
 import getopt
+from enum import Enum
+
+class OS(Enum):
+    MAC = 0
+    WIN = 1
+    LX = 2
+    UNKNOWN = -1
 
 #Yubikey imports
 from ykman.device import list_all_devices, scan_devices
@@ -51,13 +58,13 @@ class ykLock:
         
     def os_detect(self):
         if platform.system() == 'Darwin':
-            self.osversion = 0
+            self.osversion = OS.MAC
         elif platform.system() == 'Windows':
-            self.osversion = 1
+            self.osversion = OS.WIN
         elif platform.system() == 'Linux':
-            self.osversion = 2
+            self.osversion = OS.LX
         else:
-            self.osversion = -1
+            self.osversion = OS.UNKNOWN
 
     def getOS(self):
         return self.osversion
@@ -120,7 +127,7 @@ def windowsCode(yklocker,looptime):
 
     
 
-def nixCode(yklocker,os,looptime):
+def nixCode(yklocker,input_os,looptime):
     print("Started scan for YubiKeys")
     state = None
     while True:
@@ -132,9 +139,9 @@ def nixCode(yklocker,os,looptime):
                  print(f"YubiKey Connected with serial: {info.serial}")
             if len(list_all_devices()) == 0:
                 print("YubiKey Disconnected. Locking workstation")
-                if os == "lx":
+                if input_os == OS.LX:
                     yklocker.lockLinux()
-                elif os == "mac":
+                elif input_os == OS.MAC:
                     yklocker.lockMacOS()
             
 
@@ -143,35 +150,37 @@ def main(argv):
     yklocker = ykLock()
     yklocker.os_detect()
 
-    os = ""
-    looptime = 10
+    input_os = yklocker.getOS()
+    default_looptime = 10
 
     opts, args = getopt.getopt(argv,"o:l:t:",["ostype="])
-    if len(opts) > 0:
-        for opt, arg in opts:
-            if opt == '-o':
-                os = arg
-            elif opt == '-l':
-                if arg == "logoff":
-                    yklocker.setLogoff()
-            elif opt == '-t':
-                if arg.isdecimal():
-                    newtime = int(arg)
-                    if newtime > 0:
-                        looptime = newtime
+    for opt, arg in opts:
+        if opt == '-o':
+            if arg == "win":
+                input_os = OS.WIN
+            elif arg == "lx":
+                input_os = OS.LX
+            elif arg == "mac":
+                input_os = OS.MAC
             else:
-                print("Please specify -o and the os <win,mac,lx> to start. Example: yklocker.exe -o win")
+                print("Please specify win|mac|lx for -o")
+        elif opt == '-l':
+            if arg == "logoff":
+                yklocker.setLogoff()
+        elif opt == '-t':
+            if arg.isdecimal():
+                newtime = int(arg)
+                if newtime > 0:
+                    default_looptime = newtime
+        else:
+            print("Please specify -o and the os <win,mac,lx> to start. Example: yklocker.exe -o win")
 
-        # All arguments have been parsed, initiate the next function
-        if os == "win":
-            windowsCode(yklocker,looptime)
-        elif os == "lx" or os == "mac":
-            nixCode(yklocker,os,looptime)
-        else: 
-            print("Please specify win|mac|lx for -o")
-    else:
-        print("No arguments specified. Please specify -o and the os <win,mac,lx> to start. Example: yklocker.exe -o win")
-    
+    # All arguments have been parsed, initiate the next function
+    if input_os == OS.WIN:
+        windowsCode(yklocker,default_looptime)
+    elif input_os == OS.LX or input_os == OS.MAC:
+        nixCode(yklocker,input_os,default_looptime)
+        
 
 
 
