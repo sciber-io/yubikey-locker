@@ -11,8 +11,10 @@
              Manufacturer="$(Manufacturer)"
              Version="$(Version)"
              UpgradeCode="$(var.UpgradeCode)"
-             Compressed="true">
-        
+             Compressed="true"
+             >
+            <MediaTemplate EmbedCab="yes" />
+
         <!-- Allow upgrades and prevent downgrades -->
         <MajorUpgrade DowngradeErrorMessage="A later version of [ProductName] is already installed. Setup will now exit." />
 
@@ -35,7 +37,7 @@
 
             <!-- Create a single component which is the sciber-yklocker.exe file -->
             <Component Id="ServiceExecutable" Bitness="always64">
-                
+
                 <!-- Copies the App.WindowsService.exe file using the
                      project reference preprocessor variables -->
                 <File Id="SciberYklocker"
