@@ -3,3 +3,5 @@ venv/
 .venv/
 build/build/
 build/dist
+*.msi
+*.wixpdb
