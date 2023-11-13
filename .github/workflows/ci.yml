@@ -21,7 +21,7 @@ jobs:
           - os: windows-latest
            # build_setup: echo "No Windows setup"
            # build_req: pip install -r src/requirements.txt
-            build_cmd: cd build && .\build.bat && cd dist # move into dist to handle MSI creation
+            build_cmd: cd build && .\build.bat
             build_filename: sciber-yklocker.exe
           - os: ubuntu-latest
             #build_setup: sudo apt install -y libpcsclite-dev
@@ -53,7 +53,14 @@ jobs:
       - name: Build with pyinstaller for ${{matrix.os}}
         run: |
           ${{matrix.build_cmd}}
-      
+
+      - if: matrix.os == 'windows-latest'
+        name: move stuff around before MSI
+        run: |
+         cp build/dist/sciber-yklocker.exe .
+         rm -Recurse build
+          
+    
      
       - if: matrix.os == 'windows-latest'
         name: Build Windows Installer MSI from exe file
@@ -65,8 +72,7 @@ jobs:
         name: move stuff around before release
         run: |
           ls
-          ls buld/
-          cp build/sciber-yklocker.exe.msi .
+          ls build/
           
     
       - if: matrix.os == 'windows-latest'
