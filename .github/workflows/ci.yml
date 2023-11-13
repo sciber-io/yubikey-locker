@@ -60,10 +60,14 @@ jobs:
         uses: AliceOh/CreateWindowsInstaller@1.0.0
         with:
           exefile: ${{ matrix.build_filename}}
-          shell: |
-            ls
-            cp build/sciber-yklocker.exe.msi ../
 
+      - if: matrix.os == 'windows-latest'
+        name: move stuff around before release
+        run: |
+          ls
+          ls buld/
+          cp build/sciber-yklocker.exe.msi .
+          
     
       - if: matrix.os == 'windows-latest'
         name: "Release MSI"
