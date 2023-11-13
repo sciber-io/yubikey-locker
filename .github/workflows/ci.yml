@@ -57,7 +57,8 @@ jobs:
       - if: matrix.os == 'windows-latest'
         name: move stuff around before MSI
         run: |
-         cp build/dist/sciber-yklocker.exe .
+         mkdir application
+         cp build/dist/sciber-yklocker.exe application/sciber-yklocker.exe
          rm -Recurse build
           
     
@@ -73,6 +74,7 @@ jobs:
         run: |
           ls
           ls build/
+          ls application/
           
     
       - if: matrix.os == 'windows-latest'
