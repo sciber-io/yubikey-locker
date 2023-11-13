@@ -58,9 +58,8 @@ jobs:
         name: MSI STUFF
         run: |
           dotnet tool install --global wix
-          mkdir obj
-          "%WIX%bin\candle" *.wxs -o obj\
-          "%WIX%bin\light" obj\*.wixobj -o bin\CommandLineInstaller.msi
+          wix.exe build .\sciber.yklocker.wxs
+          cp sciber-yklocker.msi build/dist/sciber-yklocker.msi
 
     
     
@@ -70,7 +69,7 @@ jobs:
           token: "${{ secrets.GITHUB_TOKEN }}"
           tag_name: "v0.1-beta"
           prerelease: True
-          files: build/dist/${{matrix.build_filename}}
+          files: build/dist/*
 
     
 
