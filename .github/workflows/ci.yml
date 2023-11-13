@@ -19,17 +19,17 @@ jobs:
         #  
         include:
           - os: windows-latest
-            build_setup: echo "No Windows setup"
-            build_req: pip install -r src/requirements.txt
-            build_cmd: cd build && .\build.bat
+           # build_setup: echo "No Windows setup"
+           # build_req: pip install -r src/requirements.txt
+            build_cmd: cd build && .\build.bat && cd dist # move into dist to handle MSI creation
             build_filename: sciber-yklocker.exe
           - os: ubuntu-latest
-            build_setup: sudo apt install -y libpcsclite-dev
-            build_req: pip install -r src/requirements.txt
+            #build_setup: sudo apt install -y libpcsclite-dev
+            #build_req: pip install -r src/requirements.txt
             build_cmd: cd build && chmod +x build.sh && ./build.sh && mv dist/sciber-yklocker dist/sciber-yklocker.linux
             build_filename: sciber-yklocker.linux
           - os: macos-latest
-            build_req: pip install -r src/requirements.txt
+           # build_req: pip install -r src/requirements.txt
             build_cmd: cd build && chmod +x build.sh && ./build.sh && mv dist/sciber-yklocker dist/sciber-yklocker.darwin
             build_filename: sciber-yklocker.darwin
           
@@ -59,15 +59,20 @@ jobs:
         name: Build Windows Installer MSI from exe file
         uses: AliceOh/CreateWindowsInstaller@1.0.0
         with:
-          exefile: 'build/dist/sciber-yklocker.exe'
+          exefile: ${{ matrix.build_filename}}
+          shell: |
+            ls
+            cp build/sciber-yklocker.exe.msi ../
 
-      - name: "Release"
+    
+      - if: matrix.os == 'windows-latest'
+        name: "Release MSI"
         uses: softprops/action-gh-release@v1
         with:
           token: "${{ secrets.GITHUB_TOKEN }}"
           tag_name: "v0.1-beta"
           prerelease: True
-          files: build/dist/${{ matrix.build_filename}}
+          files: build/dist/sciber-yklocker.exe.msi
 
     
 
