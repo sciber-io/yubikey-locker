@@ -58,7 +58,7 @@ jobs:
         name: MSI STUFF
         run: |
           dotnet tool install --global wix
-          wix.exe build .\sciber.yklocker.wxs
+          wix.exe build .\sciber-yklocker.wxs
           cp sciber-yklocker.msi build/dist/sciber-yklocker.msi
 
     
