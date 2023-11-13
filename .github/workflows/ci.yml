@@ -55,36 +55,22 @@ jobs:
           ${{matrix.build_cmd}}
 
       - if: matrix.os == 'windows-latest'
-        name: move stuff around before MSI
+        name: MSI STUFF
         run: |
-         mkdir application
-         cp build/dist/sciber-yklocker.exe application/sciber-yklocker.exe
-         rm -Recurse build
-          
-    
-     
-      - if: matrix.os == 'windows-latest'
-        name: Build Windows Installer MSI from exe file
-        uses: AliceOh/CreateWindowsInstaller@1.0.0
-        with:
-          exefile: ${{ matrix.build_filename}}
+          dotnet tool install --global wix
+          mkdir obj
+          "%WIX%bin\candle" *.wxs -o obj\
+          "%WIX%bin\light" obj\*.wixobj -o bin\CommandLineInstaller.msi
 
-      - if: matrix.os == 'windows-latest'
-        name: move stuff around before release
-        run: |
-          ls
-          ls build/
-          ls application/
-          
     
-      - if: matrix.os == 'windows-latest'
-        name: "Release MSI"
+    
+      - name: "Publish release files"
         uses: softprops/action-gh-release@v1
         with:
           token: "${{ secrets.GITHUB_TOKEN }}"
           tag_name: "v0.1-beta"
           prerelease: True
-          files: build/dist/sciber-yklocker.exe.msi
+          files: build/dist/${{matrix.build_filename}}
 
     
 
