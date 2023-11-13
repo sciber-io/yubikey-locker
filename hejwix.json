@@ -6,7 +6,7 @@
   "files": {
     "guid": "",
     "items": [
-      "build/dist/sciber-yklocker.exe"
+      "application/sciber-yklocker.exe"
     ]
   },
   "env": {
