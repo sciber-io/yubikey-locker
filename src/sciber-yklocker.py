@@ -14,12 +14,21 @@ class OS(Enum):
     UNKNOWN = -1
 
 class lockMethod(Enum):
-    LOCKOUT = 0
-    LOGOUT = 1
+    LOCK = "lock"
+    LOGOUT = "logout"
 
 class ykLock:
+    def getTimeout(self):
+        return self.timeout 
+    
+    def setTimeout(self,timeout):
+        if isinstance(timeout,int):
+            if timeout > 0:
+                self.timeout = timeout
+
     def setLockMethod(self,method):
-        self.lockType = method
+        if method == lockMethod.LOCK or method == lockMethod.LOGOUT:
+            self.lockType = method
 
     def getLockMethod(self):
         return self.lockType
@@ -31,6 +40,7 @@ class ykLock:
 
     def lockLinux(self):
         import os
+        # Determine what type of lock-action to take. Defaults to lock
         command = 'dbus-send --type=method_call --dest=org.gnome.ScreenSaver /org/gnome/ScreenSaver org.gnome.ScreenSaver.Lock'
         if self.getLockMethod() == lockMethod.LOGOUT:
             command= 'dbus-send --session --type=method_call --print-reply --dest=org.gnome.SessionManager /org/gnome/SessionManager org.gnome.SessionManager.Logout uint32:1'
@@ -71,8 +81,63 @@ class ykLock:
     def getOS(self):
         return self.osversion
 
+def getRegValue(winreg,key_handle,valueName):
+    try:
+        return winreg.QueryValueEx(key_handle, valueName)
+    except EnvironmentError:
+        import traceback
+        print(traceback.print_exc())
+        return -1
 
-def windowsCode(yklocker,looptime):
+
+
+
+
+def regcheck(yklocker,key_name,key_value):
+    print(key_name,key_value)
+    import winreg as reg     
+    ret = [None]
+
+    # Open / Create the key - need admin privs
+    try:
+        key_handle = reg.CreateKey(reg.HKEY_LOCAL_MACHINE, r"SOFTWARE\\Policies\\Yubico\\YubiKey Removal Behavior\\") 
+    except:
+        return None
+
+    # Query the keyname for its value, if it does not exist create it with default value and try again.
+    try:
+        ret = reg.QueryValueEx(key_handle,key_name) 
+    except:
+        try:
+            reg.SetValueEx(key_handle, key_name, 0, reg.REG_SZ, 
+                str(key_value)) 
+            ret = reg.QueryValueEx(key_handle,key_name) 
+        except:
+            return None
+        return None
+        
+    # Close the key handle
+    if key_handle: 
+        reg.CloseKey(key_handle) 
+
+    # If ret still is emppty we do not have permissions or similar to create in registry
+    return ret[0]
+
+  
+def initRegCheck(yklocker):
+    lockValue = regcheck(yklocker,key_name="removalOption",key_value=yklocker.getLockMethod().value)
+    if lockValue != None:
+        if lockValue == lockMethod.LOCK.value:
+            yklocker.setLockMethod(lockMethod.LOCK)
+        elif lockValue == lockMethod.LOGOUT.value:
+            yklocker.setLockMethod(lockMethod.LOGOUT)
+
+    timeoutValue = regcheck(yklocker,key_name="timeout",key_value=yklocker.getTimeout())
+    if timeoutValue != None:
+        yklocker.setTimeout(int(timeoutValue))
+
+
+def windowsCode(yklocker):
     #Windows service dependancies
     import win32serviceutil
     import win32service
@@ -104,15 +169,23 @@ def windowsCode(yklocker,looptime):
             servicemanager.LogMsg(servicemanager.EVENTLOG_INFORMATION_TYPE,
                                 servicemanager.PYS_SERVICE_STARTED,
                                 (self._svc_name_,''))
-            if yklocker.getLockMethod() == lockMethod.LOCKOUT:
-                servicemanager.LogInfoMsg(f"Initiated Sciber-YkLocker with lockMethod LOCKOUT after {looptime} seconds without a detected YubiKey")
-            else:
-                servicemanager.LogInfoMsg(f"Initiated Sciber-YkLocker with lockMethod LOGOUT after {looptime} seconds without a detected YubiKey")
+            
+            servicemanager.LogInfoMsg(f"Initiated Sciber-YkLocker with lockMethod {yklocker.getLockMethod().value} after {yklocker.getTimeout()} seconds without a detected YubiKey")
 
             servicemanager.LogInfoMsg("Started scan for YubiKeys")
             state = None
             while True:
-                sleep(looptime)
+                sleep(yklocker.getTimeout())
+                timeoutValue = yklocker.getTimeout()
+                removalOption = yklocker.getLockMethod()
+                initRegCheck(yklocker)
+                timeoutValue2 = yklocker.getTimeout()
+                removalOption2 = yklocker.getLockMethod()
+                if timeoutValue != timeoutValue2 or removalOption != removalOption2:
+                    servicemanager.LogInfoMsg(f"Updated Sciber-YkLocker with lockMethod {yklocker.getLockMethod().value} after {yklocker.getTimeout()} seconds without a detected YubiKey")
+
+
+
                 pids, new_state = scan_devices()
                 if new_state != state:
                     state = new_state  # State has changed
@@ -133,16 +206,12 @@ def windowsCode(yklocker,looptime):
 
     
 
-def nixCode(yklocker,looptime):
-    if yklocker.getLockMethod() == lockMethod.LOCKOUT:
-        print(f"Initiated Sciber-YkLocker with lockMethod LOCKOUT after {looptime} seconds without a detected YubiKey")
-    else:
-        print(f"Initiated Sciber-YkLocker with lockMethod LOGOUT after {looptime} seconds without a detected YubiKey")
-
+def nixCode(yklocker):
+    print(f"Initiated Sciber-YkLocker with lockMethod {yklocker.getLockMethod().value} LOCK after {yklocker.getTimeout()} seconds without a detected YubiKey")
     print("Started scan for YubiKeys")
     state = None
     while True:
-        sleep(looptime)
+        sleep(yklocker.getTimeout())
         pids, new_state = scan_devices()
         if new_state != state:
             state = new_state  # State has changed
@@ -156,15 +225,22 @@ def nixCode(yklocker,looptime):
                     yklocker.lockMacOS()
             
 
+
+
 def main(argv):
     # Create ykLock object
     yklocker = ykLock()
     yklocker.os_detect()
 
     # Set defaults
-    yklocker.setLockMethod(lockMethod.LOCKOUT)
-    default_looptime = 10
+    yklocker.setLockMethod(lockMethod.LOCK)
+    yklocker.setTimeout(10)
 
+    # If Windows check registry settings to override defaults:
+    if yklocker.getOS() == OS.WIN:
+        initRegCheck(yklocker)
+
+    # Check arguments to override defaults:
     opts, args = getopt.getopt(argv,"l:t:")
     for opt, arg in opts:
         if opt == '-l':
@@ -172,15 +248,13 @@ def main(argv):
                 yklocker.setLockMethod(lockMethod.LOGOUT)
         elif opt == '-t':
             if arg.isdecimal():
-                newtime = int(arg)
-                if newtime > 0:
-                    default_looptime = newtime
+                yklocker.setTimeout(int(arg))
 
     # All arguments have been parsed, initiate the next function
     if yklocker.getOS() == OS.WIN:
-        windowsCode(yklocker,default_looptime)
+        windowsCode(yklocker)
     elif yklocker.getOS()  == OS.LX or yklocker.getOS()  == OS.MAC:
-        nixCode(yklocker,default_looptime)
+        nixCode(yklocker)
         
 
 
