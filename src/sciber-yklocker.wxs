@@ -3,27 +3,32 @@
 <!-- Define the variables in "$(var.*) expressions" -->
 <?define Name = "SciberYklocker" ?>
 <?define Manufacturer = "Sciber" ?>
-<?define Version = "1.0.0.0" ?>
+<?define Version = "1.0.0.1" ?>
 <?define UpgradeCode = "43768026-8bd2-4d87-8106-538f0e328174" ?> <!-- Generated with $([System.Guid]::NewGuid()).Guid -->
 
-<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
-    <Package Name="$(Name)"
-             Manufacturer="$(Manufacturer)"
-             Version="$(Version)"
-             UpgradeCode="$(var.UpgradeCode)"
-             Compressed="true"
-             >
-            <MediaTemplate EmbedCab="yes" />
 
-        <!-- Allow upgrades and prevent downgrades -->
-        <MajorUpgrade DowngradeErrorMessage="A later version of [ProductName] is already installed. Setup will now exit." />
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
+  <Package Name="$(Name)"
+           Manufacturer="$(Manufacturer)"
+           Version="$(Version)"
+           UpgradeCode="$(UpgradeCode)"
+           Compressed="yes"
+           >
+
+        <MediaTemplate EmbedCab="yes" />
+
+        <!-- Upgrade logic -->
+        <!-- AllowSameVersionUpgrades -> Always upgrade, never allow two versions to be installed next to each other -->
+        <MajorUpgrade DowngradeErrorMessage="The same or a newer version of this product is already installed" AllowSameVersionUpgrades="yes" />
+
 
         <!-- Define the directory structure -->
+        <!-- Do not change this line! default values: -->
         <Directory Id="TARGETDIR" Name="SourceDir">
             <Directory Id="ProgramFiles64Folder">
 
                 <!-- Create a folder inside program files -->
-                <Directory Id="ROOTDIRECTORY" Name="$(var.Manufacturer)">
+                <Directory Id="ROOTDIRECTORY" Name="$(Manufacturer)">
 
                     <!-- Create a folder within the parent folder given the name -->
                     <Directory Id="INSTALLFOLDER" Name="$(Name)" />
@@ -66,10 +71,15 @@
             </Component>
         </DirectoryRef>
 
+
         <!-- Tell WiX to install the files -->
         <Feature Id="Service" Title="YubiKey Autolocker by Sciber installer" Level="1">
             <ComponentRef Id="ServiceExecutable" />
         </Feature>
 
+
+<UI>
+  <UIRef Id="WixUI_Minimal" />
+</UI>
     </Package>
 </Wix>

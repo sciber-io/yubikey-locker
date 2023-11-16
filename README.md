@@ -12,10 +12,20 @@ sciber-yklocker.exe -l logout
 sciber-yklocker.exe -t 20
 ```
 
+
+
 ### Windows
 1. Download the installer sciber-yklocker.msi from [releases](https://github.com/sciber-io/yklocker/releases)
 2. Run the installer (installs the service SciberYklocker for you)
 3. Follow Jonas guide on his blog: https://swjm.blog/locking-the-workstation-on-fido2-security-key-removal-part-2-80962c944c78 to set up GPO/Intune control to decide what you want to do if the YubiKey is removed.
+
+```bash
+# Change behavior on Windows via the registry:
+# removalOptions: lock,logout
+HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Yubico\YubiKey Removal Behavior
+  - removalOption lock
+  - timeout 10
+```
 
 ### Linux
 Download sciber-yklocker.linux and execute it in a terminal (requires you to keep that terminal window open).

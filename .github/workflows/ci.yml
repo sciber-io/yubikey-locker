@@ -26,12 +26,12 @@ jobs:
           - os: ubuntu-latest
             #build_setup: sudo apt install -y libpcsclite-dev
             #build_req: pip install -r src/requirements.txt
-            build_cmd: cd build && chmod +x build.sh && ./build.sh && mv dist/sciber-yklocker dist/sciber-yklocker.linux
-            build_filename: sciber-yklocker.linux
+            build_cmd: cd build && chmod +x build.sh && ./build.sh && mv dist/sciber-yklocker dist/sciber-yklocker-linux
+            build_filename: sciber-yklocker-linux
           - os: macos-latest
            # build_req: pip install -r src/requirements.txt
-            build_cmd: cd build && chmod +x build.sh && ./build.sh && mv dist/sciber-yklocker dist/sciber-yklocker.darwin
-            build_filename: sciber-yklocker.darwin
+            build_cmd: cd build && chmod +x build.sh && ./build.sh && mv dist/sciber-yklocker dist/sciber-yklocker-macos.app
+            build_filename: sciber-yklocker-macos.app
           
 # swig pcscd
     steps:
@@ -58,7 +58,7 @@ jobs:
         name: MSI STUFF
         run: |
           dotnet tool install --global wix
-          wix.exe build .\src\sciber-yklocker.wxs
+          wix.exe build -arch x64 .\src\sciber-yklocker.wxs
           cp .\src\sciber-yklocker.msi build/dist/sciber-yklocker.msi
 
     
