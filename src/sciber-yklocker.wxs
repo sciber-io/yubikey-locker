@@ -76,10 +76,5 @@
         <Feature Id="Service" Title="YubiKey Autolocker by Sciber installer" Level="1">
             <ComponentRef Id="ServiceExecutable" />
         </Feature>
-
-
-<UI>
-  <UIRef Id="WixUI_Minimal" />
-</UI>
     </Package>
 </Wix>
