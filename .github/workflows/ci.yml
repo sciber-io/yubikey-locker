@@ -30,8 +30,8 @@ jobs:
             build_filename: sciber-yklocker-linux
           - os: macos-latest
            # build_req: pip install -r src/requirements.txt
-            build_cmd: cd build && chmod +x build.sh && ./build.sh && mv dist/sciber-yklocker dist/sciber-yklocker-macos.app
-            build_filename: sciber-yklocker-macos.app
+            build_cmd: cd build && chmod +x build.sh && ./build.sh && mv dist/sciber-yklocker dist/sciber-yklocker-macos
+            build_filename: sciber-yklocker-macos
           
 # swig pcscd
     steps:
