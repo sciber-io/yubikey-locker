@@ -18,13 +18,13 @@ jobs:
         #exclude:
         #
         include:
-          - os: windows-latest
+          - os: windows-2022
             #build_cmd: cd build && .\build.bat
             build_filename: sciber-yklocker.exe
-          - os: ubuntu-latest
+          - os: ubuntu-22.04
             #build_cmd: cd build && chmod +x build.sh && ./build.sh && mv dist/sciber-yklocker dist/sciber-yklocker-linux
             build_filename: sciber-yklocker-linux
-          - os: macos-latest
+          - os: macos-12
             #build_cmd: cd build && chmod +x build.sh && ./build.sh && mv dist/sciber-yklocker dist/sciber-yklocker-macos
             build_filename: sciber-yklocker-macos
 
@@ -36,7 +36,7 @@ jobs:
         with:
           python-version: '3.11'
 
-      - if: matrix.os == 'ubuntu-latest'
+      - if: matrix.os == 'ubuntu-22.04'
         name: "Ubuntu specific APT install"
         run: |
           sudo apt install -y libpcsclite-dev python3.11-dev
@@ -54,7 +54,7 @@ jobs:
         run: |
           python -m tox -e build -- ${{matrix.build_filename}}
 
-      - if: matrix.os == 'windows-latest'
+      - if: matrix.os == 'windows-2022'
         name: MSI STUFF
         run: |
           dotnet tool install --global wix
@@ -76,5 +76,5 @@ jobs:
 ## RUN WINDOWS OUTSIDE THE MATRIX?!
         # build/dist/sciber-yklocker.exe.msi
  # build2:
- #   runs-on: "windows-latest"
+ #   runs-on: "windows-2022"
  #     job2:
