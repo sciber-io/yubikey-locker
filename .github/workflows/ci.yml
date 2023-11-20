@@ -13,19 +13,19 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
+        os: [ubuntu-22.04, macos-12, windows-2022]
         python-version: ["3.11"]
         #exclude:
         #
         include:
           - os: windows-latest
-            build_cmd: cd build && .\build.bat
+            #build_cmd: cd build && .\build.bat
             build_filename: sciber-yklocker.exe
           - os: ubuntu-latest
-            build_cmd: cd build && chmod +x build.sh && ./build.sh && mv dist/sciber-yklocker dist/sciber-yklocker-linux
+            #build_cmd: cd build && chmod +x build.sh && ./build.sh && mv dist/sciber-yklocker dist/sciber-yklocker-linux
             build_filename: sciber-yklocker-linux
           - os: macos-latest
-            build_cmd: cd build && chmod +x build.sh && ./build.sh && mv dist/sciber-yklocker dist/sciber-yklocker-macos
+            #build_cmd: cd build && chmod +x build.sh && ./build.sh && mv dist/sciber-yklocker dist/sciber-yklocker-macos
             build_filename: sciber-yklocker-macos
 
 # swig pcscd
@@ -46,10 +46,13 @@ jobs:
           python -m pip install --upgrade pip
           pip install tox
 
-      - name: Test and build for ${{matrix.os}}
+      - name: Test for ${{matrix.os}}
         run: |
           python -m tox
-          python -m tox -e build
+
+      - name: Build for ${{matrix.os}}
+        run: |
+          python -m tox -e build -- ${{matrix.build_filename}}
 
       - if: matrix.os == 'windows-latest'
         name: MSI STUFF
