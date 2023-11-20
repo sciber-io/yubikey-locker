@@ -1,2 +1,0 @@
-yubikey-manager==5.2.1
-pyinstaller==6.1.0

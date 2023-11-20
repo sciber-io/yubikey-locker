@@ -1,3 +1,5 @@
+*.egg-info
+/.tox
 venv/
 *.spec
 .venv/
@@ -5,3 +7,6 @@ build/build/
 build/dist
 *.msi
 *.wixpdb
+__pycache__
+.mypy_cache
+.ruff_cache

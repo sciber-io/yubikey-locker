@@ -4,7 +4,7 @@ pyinstaller -F -n "sciber-yklocker" ../src/sciber-yklocker.py
 # MacOS specifics:
 if [ "$(uname)" == "Darwin" ]; then
   # https://pyinstaller.org/en/v4.1/usage.html#building-mac-os-x-app-bundles
-  
+
   # https://medium.com/@fahimhossain_16989/adding-startup-scripts-to-launch-daemon-on-mac-os-x-sierra-10-12-6-7e0318c74de1
   # /Library/LaunchAgents/com.startup.plist
   # /Library/LaunchAgents: Per-user agents installed by the admin
@@ -26,7 +26,7 @@ if [ "$(uname)" == "Darwin" ]; then
     <true/>
     <key>KeepAlive</key>
     <false/>
-    <key>LaunchOnlyOnce</key>        
+    <key>LaunchOnlyOnce</key>
     <true/>
     <key>StandardOutPath</key>
     <string>/tmp/startup.stdout</string>
@@ -42,4 +42,3 @@ if [ "$(uname)" == "Darwin" ]; then
 </plist>
   '''
 fi
-
