@@ -2,7 +2,7 @@ from unittest.mock import MagicMock, patch
 
 import fake_winreg
 
-from sciber_yklocker import (
+from sciber_yklocker import (  # win32con,; win32process,; win32profile,; win32ts,
     OS,
     initRegCheck,
     lockMethod,
@@ -13,10 +13,6 @@ from sciber_yklocker import (
     regCreateKey,
     regQueryKey,
     regSetKey,
-    win32con,
-    win32process,
-    win32profile,
-    win32ts,
     ykLock,
 )
 
@@ -49,7 +45,7 @@ def test_yklock_get_os():
     platform.system = orig
 
 
-def test_yklock_lock():
+def test_yklock_lockLinux():
     # Test Linux lock
     platform.system = lambda: "Linux"
     linuxLocker = ykLock()
@@ -59,23 +55,33 @@ def test_yklock_lock():
             "dbus-send --type=method_call --dest=org.gnome.ScreenSaver /org/gnome/ScreenSaver org.gnome.ScreenSaver.Lock"
         )
 
-    # Test Windows Lock
+
+@patch("sciber_yklocker.win32con")
+@patch("sciber_yklocker.win32ts")
+@patch("sciber_yklocker.win32process")
+@patch("sciber_yklocker.win32profile")
+def test_yklock_lockWindows(m_win32profile, m_win32process, m_win32ts, m_win32con):
     platform.system = lambda: "Windows"
     windowsLocker = ykLock()
-    win32con.NORMAL_PRIORITY_CLASS = 0
-    win32ts.WTSGetActiveConsoleSessionId = MagicMock()
-    win32ts.WTSQueryUserToken = MagicMock()
-    win32process.STARTUPINFO = MagicMock()
-    win32profile.CreateEnvironmentBlock = MagicMock()
-    win32process.CreateProcessAsUser = MagicMock(return_value=[0, 1, 2, 3])
+    m_win32con.NORMAL_PRIORITY_CLASS = 0
+    # win32ts.WTSGetActiveConsoleSessionId = MagicMock()
+    m_win32ts.WTSQueryUserToken = MagicMock()
+    # m_win32process.STARTUPINFO = MagicMock()
+    m_win32profile.CreateEnvironmentBlock = MagicMock()
+    m_win32process.CreateProcessAsUser = MagicMock(return_value=[0, 1, 2, 3])
     windowsLocker.lock()
 
-    win32process.CreateProcessAsUser.assert_called_once()
+    m_win32process.CreateProcessAsUser.assert_called_once()
 
+
+@patch("sciber_yklocker.CDLL")
+def test_yklock_lockMac(mock_CDLL):
     # Test Mac Lock
     platform.system = lambda: "Darwin"
+    macLocker = ykLock()
+    macLocker.lock()
 
-    # Unclear how to mock this one
+    mock_CDLL.assert_called_once()
 
 
 def test_regCreateKey():
@@ -134,7 +140,7 @@ def test_initRegCheck():
 @patch.object(ykLock, "lock", return_value=False)
 @patch("sciber_yklocker.scan_devices", return_value=[0, 1])
 @patch("sciber_yklocker.list_all_devices", return_value=[])
-def test_nixCode(mock_lock, mock_scan, mock_list):
+def test_nixCode(mock_list, mock_scan, mock_lock):
     yklocker = ykLock()
     # Nerf sleep
     yklocker.getTimeout = lambda: 0
