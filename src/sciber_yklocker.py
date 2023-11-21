@@ -2,10 +2,27 @@
 
 # General imports
 import getopt
+import os
 import platform
+import sys
 import traceback
-from enum import Enum, StrEnum  # strenum is python 3.11+
+from ctypes import CDLL
+from enum import Enum, StrEnum  # StrEnum is python 3.11+
 from time import sleep
+
+# Enable global imports plus testing
+if platform.system() != "Windows":
+    import emptyModule
+
+    sys.modules["win32con"] = emptyModule
+    sys.modules["win32process"] = emptyModule
+    sys.modules["win32profile"] = emptyModule
+    sys.modules["win32ts"] = emptyModule
+
+import win32con
+import win32process
+import win32profile
+import win32ts
 
 # Yubikey imports
 from ykman.device import list_all_devices, scan_devices
@@ -24,6 +41,25 @@ class lockMethod(StrEnum):
 
 
 class ykLock:
+    def getOS(self):
+        return self.osversion
+
+    def os_detect(self):
+        if platform.system() == "Darwin":
+            self.osversion = OS.MAC
+        elif platform.system() == "Windows":
+            self.osversion = OS.WIN
+        elif platform.system() == "Linux":
+            self.osversion = OS.LX
+        else:
+            self.osversion = OS.UNKNOWN
+
+    def __init__(self):
+        # Set default values
+        self.os_detect()
+        self.timeout = 10
+        self.lockType = lockMethod.LOCK
+
     def getTimeout(self):
         return self.timeout
 
@@ -39,67 +75,44 @@ class ykLock:
     def getLockMethod(self):
         return self.lockType
 
-    def lockMacOS(self):
-        from ctypes import CDLL
+    def lock(self):
+        if self.osversion == OS.MAC:
+            loginPF = CDLL(
+                "/System/Library/PrivateFrameworks/login.framework/Versions/Current/login"
+            )
+            loginPF.SACLockScreenImmediate()
+        elif self.osversion == OS.LX:
+            # Determine what type of lock-action to take. Defaults to lock
+            command = "dbus-send --type=method_call --dest=org.gnome.ScreenSaver /org/gnome/ScreenSaver org.gnome.ScreenSaver.Lock"
+            if self.getLockMethod() == lockMethod.LOGOUT:
+                command = "dbus-send --session --type=method_call --print-reply --dest=org.gnome.SessionManager /org/gnome/SessionManager org.gnome.SessionManager.Logout uint32:1"
 
-        loginPF = CDLL(
-            "/System/Library/PrivateFrameworks/login.framework/Versions/Current/login"
-        )
-        loginPF.SACLockScreenImmediate()
+            os.popen(command)
+        elif self.osversion == OS.WIN:
+            # As the service will be running as System you require a session handle to interact with the Desktop logon
+            console_session_id = win32ts.WTSGetActiveConsoleSessionId()
+            console_user_token = win32ts.WTSQueryUserToken(console_session_id)
+            startup = win32process.STARTUPINFO()
+            priority = win32con.NORMAL_PRIORITY_CLASS
+            environment = win32profile.CreateEnvironmentBlock(console_user_token, False)
 
-    def lockLinux(self):
-        import os
+            # Determine what type of lock-action to take. Defaults to lock
+            command = "\\Windows\\system32\\rundll32.exe user32.dll,LockWorkStation"
+            if self.getLockMethod() == lockMethod.LOGOUT:
+                command = "\\Windows\\system32\\logoff.exe"
 
-        # Determine what type of lock-action to take. Defaults to lock
-        command = "dbus-send --type=method_call --dest=org.gnome.ScreenSaver /org/gnome/ScreenSaver org.gnome.ScreenSaver.Lock"
-        if self.getLockMethod() == lockMethod.LOGOUT:
-            command = "dbus-send --session --type=method_call --print-reply --dest=org.gnome.SessionManager /org/gnome/SessionManager org.gnome.SessionManager.Logout uint32:1"
-
-        os.popen(command)
-
-    def lockWindows(self):
-        import win32con
-        import win32process
-        import win32profile
-        import win32ts
-
-        # As the service will be running as System you require a session handle to interact with the Desktop logon
-        console_session_id = win32ts.WTSGetActiveConsoleSessionId()
-        console_user_token = win32ts.WTSQueryUserToken(console_session_id)
-        startup = win32process.STARTUPINFO()
-        priority = win32con.NORMAL_PRIORITY_CLASS
-        environment = win32profile.CreateEnvironmentBlock(console_user_token, False)
-
-        # Determine what type of lock-action to take. Defaults to lock
-        command = "\\Windows\\system32\\rundll32.exe user32.dll,LockWorkStation"
-        if self.getLockMethod() == lockMethod.LOGOUT:
-            command = "\\Windows\\system32\\logoff.exe"
-
-        handle, thread_id, pid, tid = win32process.CreateProcessAsUser(
-            console_user_token,
-            None,
-            command,
-            None,
-            None,
-            True,
-            priority,
-            environment,
-            None,
-            startup,
-        )
-
-    def os_detect(self):
-        if platform.system() == "Darwin":
-            self.osversion = OS.MAC
-        elif platform.system() == "Windows":
-            self.osversion = OS.WIN
-        elif platform.system() == "Linux":
-            self.osversion = OS.LX
-        else:
-            self.osversion = OS.UNKNOWN
-
-    def getOS(self):
-        return self.osversion
+            handle, thread_id, pid, tid = win32process.CreateProcessAsUser(
+                console_user_token,
+                None,
+                command,
+                None,
+                None,
+                True,
+                priority,
+                environment,
+                None,
+                startup,
+            )
 
 
 def regCreateKey(reg):
@@ -235,7 +248,7 @@ def windowsCode(yklocker):
                         servicemanager.LogInfoMsg(
                             "YubiKey Disconnected. Locking workstation"
                         )
-                        yklocker.lockWindows()
+                        yklocker.lock()
 
                 # Stops the loop if hWaitStop has been issued
                 if (
@@ -265,20 +278,12 @@ def nixCode(yklocker):
                 print(f"YubiKey Connected with serial: {info.serial}")
             if len(list_all_devices()) == 0:
                 print("YubiKey Disconnected. Locking workstation")
-                if yklocker.getOS() == OS.LX:
-                    yklocker.lockLinux()
-                elif yklocker.getOS() == OS.MAC:
-                    yklocker.lockMacOS()
+                yklocker.lock()
 
 
 def main(argv):
     # Create ykLock object
     yklocker = ykLock()
-    yklocker.os_detect()
-
-    # Set defaults
-    yklocker.setLockMethod(lockMethod.LOCK)
-    yklocker.setTimeout(10)
 
     # If Windows check registry settings to override defaults:
     if yklocker.getOS() == OS.WIN:
