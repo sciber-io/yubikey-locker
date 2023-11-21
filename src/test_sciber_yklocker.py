@@ -2,17 +2,19 @@ from unittest.mock import MagicMock, patch
 
 import fake_winreg
 
-from sciber_yklocker import (  # win32con,; win32process,; win32profile,; win32ts,
+from sciber_yklocker import (
     OS,
     initRegCheck,
     lockMethod,
-    nixCode,
+    nixLoop,
     os,
     platform,
     regcheck,
     regCreateKey,
     regQueryKey,
     regSetKey,
+    windowsCode,
+    windowsLoop,
     ykLock,
 )
 
@@ -85,67 +87,103 @@ def test_yklock_lockMac(mock_CDLL):
 
 
 def test_regCreateKey():
-    ret = regCreateKey(fake_winreg)
+    with patch("sciber_yklocker.winreg", fake_winreg):
+        ret = regCreateKey()
 
-    # open key assumes the key has already been created
-    ret1 = fake_winreg.OpenKey(
-        fake_winreg.HKEY_LOCAL_MACHINE,
-        r"SOFTWARE\\Policies\\Yubico\\YubiKey Removal Behavior\\",
-    )
-    assert ret.handle.full_key == ret1.handle.full_key
+        # open key assumes the key has already been created
+        ret1 = fake_winreg.OpenKey(
+            fake_winreg.HKEY_LOCAL_MACHINE,
+            r"SOFTWARE\\Policies\\Yubico\\YubiKey Removal Behavior\\",
+        )
+        assert ret.handle.full_key == ret1.handle.full_key
 
 
 def test_regQueryKey():
-    key_handle = regCreateKey(fake_winreg)
-    # Non-existing key should return None
-    assert regQueryKey(fake_winreg, key_handle, "nada") is None
+    with patch("sciber_yklocker.winreg", fake_winreg):
+        key_handle = regCreateKey()
+        # Non-existing key should return None
+        assert regQueryKey(key_handle, "nada") is None
 
 
 def test_regSetKey():
-    key_handle = regCreateKey(fake_winreg)
-    # Successfully creating a key:value should return True
-    ret = regSetKey(fake_winreg, key_handle, "name1", "value1")
-    assert ret is True
+    with patch("sciber_yklocker.winreg", fake_winreg):
+        key_handle = regCreateKey()
+        # Successfully creating a key:value should return True
+        ret = regSetKey(key_handle, "name1", "value1")
+        assert ret is True
 
-    # Successfully querying that value should, return the value
-    ret = regQueryKey(fake_winreg, key_handle, "name1")
-    assert ret[0] == "value1"
+        # Successfully querying that value should, return the value
+        ret = regQueryKey(key_handle, "name1")
+        assert ret[0] == "value1"
 
 
 def test_regcheck():
-    input = lockMethod.LOGOUT
-    ret = regcheck(fake_winreg, "removalOption", input)
-    assert ret == input
+    with patch("sciber_yklocker.winreg", fake_winreg):
+        input = lockMethod.LOGOUT
+        ret = regcheck("removalOption", input)
+        assert ret == input
 
-    input = 15
-    ret = regcheck(fake_winreg, "timeout", input)
-    assert int(ret) == input
+        input = 15
+        ret = regcheck("timeout", input)
+        assert int(ret) == input
 
 
 # Test new defaults
 def test_initRegCheck():
-    yklocker = ykLock()
-    # Using different inputs than the defaults set in ykLock()
-    input1 = lockMethod.LOGOUT
-    input2 = 15
-    yklocker.setLockMethod(input1)
-    yklocker.setTimeout(input2)
+    with patch("sciber_yklocker.winreg", fake_winreg):
+        yklocker = ykLock()
+        # Using different inputs than the defaults set in ykLock()
+        input1 = lockMethod.LOGOUT
+        input2 = 15
+        yklocker.setLockMethod(input1)
+        yklocker.setTimeout(input2)
 
-    lockValue, timeoutValue = initRegCheck(fake_winreg, yklocker)
-    assert lockValue == input1
-    assert timeoutValue == input2
+        lockValue, timeoutValue = initRegCheck(yklocker)
+        assert lockValue == input1
+        assert timeoutValue == input2
 
 
-# Nerf lock-function
+# Nerf lock-function and patch ykman imports
 @patch.object(ykLock, "lock", return_value=False)
 @patch("sciber_yklocker.scan_devices", return_value=[0, 1])
 @patch("sciber_yklocker.list_all_devices", return_value=[])
-def test_nixCode(mock_list, mock_scan, mock_lock):
+def test_nixLoop(mock_list, mock_scan, mock_lock):
     yklocker = ykLock()
     # Nerf sleep
     yklocker.getTimeout = lambda: 0
 
-    nixCode(yklocker)
+    nixLoop(yklocker)
+    mock_scan.assert_called_once()
+    mock_lock.assert_called_once()
+    mock_list.assert_called_once()
+
+
+@patch("sciber_yklocker.servicemanager")
+def test_windowsCode(m_servicemanager):
+    platform.system = lambda: "Windows"
+    winlocker = ykLock()
+    m_servicemanager.StartServiceCtrlDispatcher = MagicMock()
+    windowsCode(winlocker)
+
+    # Make sure the code calls StartServiceCtrlDispatcher
+    m_servicemanager.StartServiceCtrlDispatcher.assert_called_once()
+
+
+# Nerf lock-function and patch ykman imports
+@patch.object(ykLock, "lock", return_value=False)
+@patch("sciber_yklocker.scan_devices", return_value=[0, 1])
+@patch("sciber_yklocker.list_all_devices", return_value=[])
+@patch("sciber_yklocker.servicemanager")
+@patch("sciber_yklocker.win32event")
+def test_windowsLoop(m_win32event, m_servicemanager, mock_list, mock_scan, mock_lock):
+    platform.system = lambda: "Windows"
+    winlocker = ykLock()
+    # Nerf sleep
+    winlocker.getTimeout = lambda: 0
+
+    windowsLoop(MagicMock(), winlocker)
+    m_servicemanager.LogInfoMsg.call_count == 3
+    m_win32event.WaitForSingleObject.assert_called_once()
     mock_scan.assert_called_once()
     mock_lock.assert_called_once()
     mock_list.assert_called_once()
