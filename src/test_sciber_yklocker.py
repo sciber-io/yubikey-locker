@@ -6,6 +6,7 @@ from sciber_yklocker import (
     OS,
     initRegCheck,
     lockMethod,
+    nixCode,
     os,
     platform,
     regcheck,
@@ -127,3 +128,18 @@ def test_initRegCheck():
     lockValue, timeoutValue = initRegCheck(fake_winreg, yklocker)
     assert lockValue == input1
     assert timeoutValue == input2
+
+
+# Nerf lock-function
+@patch.object(ykLock, "lock", return_value=False)
+@patch("sciber_yklocker.scan_devices", return_value=[0, 1])
+@patch("sciber_yklocker.list_all_devices", return_value=[])
+def test_nixCode(mock_lock, mock_scan, mock_list):
+    yklocker = ykLock()
+    # Nerf sleep
+    yklocker.getTimeout = lambda: 0
+
+    nixCode(yklocker)
+    mock_scan.assert_called_once()
+    mock_lock.assert_called_once()
+    mock_list.assert_called_once()

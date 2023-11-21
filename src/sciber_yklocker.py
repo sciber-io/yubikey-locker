@@ -113,6 +113,8 @@ class ykLock:
                 None,
                 startup,
             )
+        # Keep the looping going
+        return True
 
 
 def regCreateKey(reg):
@@ -225,7 +227,8 @@ def windowsCode(yklocker):
             state = None
             import winreg
 
-            while True:
+            loop = True
+            while loop:
                 sleep(yklocker.getTimeout())
                 timeoutValue = yklocker.getTimeout()
                 removalOption = yklocker.getLockMethod()
@@ -240,15 +243,16 @@ def windowsCode(yklocker):
                 pids, new_state = scan_devices()
                 if new_state != state:
                     state = new_state  # State has changed
-                    for device, info in list_all_devices():
+                    devices = list_all_devices()
+                    for device, info in devices:
                         servicemanager.LogInfoMsg(
                             f"YubiKey Connected with serial: {info.serial}"
                         )
-                    if len(list_all_devices()) == 0:
+                    if len(devices) == 0:
                         servicemanager.LogInfoMsg(
                             "YubiKey Disconnected. Locking workstation"
                         )
-                        yklocker.lock()
+                        loop = yklocker.lock()
 
                 # Stops the loop if hWaitStop has been issued
                 if (
@@ -269,16 +273,18 @@ def nixCode(yklocker):
     )
     print("Started scan for YubiKeys")
     state = None
-    while True:
+    loop = True
+    while loop:
         sleep(yklocker.getTimeout())
         pids, new_state = scan_devices()
         if new_state != state:
             state = new_state  # State has changed
-            for device, info in list_all_devices():
+            devices = list_all_devices()
+            for device, info in devices:
                 print(f"YubiKey Connected with serial: {info.serial}")
-            if len(list_all_devices()) == 0:
+            if len(devices) == 0:
                 print("YubiKey Disconnected. Locking workstation")
-                yklocker.lock()
+                loop = yklocker.lock()
 
 
 def main(argv):
