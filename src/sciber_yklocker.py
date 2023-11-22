@@ -42,6 +42,10 @@ import win32service
 import win32serviceutil
 import win32ts
 
+REG_REMOVALOPTION = "removalOption"
+REG_TIMEOUT = "timeout"
+REG_PATH = r"SOFTWARE\\Policies\\Yubico\\YubiKey Removal Behavior\\"
+
 
 class OS(Enum):
     MAC = 0
@@ -140,11 +144,8 @@ class ykLock:
 
 def regCreateKey():
     try:
-        return winreg.CreateKey(
-            winreg.HKEY_LOCAL_MACHINE,
-            r"SOFTWARE\\Policies\\Yubico\\YubiKey Removal Behavior\\",
-        )
-    except OSError:
+        return winreg.CreateKey(winreg.HKEY_LOCAL_MACHINE, REG_PATH)
+    except (OSError, AttributeError):
         traceback.print_exc()
         return False
 
@@ -152,7 +153,7 @@ def regCreateKey():
 def regQueryKey(key_handle, key_name):
     try:
         return winreg.QueryValueEx(key_handle, key_name)
-    except OSError:
+    except (OSError, TypeError):
         traceback.print_exc()
         return False
 
@@ -161,7 +162,7 @@ def regSetKey(key_handle, key_name, key_value):
     try:
         winreg.SetValueEx(key_handle, key_name, 0, winreg.REG_SZ, str(key_value))
         return True
-    except OSError:
+    except (OSError, TypeError):
         traceback.print_exc()
         return False
 
@@ -190,12 +191,12 @@ def regcheck(key_name, key_value):
 
 def initRegCheck(yklocker):
     # Call regcheck with default values to use if registry is not populated
-    lockValue = regcheck("removalOption", yklocker.getLockMethod())
+    lockValue = regcheck(REG_REMOVALOPTION, yklocker.getLockMethod())
     if lockValue is not False:
         yklocker.setLockMethod(lockValue)
 
     # Call regcheck with default values to use if registry is not populated
-    timeoutValue = int(regcheck("timeout", yklocker.getTimeout()))
+    timeoutValue = int(regcheck(REG_TIMEOUT, yklocker.getTimeout()))
     if timeoutValue is not False:
         yklocker.setTimeout(timeoutValue)
 
@@ -306,7 +307,7 @@ def main(argv):
     opts, args = getopt.getopt(argv, "l:t:")
     for opt, arg in opts:
         if opt == "-l":
-            if arg == "logout":
+            if arg == lockMethod.LOGOUT:
                 yklocker.setLockMethod(lockMethod.LOGOUT)
         elif opt == "-t":
             if arg.isdecimal():

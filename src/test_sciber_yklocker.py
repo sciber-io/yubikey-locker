@@ -4,6 +4,9 @@ import fake_winreg
 
 from sciber_yklocker import (
     OS,
+    REG_PATH,
+    REG_REMOVALOPTION,
+    REG_TIMEOUT,
     initRegCheck,
     lockMethod,
     loopCode,
@@ -51,9 +54,19 @@ def test_yklock_lockLinux():
     linuxLocker = ykLock()
     with patch.object(os, "popen") as mock_popen:
         linuxLocker.lock()
-        mock_popen.assert_called_with(
-            "dbus-send --type=method_call --dest=org.gnome.ScreenSaver /org/gnome/ScreenSaver org.gnome.ScreenSaver.Lock"
-        )
+        mock_popen.assert_called_once()
+        assert "ScreenSaver.Lock" in mock_popen.call_args[0][0]
+
+
+def test_yklock_logoutLinux():
+    # Test Linux logout
+    platform.system = lambda: "Linux"
+    linuxLocker = ykLock()
+    linuxLocker.setLockMethod(lockMethod.LOGOUT)
+    with patch.object(os, "popen") as mock_popen:
+        linuxLocker.lock()
+        mock_popen.assert_called_once()
+        assert "SessionManager.Logout" in mock_popen.call_args[0][0]
 
 
 @patch("sciber_yklocker.win32con")
@@ -64,14 +77,34 @@ def test_yklock_lockWindows(m_win32profile, m_win32process, m_win32ts, m_win32co
     platform.system = lambda: "Windows"
     windowsLocker = ykLock()
     m_win32con.NORMAL_PRIORITY_CLASS = 0
-    # win32ts.WTSGetActiveConsoleSessionId = MagicMock()
     m_win32ts.WTSQueryUserToken = MagicMock()
-    # m_win32process.STARTUPINFO = MagicMock()
     m_win32profile.CreateEnvironmentBlock = MagicMock()
     m_win32process.CreateProcessAsUser = MagicMock(return_value=[0, 1, 2, 3])
-    windowsLocker.lock()
 
+    # Test Windows LOCK
+    windowsLocker.lock()
     m_win32process.CreateProcessAsUser.assert_called_once()
+    assert "LockWorkStation" in m_win32process.CreateProcessAsUser.call_args[0][2]
+
+
+@patch("sciber_yklocker.win32con")
+@patch("sciber_yklocker.win32ts")
+@patch("sciber_yklocker.win32process")
+@patch("sciber_yklocker.win32profile")
+def test_yklock_logoutWindows(m_win32profile, m_win32process, m_win32ts, m_win32con):
+    platform.system = lambda: "Windows"
+    windowsLocker = ykLock()
+    windowsLocker.setLockMethod(lockMethod.LOGOUT)
+
+    m_win32con.NORMAL_PRIORITY_CLASS = 0
+    m_win32ts.WTSQueryUserToken = MagicMock()
+    m_win32profile.CreateEnvironmentBlock = MagicMock()
+    m_win32process.CreateProcessAsUser = MagicMock(return_value=[0, 1, 2, 3])
+
+    # Test Windows LOGOUT
+    windowsLocker.lock()
+    m_win32process.CreateProcessAsUser.assert_called_once()
+    assert "logoff.exe" in m_win32process.CreateProcessAsUser.call_args_list[0][0][2]
 
 
 @patch("sciber_yklocker.CDLL")
@@ -87,13 +120,14 @@ def test_yklock_lockMac(mock_CDLL):
 def reg_reset():
     # Delete our values
     try:
-        key_handle = fake_winreg.OpenKey(
-            fake_winreg.HKEY_LOCAL_MACHINE,
-            r"SOFTWARE\\Policies\\Yubico\\YubiKey Removal Behavior\\",
-        )
+        key_handle = fake_winreg.OpenKey(fake_winreg.HKEY_LOCAL_MACHINE, REG_PATH)
 
-        fake_winreg.DeleteValue(key_handle, "removalOption")
-        fake_winreg.DeleteValue(key_handle, "timeout")
+        fake_winreg.DeleteValue(key_handle, REG_REMOVALOPTION)
+        fake_winreg.DeleteValue(key_handle, REG_TIMEOUT)
+        fake_winreg.DeleteKey(key_handle, REG_REMOVALOPTION)
+        fake_winreg.DeleteKey(key_handle, REG_TIMEOUT)
+        fake_winreg.CloseKey(key_handle)
+
     except OSError:
         print("No registry values to delete")
 
@@ -101,22 +135,39 @@ def reg_reset():
 def test_regCreateKey():
     reg_reset()
     with patch("sciber_yklocker.winreg", fake_winreg):
-        ret = regCreateKey()
+        create_key_handle = regCreateKey()
 
         # open key assumes the key has already been created
-        ret1 = fake_winreg.OpenKey(
-            fake_winreg.HKEY_LOCAL_MACHINE,
-            r"SOFTWARE\\Policies\\Yubico\\YubiKey Removal Behavior\\",
-        )
-        assert ret.handle.full_key == ret1.handle.full_key
+        open_key_handle = fake_winreg.OpenKey(fake_winreg.HKEY_LOCAL_MACHINE, REG_PATH)
+        assert create_key_handle.handle.full_key == open_key_handle.handle.full_key
+        fake_winreg.CloseKey(create_key_handle)
+        fake_winreg.CloseKey(open_key_handle)
+
+
+# Test non-existing registry
+def test_regCreateKey_error():
+    reg_reset()
+    with patch("sciber_yklocker.winreg", None):
+        assert regCreateKey() is False
 
 
 def test_regQueryKey():
     reg_reset()
     with patch("sciber_yklocker.winreg", fake_winreg):
+        input = "1"
+        key_handle = regCreateKey()
+        regSetKey(key_handle, REG_TIMEOUT, input)
+        assert regQueryKey(key_handle, REG_TIMEOUT)[0] is input
+        fake_winreg.CloseKey(key_handle)
+
+
+def test_regQueryKey_error():
+    reg_reset()
+    with patch("sciber_yklocker.winreg", fake_winreg):
         key_handle = regCreateKey()
         # Non-existing key should return None
         assert regQueryKey(key_handle, "nada") is False
+        fake_winreg.CloseKey(key_handle)
 
 
 def test_regSetKey():
@@ -131,17 +182,33 @@ def test_regSetKey():
         ret = regQueryKey(key_handle, "name1")
         assert ret[0] == "value1"
 
+        fake_winreg.CloseKey(key_handle)
 
-def test_regcheck():
+
+def test_regSetKey_error():
+    reg_reset()
+    with patch("sciber_yklocker.winreg", fake_winreg):
+        assert regSetKey("1", "2", "3") is False
+
+
+def test_regcheck_removaloption():
     reg_reset()
     with patch("sciber_yklocker.winreg", fake_winreg):
         input = lockMethod.LOGOUT
-        ret = regcheck("removalOption", input)
-        assert ret == input
+        assert regcheck(REG_REMOVALOPTION, input) == input
 
+
+def test_regcheck_timeout():
+    reg_reset()
+    with patch("sciber_yklocker.winreg", fake_winreg):
         input = 15
-        ret = regcheck("timeout", input)
-        assert int(ret) == input
+        assert int(regcheck(REG_TIMEOUT, input)) == input
+
+
+def test_test_regcheck_error():
+    reg_reset()
+    with patch("sciber_yklocker.winreg", None):
+        assert regcheck("1", "2") is False
 
 
 # Test new defaults
@@ -192,9 +259,9 @@ def test_windowsCheckRegUpdates_withUpdate(m_servicemanager):
         print("mock_regQueryKey")
         print(key_name, key_value)
         #
-        if key_value == "removalOption":
+        if key_value == REG_REMOVALOPTION:
             return ["logout", fake_winreg.REG_SZ]
-        elif key_value == "timeout":
+        elif key_value == REG_TIMEOUT:
             return ["15", fake_winreg.REG_SZ]
 
     with patch("sciber_yklocker.regQueryKey", mock_regQueryKey):
