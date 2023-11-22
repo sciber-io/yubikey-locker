@@ -39,12 +39,10 @@ def test_yklock_getsetTimeout():
 
 
 def test_yklock_get_os():
-    orig = platform.system
     platform.system = lambda: "nada"
     yklocker = ykLock()
 
     assert yklocker.getOS() == OS.UNKNOWN
-    platform.system = orig
 
 
 def test_yklock_lockLinux():
@@ -159,20 +157,24 @@ def test_nixLoop(mock_list, mock_scan, mock_lock):
 
 
 @patch("sciber_yklocker.servicemanager")
-def test_windowsCode(m_servicemanager):
+@patch("sciber_yklocker.win32serviceutil")
+def test_windowsCode(m_win32serviceutil, m_servicemanager):
     platform.system = lambda: "Windows"
     winlocker = ykLock()
     m_servicemanager.StartServiceCtrlDispatcher = MagicMock()
+    m_win32serviceutil.ServiceFramework = MagicMock()
     windowsCode(winlocker)
 
     # Make sure the code calls StartServiceCtrlDispatcher
     m_servicemanager.StartServiceCtrlDispatcher.assert_called_once()
+    m_win32serviceutil.ServiceFramework.assert_not_called()
 
 
 # Nerf lock-function and patch ykman imports
 @patch.object(ykLock, "lock", return_value=False)
 @patch("sciber_yklocker.scan_devices", return_value=[0, 1])
 @patch("sciber_yklocker.list_all_devices", return_value=[])
+# Patch other called imports
 @patch("sciber_yklocker.servicemanager")
 @patch("sciber_yklocker.win32event")
 def test_windowsLoop(m_win32event, m_servicemanager, mock_list, mock_scan, mock_lock):
@@ -180,8 +182,8 @@ def test_windowsLoop(m_win32event, m_servicemanager, mock_list, mock_scan, mock_
     winlocker = ykLock()
     # Nerf sleep
     winlocker.getTimeout = lambda: 0
-
-    windowsLoop(MagicMock(), winlocker)
+    with patch("sciber_yklocker.winreg", fake_winreg):
+        windowsLoop(MagicMock(), winlocker)
     m_servicemanager.LogInfoMsg.call_count == 3
     m_win32event.WaitForSingleObject.assert_called_once()
     mock_scan.assert_called_once()
