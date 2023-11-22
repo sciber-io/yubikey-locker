@@ -68,6 +68,10 @@ def mock_scan_devices():
     return [0, 1]
 
 
+def mock_WaitForSingleObject(a, b):
+    return 0
+
+
 ## Test Functions ##
 
 
@@ -164,6 +168,23 @@ def test_yklock_lockMac(mock_CDLL):
     macLocker.lock()
 
     mock_CDLL.assert_called_once()
+
+
+@patch("sciber_yklocker.servicemanager")
+def test_yklock_logger_windows(m_servicemanager):
+    platform.system = lambda: "Windows"
+    winlocker = ykLock()
+    with patch("sciber_yklocker.servicemanager.LogInfoMsg") as mock_log:
+        winlocker.logger("testmessage")
+        mock_log.assert_called_once_with("testmessage")
+
+
+def test_yklock_logger():
+    platform.system = lambda: "Linux"
+    linuxLocker = ykLock()
+    with patch("builtins.print") as mock_print:
+        linuxLocker.logger("testmessage")
+        mock_print.assert_called_once_with("testmessage")
 
 
 def test_regCreateKey():
@@ -310,23 +331,73 @@ def test_windowsCheckRegUpdates_with_update(m_servicemanager):
         assert winlocker.getTimeout() != input2
 
 
-# Patch imports
 @patch.object(ykLock, "lock")
 @patch("sciber_yklocker.scan_devices", return_value=[0, 1])
 @patch("sciber_yklocker.servicemanager")
 @patch("sciber_yklocker.win32event")
-def test_loopCode_no_yubikey(m_win32event, m_servicemanager, _, mock_lock):
+def test_loopCode_no_yubikey_windows(m_win32event, m_servicemanager, _, mock_lock):
     platform.system = lambda: "Windows"
     winlocker = ykLock()
     # Nerf sleep and infinitive loop
     winlocker.getTimeout = lambda: 0
     winlocker.isTest = lambda: True
 
+    with patch(
+        "sciber_yklocker.win32event.WaitForSingleObject", mock_WaitForSingleObject
+    ):
+        # Patch logger to catch the message sent to it
+        with patch("sciber_yklocker.ykLock.logger", MagicMock()) as mock_logger:
+            # Make sure no YubiKeys are found
+            with patch("sciber_yklocker.list_all_devices", mock_list_no_devices):
+                loopCode(MagicMock(), winlocker)
+
+            # Make sure we got the right serial
+            mock_logger.assert_called_with("YubiKey Disconnected. Locking workstation")
+        # Make sure lock was called
+        mock_lock.assert_called_once()
+
+
+@patch.object(ykLock, "lock")
+@patch("sciber_yklocker.scan_devices", return_value=[0, 1])
+@patch("sciber_yklocker.servicemanager")
+@patch("sciber_yklocker.win32event")
+def test_loopCode_with_yubikey_windows(
+    m_win32event, m_servicemanager, m_scan, mock_lock
+):
+    platform.system = lambda: "Windows"
+    winlocker = ykLock()
+    # Nerf sleep and infinitive loop
+    winlocker.getTimeout = lambda: 0
+    winlocker.isTest = lambda: True
+
+    with patch(
+        "sciber_yklocker.win32event.WaitForSingleObject", mock_WaitForSingleObject
+    ):
+        # Patch logger to catch the serial sent to it
+        with patch("sciber_yklocker.ykLock.logger", MagicMock()) as mock_logger:
+            # Make sure one "YubiKey" is found
+            with patch("sciber_yklocker.list_all_devices", mock_list_one_device):
+                loopCode(MagicMock(), winlocker)
+            # Make sure we got the right serial
+            assert "0123456789#" in mock_logger.call_args[0][0]
+        # Make sure lock was not called
+        mock_lock.assert_not_called()
+
+
+@patch.object(ykLock, "lock")
+@patch("sciber_yklocker.scan_devices", return_value=[0, 1])
+def test_loopCode_no_yubikey(_, mock_lock):
+    platform.system = lambda: "Linux"
+    lxlocker = ykLock()
+    # Nerf sleep and infinitive loop
+    lxlocker.getTimeout = lambda: 0
+    lxlocker.isTest = lambda: True
+
     # Patch logger to catch the message sent to it
     with patch("sciber_yklocker.ykLock.logger", MagicMock()) as mock_logger:
         # Make sure no YubiKeys are found
         with patch("sciber_yklocker.list_all_devices", mock_list_no_devices):
-            loopCode(MagicMock(), winlocker)
+            loopCode(MagicMock(), lxlocker)
 
         # Make sure we got the right serial
         mock_logger.assert_called_with("YubiKey Disconnected. Locking workstation")
@@ -334,23 +405,20 @@ def test_loopCode_no_yubikey(m_win32event, m_servicemanager, _, mock_lock):
     mock_lock.assert_called_once()
 
 
-# Patch imports
 @patch.object(ykLock, "lock")
 @patch("sciber_yklocker.scan_devices", return_value=[0, 1])
-@patch("sciber_yklocker.servicemanager")
-@patch("sciber_yklocker.win32event")
-def test_loopCode_with_yubikey(m_win32event, m_servicemanager, m_scan, mock_lock):
-    platform.system = lambda: "Windows"
-    winlocker = ykLock()
+def test_loopCode_with_yubikey(_, mock_lock):
+    platform.system = lambda: "Linux"
+    lxlocker = ykLock()
     # Nerf sleep and infinitive loop
-    winlocker.getTimeout = lambda: 0
-    winlocker.isTest = lambda: True
+    lxlocker.getTimeout = lambda: 0
+    lxlocker.isTest = lambda: True
 
     # Patch logger to catch the serial sent to it
     with patch("sciber_yklocker.ykLock.logger", MagicMock()) as mock_logger:
         # Make sure one "YubiKey" is found
         with patch("sciber_yklocker.list_all_devices", mock_list_one_device):
-            loopCode(MagicMock(), winlocker)
+            loopCode(MagicMock(), lxlocker)
         # Make sure we got the right serial
         assert "0123456789#" in mock_logger.call_args[0][0]
     # Make sure lock was not called
