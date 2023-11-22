@@ -63,6 +63,9 @@ class ykLock:
     def getOS(self):
         return self.osversion
 
+    def isTest(self):
+        return False  # pragma: no cover
+
     def os_detect(self):
         if platform.system() == "Darwin":
             self.osversion = OS.MAC
@@ -132,8 +135,6 @@ class ykLock:
                 None,
                 startup,
             )
-        # Keep the looping going
-        return True
 
     def logger(self, message):
         if self.osversion == OS.WIN:
@@ -153,7 +154,7 @@ def regCreateKey():
 def regQueryKey(key_handle, key_name):
     try:
         return winreg.QueryValueEx(key_handle, key_name)
-    except (OSError, TypeError):
+    except (OSError, TypeError, FileNotFoundError, KeyError):
         traceback.print_exc()
         return False
 
@@ -244,7 +245,7 @@ def loopCode(serviceObject, yklocker):
             if len(devices) == 0:
                 locking_message = "YubiKey Disconnected. Locking workstation"
                 yklocker.logger(locking_message)
-                loop = yklocker.lock()
+                yklocker.lock()
 
         if yklocker.getOS() == OS.WIN:
             # Stops the loop if hWaitStop has been issued
@@ -253,6 +254,10 @@ def loopCode(serviceObject, yklocker):
                 == win32event.WAIT_OBJECT_0
             ):
                 loop = False
+
+        # To break out of loop while testing
+        if yklocker.isTest():
+            loop = False
 
 
 def windowsService(yklocker):
@@ -303,8 +308,12 @@ def main(argv):
     if yklocker.getOS() == OS.WIN:
         initRegCheck(yklocker)
 
+    print(argv)
+
     # Check arguments to override defaults:
     opts, args = getopt.getopt(argv, "l:t:")
+    print("opts", opts)
+    print("args", args)
     for opt, arg in opts:
         if opt == "-l":
             if arg == lockMethod.LOGOUT:
@@ -321,4 +330,4 @@ def main(argv):
 
 
 if __name__ == "__main__":
-    main(sys.argv[1:])
+    main(sys.argv[1:])  # pragma: no cover
