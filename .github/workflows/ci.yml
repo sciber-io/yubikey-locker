@@ -61,7 +61,11 @@ jobs:
           wix.exe build -arch x64 .\src\sciber-yklocker.wxs
           cp .\src\sciber-yklocker.msi build/dist/sciber-yklocker.msi
 
-
+      - if: matrix.os == 'ubuntu-22.04'
+        name: Pytest coverage comment
+        uses: MishaKav/pytest-coverage-comment@main
+        with:
+          pytest-xml-coverage-path: ./cov.xml
 
       - name: "Publish release files"
         uses: softprops/action-gh-release@v1
