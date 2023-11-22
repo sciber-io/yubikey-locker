@@ -131,6 +131,12 @@ class ykLock:
         # Keep the looping going
         return True
 
+    def logger(self, message):
+        if self.osversion == OS.WIN:
+            servicemanager.LogInfoMsg(message)
+        else:
+            print(message)
+
 
 def regCreateKey():
     try:
@@ -140,7 +146,7 @@ def regCreateKey():
         )
     except OSError:
         traceback.print_exc()
-        return None
+        return False
 
 
 def regQueryKey(key_handle, key_name):
@@ -148,7 +154,7 @@ def regQueryKey(key_handle, key_name):
         return winreg.QueryValueEx(key_handle, key_name)
     except OSError:
         traceback.print_exc()
-        return None
+        return False
 
 
 def regSetKey(key_handle, key_name, key_value):
@@ -157,96 +163,98 @@ def regSetKey(key_handle, key_name, key_value):
         return True
     except OSError:
         traceback.print_exc()
-        return None
+        return False
 
 
 def regcheck(key_name, key_value):
-    ret = [None]
     # Open / Create the key - need admin privs
     key_handle = regCreateKey()
-
-    if key_handle is not None:
+    if key_handle:
         # Query the keyname for its value, if it does not exist create it with default value and try again.
         ret = regQueryKey(key_handle, key_name)
-        if ret is None:
+        if ret is False:
             # We need to set the value
             if regSetKey(key_handle, key_name, key_value):
                 # Then sanity check by getting it
                 ret = regQueryKey(key_handle, key_name)
 
         # Close the key handle
-        if key_handle:
-            winreg.CloseKey(key_handle)
+        winreg.CloseKey(key_handle)
 
-        # If ret still is emppty we do not have permissions or similar to create in registry
-    return ret[0]
+        if ret:
+            return ret[0]
+
+    # Else
+    return False
 
 
 def initRegCheck(yklocker):
     # Call regcheck with default values to use if registry is not populated
     lockValue = regcheck("removalOption", yklocker.getLockMethod())
-    if lockValue is not None:
+    if lockValue is not False:
         yklocker.setLockMethod(lockValue)
 
     # Call regcheck with default values to use if registry is not populated
     timeoutValue = int(regcheck("timeout", yklocker.getTimeout()))
-    if timeoutValue is not None:
+    if timeoutValue is not False:
         yklocker.setTimeout(timeoutValue)
 
     return lockValue, timeoutValue
 
 
-def windowsLoop(serviceObject, yklocker):
-    servicemanager.LogInfoMsg(
-        f"Initiated Sciber-YkLocker with lockMethod {yklocker.getLockMethod()} after {yklocker.getTimeout()} seconds without a detected YubiKey"
-    )
+def windowsCheckRegUpdates(yklocker):
+    # check for changes in the registry
+    timeoutValue = yklocker.getTimeout()
+    removalOption = yklocker.getLockMethod()
+    initRegCheck(yklocker)
+    timeoutValue2 = yklocker.getTimeout()
+    removalOption2 = yklocker.getLockMethod()
 
-    servicemanager.LogInfoMsg("Started scan for YubiKeys")
+    if timeoutValue != timeoutValue2 or removalOption != removalOption2:
+        servicemanager.LogInfoMsg(
+            f"Updated Sciber-YkLocker with lockMethod {yklocker.getLockMethod()} after {yklocker.getTimeout()} seconds without a detected YubiKey"
+        )
+
+
+def loopCode(serviceObject, yklocker):
+    # Print start messages
+    message1 = f"Initiated Sciber-YkLocker with lockMethod {yklocker.getLockMethod()} after {yklocker.getTimeout()} seconds without a detected YubiKey"
+    message2 = "Started scan for YubiKeys"
+
+    yklocker.logger(message1)
+    yklocker.logger(message2)
+
     state = None
     loop = True
     while loop:
         sleep(yklocker.getTimeout())
 
-        # check for changes in the registry
-        timeoutValue = yklocker.getTimeout()
-        removalOption = yklocker.getLockMethod()
-        initRegCheck(yklocker)
-        timeoutValue2 = yklocker.getTimeout()
-        removalOption2 = yklocker.getLockMethod()
-
-        if timeoutValue != timeoutValue2 or removalOption != removalOption2:
-            servicemanager.LogInfoMsg(
-                f"Updated Sciber-YkLocker with lockMethod {yklocker.getLockMethod()} after {yklocker.getTimeout()} seconds without a detected YubiKey"
-            )
+        # If windows, check for any updates from the registry
+        if yklocker.getOS() == OS.WIN:
+            windowsCheckRegUpdates(yklocker)
 
         pids, new_state = scan_devices()
         if new_state != state:
             state = new_state  # State has changed
             devices = list_all_devices()
             for device, info in devices:
-                servicemanager.LogInfoMsg(
-                    f"YubiKey Connected with serial: {info.serial}"
-                )
+                connected_message = f"YubiKey Connected with serial: {info.serial}"
+                yklocker.logger(connected_message)
             if len(devices) == 0:
-                servicemanager.LogInfoMsg("YubiKey Disconnected. Locking workstation")
+                locking_message = "YubiKey Disconnected. Locking workstation"
+                yklocker.logger(locking_message)
                 loop = yklocker.lock()
 
-        # Stops the loop if hWaitStop has been issued
-        if (
-            win32event.WaitForSingleObject(serviceObject.hWaitStop, 5000)
-            == win32event.WAIT_OBJECT_0
-        ):
-            loop = False
+        if yklocker.getOS() == OS.WIN:
+            # Stops the loop if hWaitStop has been issued
+            if (
+                win32event.WaitForSingleObject(serviceObject.hWaitStop, 5000)
+                == win32event.WAIT_OBJECT_0
+            ):
+                loop = False
 
 
-def windowsCode(yklocker):
-    # Windows service dependancies
-    # import socket
-
-    # import servicemanager
-    # import win32event
-    # import win32service
-    # import win32serviceutil
+def windowsService(yklocker):
     # Windows service definition
     class AppServerSvc(win32serviceutil.ServiceFramework):
         _svc_name_ = "SciberYkLocker"
@@ -277,33 +285,13 @@ def windowsCode(yklocker):
             )
 
             # Go into the loop checking for connected YubiKeys
-            windowsLoop(self, yklocker)
+            loopCode(self, yklocker)
 
     # Start the AppServerSvc-class as a service in Windows
     #
     servicemanager.Initialize()
     servicemanager.PrepareToHostSingle(AppServerSvc)
     servicemanager.StartServiceCtrlDispatcher()
-
-
-def nixLoop(yklocker):
-    print(
-        f"Initiated Sciber-YkLocker with lockMethod {yklocker.getLockMethod()} after {yklocker.getTimeout()} seconds without a detected YubiKey"
-    )
-    print("Started scan for YubiKeys")
-    state = None
-    loop = True
-    while loop:
-        sleep(yklocker.getTimeout())
-        pids, new_state = scan_devices()
-        if new_state != state:
-            state = new_state  # State has changed
-            devices = list_all_devices()
-            for device, info in devices:
-                print(f"YubiKey Connected with serial: {info.serial}")
-            if len(devices) == 0:
-                print("YubiKey Disconnected. Locking workstation")
-                loop = yklocker.lock()
 
 
 def main(argv):
@@ -326,12 +314,10 @@ def main(argv):
 
     # All arguments have been parsed, initiate the next function
     if yklocker.getOS() == OS.WIN:
-        windowsCode(yklocker)
+        windowsService(yklocker)
     elif yklocker.getOS() == OS.LX or yklocker.getOS() == OS.MAC:
-        nixLoop(yklocker)
+        loopCode(None, yklocker)
 
 
 if __name__ == "__main__":
-    import sys
-
     main(sys.argv[1:])
