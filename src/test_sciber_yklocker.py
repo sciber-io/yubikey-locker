@@ -7,7 +7,10 @@ from sciber_yklocker import (
     REG_PATH,
     REG_REMOVALOPTION,
     REG_TIMEOUT,
+    AppServerSvc,
+    getOS,
     initRegCheck,
+    initYklocker,
     lockMethod,
     loopCode,
     main,
@@ -17,8 +20,11 @@ from sciber_yklocker import (
     regCreateKey,
     regQueryKey,
     regSetKey,
+    servicemanager,
+    socket,
+    win32event,
+    win32service,
     windowsCheckRegUpdates,
-    windowsService,
     ykLock,
 )
 
@@ -60,19 +66,12 @@ def mock_list_one_device():
     return devices
 
 
-def mock_list_no_devices():
-    return []
-
-
-def mock_scan_devices():
-    return [0, 1]
-
-
-def mock_WaitForSingleObject(a, b):
-    return 0
-
-
 ## Test Functions ##
+
+
+def test_getOS():
+    platform.system = lambda: "nada"
+    assert getOS() == OS.UNKNOWN
 
 
 def test_yklock_getsetLockMethod():
@@ -92,13 +91,6 @@ def test_yklock_getsetTimeout():
     yklocker.setTimeout(-1)
 
     assert yklocker.getTimeout() == input
-
-
-def test_yklock_get_os():
-    platform.system = lambda: "nada"
-    yklocker = ykLock()
-
-    assert yklocker.getOS() == OS.UNKNOWN
 
 
 def test_yklock_lockLinux():
@@ -185,6 +177,34 @@ def test_yklock_logger():
     with patch("builtins.print") as mock_print:
         linuxLocker.logger("testmessage")
         mock_print.assert_called_once_with("testmessage")
+
+
+@patch("sciber_yklocker.scan_devices", return_value=[0, 1])
+def test_ykLock_isYubikeyConnected_false(_):
+    platform.system = lambda: "Windows"
+    winlocker = ykLock()
+
+    # Patch logger to catch the message sent to it
+    with patch("sciber_yklocker.ykLock.logger", MagicMock()) as mock_logger:
+        # Make sure no YubiKeys are found by return an empty array
+        with patch("sciber_yklocker.list_all_devices", lambda: []):
+            assert winlocker.isYubikeyConnected() is False
+
+        mock_logger.assert_not_called()
+
+
+@patch("sciber_yklocker.scan_devices", return_value=[0, 1])
+def test_ykLock_isYubikeyConnected_true(_):
+    platform.system = lambda: "Windows"
+    winlocker = ykLock()
+
+    # Patch logger to catch the serial sent to it
+    with patch("sciber_yklocker.ykLock.logger", MagicMock()) as mock_logger:
+        # Make sure one "YubiKey" is found
+        with patch("sciber_yklocker.list_all_devices", mock_list_one_device):
+            assert winlocker.isYubikeyConnected() is True
+        # Make sure we got the right serial
+        assert "0123456789#" in mock_logger.call_args[0][0]
 
 
 def test_regCreateKey():
@@ -332,156 +352,149 @@ def test_windowsCheckRegUpdates_with_update(m_servicemanager):
 
 
 @patch.object(ykLock, "lock")
-@patch("sciber_yklocker.scan_devices", return_value=[0, 1])
 @patch("sciber_yklocker.servicemanager")
-@patch("sciber_yklocker.win32event")
-def test_loopCode_no_yubikey_windows(m_win32event, m_servicemanager, _, mock_lock):
+# Make sure we trigger the service interruption to quit the loop
+def test_loopCode_no_yubikey_windows(m_servicemanager, mock_lock):
     platform.system = lambda: "Windows"
     winlocker = ykLock()
-    # Nerf sleep and infinitive loop
+    # Patch sleep and connection
     winlocker.getTimeout = lambda: 0
-    winlocker.isTest = lambda: True
+    winlocker.isYubikeyConnected = lambda: False
 
-    with patch(
-        "sciber_yklocker.win32event.WaitForSingleObject", mock_WaitForSingleObject
-    ):
-        # Patch logger to catch the message sent to it
-        with patch("sciber_yklocker.ykLock.logger", MagicMock()) as mock_logger:
-            # Make sure no YubiKeys are found
-            with patch("sciber_yklocker.list_all_devices", mock_list_no_devices):
-                loopCode(MagicMock(), winlocker)
+    # Mock win32event constant and function
+    mock_win32event = win32event
+    mock_win32event.WAIT_OBJECT_0 = 0
+    mock_win32event.WaitForSingleObject = lambda a, b: 0
 
-            # Make sure we got the right serial
-            mock_logger.assert_called_with("YubiKey Disconnected. Locking workstation")
-        # Make sure lock was called
-        mock_lock.assert_called_once()
-
-
-@patch.object(ykLock, "lock")
-@patch("sciber_yklocker.scan_devices", return_value=[0, 1])
-@patch("sciber_yklocker.servicemanager")
-@patch("sciber_yklocker.win32event")
-def test_loopCode_with_yubikey_windows(
-    m_win32event, m_servicemanager, m_scan, mock_lock
-):
-    platform.system = lambda: "Windows"
-    winlocker = ykLock()
-    # Nerf sleep and infinitive loop
-    winlocker.getTimeout = lambda: 0
-    winlocker.isTest = lambda: True
-
-    with patch(
-        "sciber_yklocker.win32event.WaitForSingleObject", mock_WaitForSingleObject
-    ):
-        # Patch logger to catch the serial sent to it
-        with patch("sciber_yklocker.ykLock.logger", MagicMock()) as mock_logger:
-            # Make sure one "YubiKey" is found
-            with patch("sciber_yklocker.list_all_devices", mock_list_one_device):
-                loopCode(MagicMock(), winlocker)
-            # Make sure we got the right serial
-            assert "0123456789#" in mock_logger.call_args[0][0]
-        # Make sure lock was not called
-        mock_lock.assert_not_called()
-
-
-@patch.object(ykLock, "lock")
-@patch("sciber_yklocker.scan_devices", return_value=[0, 1])
-def test_loopCode_no_yubikey(_, mock_lock):
-    platform.system = lambda: "Linux"
-    lxlocker = ykLock()
-    # Nerf sleep and infinitive loop
-    lxlocker.getTimeout = lambda: 0
-    lxlocker.isTest = lambda: True
-
-    # Patch logger to catch the message sent to it
+    # Patch logger to catch messages
     with patch("sciber_yklocker.ykLock.logger", MagicMock()) as mock_logger:
-        # Make sure no YubiKeys are found
-        with patch("sciber_yklocker.list_all_devices", mock_list_no_devices):
-            loopCode(MagicMock(), lxlocker)
+        loopCode(MagicMock(), winlocker)
 
-        # Make sure we got the right serial
+        # Make sure we got the right message
         mock_logger.assert_called_with("YubiKey Disconnected. Locking workstation")
-    # Make sure lock was called
-    mock_lock.assert_called_once()
+
+    # Make sure lock was called, no arguments expected
+    mock_lock.assert_called_once_with()
 
 
 @patch.object(ykLock, "lock")
-@patch("sciber_yklocker.scan_devices", return_value=[0, 1])
-def test_loopCode_with_yubikey(_, mock_lock):
-    platform.system = lambda: "Linux"
-    lxlocker = ykLock()
-    # Nerf sleep and infinitive loop
-    lxlocker.getTimeout = lambda: 0
-    lxlocker.isTest = lambda: True
+@patch("sciber_yklocker.servicemanager")
+# Make sure we trigger the service interruption to quit the loop
+def test_loopCode_with_yubikey_windows(m_servicemanager, mock_lock):
+    platform.system = lambda: "Windows"
+    winlocker = ykLock()
+    # Patch sleep and connection
+    winlocker.getTimeout = lambda: 0
+    winlocker.isYubikeyConnected = lambda: True
 
-    # Patch logger to catch the serial sent to it
-    with patch("sciber_yklocker.ykLock.logger", MagicMock()) as mock_logger:
-        # Make sure one "YubiKey" is found
-        with patch("sciber_yklocker.list_all_devices", mock_list_one_device):
-            loopCode(MagicMock(), lxlocker)
-        # Make sure we got the right serial
-        assert "0123456789#" in mock_logger.call_args[0][0]
+    # Mock win32event constant and function
+    mock_win32event = win32event
+    mock_win32event.WAIT_OBJECT_0 = 0
+    mock_win32event.WaitForSingleObject = lambda a, b: 0
+
+    # Patch logger to catch messages
+    with patch("sciber_yklocker.ykLock.logger", MagicMock()):
+        loopCode(MagicMock(), winlocker)
     # Make sure lock was not called
     mock_lock.assert_not_called()
 
 
-@patch("sciber_yklocker.servicemanager")
-@patch("sciber_yklocker.win32serviceutil")
-def test_windowsService(m_win32serviceutil, m_servicemanager):
+def test_initYklocker():
     platform.system = lambda: "Windows"
-    winlocker = ykLock()
+    # Call the function with non-default settings and verify them
+    with patch("sciber_yklocker.initRegCheck", MagicMock()) as mock_initRegCheck:
+        yklocker = initYklocker(lockMethod.LOGOUT, 15)
+
+        # Make sure initRegCheck was called but dont enter the function
+        mock_initRegCheck.assert_called_once()
+
+    assert yklocker.getLockMethod() == lockMethod.LOGOUT
+    assert yklocker.getTimeout() == 15
+
+
+def AppServerSvc__init__():
+    # Instantiate the object and test its __init__ functionality
+    # Make sure the expected function and content is there
+    with patch(
+        "win32serviceutil.ServiceFramework.__init__", MagicMock()
+    ) as mock_svcinit:
+        mock_win32event = win32event
+        mock_win32event.CreateEvent = MagicMock()
+        mock_socket = socket
+        mock_socket.setdefaulttimeout = MagicMock()
+        # Call the function
+        win_service = AppServerSvc([""])
+
+        mock_svcinit.assert_called_once()
+        mock_win32event.CreateEvent.assert_called_once()
+        mock_socket.setdefaulttimeout.assert_called_once()
+
+    return win_service
+
+
+def AppServerSvc_SvcDoRun(win_service):
+    # Dont go inte the loop but make sure it was called
+    with patch("sciber_yklocker.loopCode", MagicMock()) as mock_loopCode:
+        with patch("sciber_yklocker.initYklocker", MagicMock()) as mock_initYklocker:
+            mock_servicemanager = servicemanager
+            mock_servicemanager.LogMsg = MagicMock()
+            mock_servicemanager.PYS_SERVICE_STARTED = 0
+            mock_servicemanager.EVENTLOG_INFORMATION_TYPE = 0
+
+            # Call the function
+            win_service.SvcDoRun()
+            mock_servicemanager.LogMsg.assert_called_once()
+            mock_initYklocker.assert_called_once()
+            mock_loopCode.assert_called_once()
+
+
+def AppServerSvc_SvcStop(win_service):
+    win_service.ReportServiceStatus = MagicMock()
+    win_service.hWaitStop = 0
+    mock_win32service = win32service
+    mock_win32service.SERVICE_STOP_PENDING = 0
+    mock_win32event = win32event
+    mock_win32event.SetEvent = MagicMock()
+
+    # Call the function
+    win_service.SvcStop()
+
+    win_service.ReportServiceStatus.assert_called_once()
+    mock_win32event.SetEvent.assert_called_once()
+
+
+def test_AppServerSvc():
+    win_service = AppServerSvc__init__()
+    AppServerSvc_SvcDoRun(win_service)
+    AppServerSvc_SvcStop(win_service)
+
+
+@patch("sciber_yklocker.servicemanager")
+def test_main_win(m_servicemanager):
+    platform.system = lambda: "Windows"
+
     m_servicemanager.StartServiceCtrlDispatcher = MagicMock()
-    m_win32serviceutil.ServiceFramework = MagicMock()
-    windowsService(winlocker)
+    main("")
 
     # Make sure the code calls StartServiceCtrlDispatcher
     m_servicemanager.StartServiceCtrlDispatcher.assert_called_once()
-    m_win32serviceutil.ServiceFramework.assert_not_called()
 
 
-def test_main_windows_no_args():
-    platform.system = lambda: "Windows"
-    with patch("sciber_yklocker.ykLock.setLockMethod", MagicMock()) as mock_lockMethod:
-        with patch("sciber_yklocker.initRegCheck", MagicMock()):
-            with patch(
-                "sciber_yklocker.windowsService", MagicMock()
-            ) as mock_winservice:
-                main([""])
-            mock_winservice.assert_called_once()
-
-        mock_lockMethod.assert_not_called()
-
-
-def test_main_windows_with_args():
-    platform.system = lambda: "Windows"
-    with patch("sciber_yklocker.ykLock.setLockMethod", MagicMock()) as mock_lockMethod:
-        with patch("sciber_yklocker.ykLock.setTimeout", MagicMock()) as mock_timeout:
-            with patch("sciber_yklocker.initRegCheck", MagicMock()):
-                with patch(
-                    "sciber_yklocker.windowsService", MagicMock()
-                ) as mock_winservice:
-                    main(["-l", "logout", "-t", "5"])
-                    mock_winservice.assert_called_once()
-            mock_timeout.assert_called_once_with(5)
-        mock_lockMethod.assert_called_once_with("logout")
-
-
-def test_main_other_no_args():
+def test_main_no_args():
     platform.system = lambda: "Linux"
-    with patch("sciber_yklocker.ykLock.setLockMethod", MagicMock()) as mock_lockMethod:
-        with patch("sciber_yklocker.loopCode", MagicMock()) as mock_loopCode:
+    # Dont go inte the loop but make sure it was called
+    with patch("sciber_yklocker.loopCode", MagicMock()) as mock_loopCode:
+        with patch("sciber_yklocker.initYklocker", MagicMock()) as mock_initYklocker:
             main([""])
-        mock_loopCode.assert_called_once()
-
-    mock_lockMethod.assert_not_called()
+            mock_loopCode.assert_called_once()
+            mock_initYklocker.assert_called_once()
 
 
 def test_main_other_with_args():
     platform.system = lambda: "Linux"
-    with patch("sciber_yklocker.ykLock.setLockMethod", MagicMock()) as mock_lockMethod:
-        with patch("sciber_yklocker.ykLock.setTimeout", MagicMock()) as mock_timeout:
-            with patch("sciber_yklocker.loopCode", MagicMock()) as mock_loopCode:
-                main(["-l", "logout", "-t", "5"])
-                mock_loopCode.assert_called_once
-            mock_timeout.assert_called_once_with(5)
-        mock_lockMethod.assert_called_once_with("logout")
+    # Dont go inte the loop but make sure it was called
+    with patch("sciber_yklocker.loopCode", MagicMock()) as mock_loopCode:
+        with patch("sciber_yklocker.initYklocker", MagicMock()) as mock_initYklocker:
+            main(["-l", "logout", "-t", "5"])
+            mock_loopCode.assert_called_once()
+            mock_initYklocker.assert_called_once_with(lockMethod.LOGOUT, 5)

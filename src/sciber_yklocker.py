@@ -13,10 +13,12 @@ from time import sleep
 # Yubikey imports
 from ykman.device import list_all_devices, scan_devices
 
-# Enable Windows global imports plus testing
+# Enable Windows global imports
+# If not reassigned - code running on Linux/Mac would break
 if platform.system() != "Windows":
     import emptyModule
 
+    # Modules only used by the Windows service
     sys.modules["win32con"] = emptyModule
     sys.modules["win32process"] = emptyModule
     sys.modules["win32profile"] = emptyModule
@@ -28,7 +30,6 @@ if platform.system() != "Windows":
     sys.modules["win32service"] = emptyModule
     sys.modules["win32serviceutil"] = emptyModule
     sys.modules["winreg"] = emptyModule
-
 
 import socket
 import winreg
@@ -59,28 +60,30 @@ class lockMethod(StrEnum):
     LOGOUT = "logout"
 
 
+def getOS():
+    if platform.system() == "Darwin":
+        return OS.MAC
+    elif platform.system() == "Windows":
+        return OS.WIN
+    elif platform.system() == "Linux":
+        return OS.LX
+    else:
+        return OS.UNKNOWN
+
+
 class ykLock:
-    def getOS(self):
-        return self.osversion
-
-    def isTest(self):
-        return False  # pragma: no cover
-
-    def os_detect(self):
-        if platform.system() == "Darwin":
-            self.osversion = OS.MAC
-        elif platform.system() == "Windows":
-            self.osversion = OS.WIN
-        elif platform.system() == "Linux":
-            self.osversion = OS.LX
-        else:
-            self.osversion = OS.UNKNOWN
-
     def __init__(self):
         # Set default values
-        self.os_detect()
+        self.osversion = getOS()
         self.timeout = 10
         self.lockType = lockMethod.LOCK
+        self.yubikeyState = None
+
+    def getState(self):
+        return self.yubikeyState
+
+    def setState(self, state):
+        self.yubikeyState = state
 
     def getTimeout(self):
         return self.timeout
@@ -141,6 +144,19 @@ class ykLock:
             servicemanager.LogInfoMsg(message)
         else:
             print(message)
+
+    def isYubikeyConnected(self):
+        # This avoids connecting to the same YubiKey every loop. Only connect to it on state changes
+        pids, new_state = scan_devices()
+        if new_state != self.getState():
+            self.setState(new_state)  # State has changed
+            devices = list_all_devices()
+            for device, info in devices:
+                connected_message = f"YubiKey Connected with serial: {info.serial}"
+                self.logger(connected_message)
+            if len(devices) == 0:
+                return False
+        return True
 
 
 def regCreateKey():
@@ -213,9 +229,8 @@ def windowsCheckRegUpdates(yklocker):
     removalOption2 = yklocker.getLockMethod()
 
     if timeoutValue != timeoutValue2 or removalOption != removalOption2:
-        servicemanager.LogInfoMsg(
-            f"Updated Sciber-YkLocker with lockMethod {yklocker.getLockMethod()} after {yklocker.getTimeout()} seconds without a detected YubiKey"
-        )
+        message = f"Updated Sciber-YkLocker with lockMethod {yklocker.getLockMethod()} after {yklocker.getTimeout()} seconds without a detected YubiKey"
+        yklocker.logger(message)
 
 
 def loopCode(serviceObject, yklocker):
@@ -226,107 +241,100 @@ def loopCode(serviceObject, yklocker):
     yklocker.logger(message1)
     yklocker.logger(message2)
 
-    state = None
     loop = True
     while loop:
         sleep(yklocker.getTimeout())
 
-        # If windows, check for any updates from the registry
-        if yklocker.getOS() == OS.WIN:
+        if getOS() == OS.WIN:
+            # Check for any timeout or lockmethod updates from the registry
             windowsCheckRegUpdates(yklocker)
 
-        pids, new_state = scan_devices()
-        if new_state != state:
-            state = new_state  # State has changed
-            devices = list_all_devices()
-            for device, info in devices:
-                connected_message = f"YubiKey Connected with serial: {info.serial}"
-                yklocker.logger(connected_message)
-            if len(devices) == 0:
-                locking_message = "YubiKey Disconnected. Locking workstation"
-                yklocker.logger(locking_message)
-                yklocker.lock()
-
-        if yklocker.getOS() == OS.WIN:
-            # Stops the loop if hWaitStop has been issued
+            # Check if hWaitStop has been issued
             if (
                 win32event.WaitForSingleObject(serviceObject.hWaitStop, 5000)
                 == win32event.WAIT_OBJECT_0
-            ):
+            ):  # Then stop the loop
                 loop = False
 
-        # To break out of loop while testing
-        if yklocker.isTest():
-            loop = False
+        if not yklocker.isYubikeyConnected():
+            locking_message = "YubiKey Disconnected. Locking workstation"
+            yklocker.logger(locking_message)
+            yklocker.lock()
 
 
-def windowsService(yklocker):
-    # Windows service definition
-    class AppServerSvc(win32serviceutil.ServiceFramework):
-        _svc_name_ = "SciberYkLocker"
-        _svc_display_name_ = "Sciber YubiKey Locker"
+def initYklocker(lockType, timeout):
+    # Used order for settings
+    # 1. Windows Registry
+    # 2. CommandLine Arguments
+    # 3. Defaults
 
-        def __init__(self, args):
-            win32serviceutil.ServiceFramework.__init__(self, args)
-            self.hWaitStop = win32event.CreateEvent(None, 0, 0, None)
-            socket.setdefaulttimeout(60)
+    # Create ykLock object with default settings
+    yklocker = ykLock()
 
-        def SvcStop(self):
-            self.ReportServiceStatus(win32service.SERVICE_STOP_PENDING)
-            win32event.SetEvent(self.hWaitStop)
+    # Override defaults with CommandLine Arguments
+    if lockType is not None:
+        yklocker.setLockMethod(lockType)
 
-        def SvcDoRun(self):
-            servicemanager.LogMsg(
-                servicemanager.EVENTLOG_INFORMATION_TYPE,
-                servicemanager.PYS_SERVICE_STARTED,
-                (self._svc_name_, ""),
-            )
-            self.main()
+    if timeout is not None:
+        yklocker.setTimeout(timeout)
 
-        def main(self):
-            servicemanager.LogMsg(
-                servicemanager.EVENTLOG_INFORMATION_TYPE,
-                servicemanager.PYS_SERVICE_STARTED,
-                (self._svc_name_, ""),
-            )
+    # If Windows - Check registry to override settings
+    if getOS() == OS.WIN:
+        initRegCheck(yklocker)
 
-            # Go into the loop checking for connected YubiKeys
-            loopCode(self, yklocker)
+    return yklocker
 
-    # Start the AppServerSvc-class as a service in Windows
-    #
-    servicemanager.Initialize()
-    servicemanager.PrepareToHostSingle(AppServerSvc)
-    servicemanager.StartServiceCtrlDispatcher()
+
+# Windows Service Class Definition
+class AppServerSvc(win32serviceutil.ServiceFramework):
+    _svc_name_ = "SciberYkLocker"
+    _svc_display_name_ = "Sciber YubiKey Locker"
+    _svc_description_ = "To enable automatic lock when removing the YubiKey."
+
+    def __init__(self, args):
+        win32serviceutil.ServiceFramework.__init__(self, args)
+        self.hWaitStop = win32event.CreateEvent(None, 0, 0, None)
+        socket.setdefaulttimeout(60)
+
+    def SvcStop(self):
+        self.ReportServiceStatus(win32service.SERVICE_STOP_PENDING)
+        win32event.SetEvent(self.hWaitStop)
+
+    def SvcDoRun(self):
+        servicemanager.LogMsg(
+            servicemanager.EVENTLOG_INFORMATION_TYPE,
+            servicemanager.PYS_SERVICE_STARTED,
+            (self._svc_name_, ""),
+        )
+        # instantiate a yklocker-object and start running the code
+        yklocker = initYklocker(None, None)
+        # To handle service interruptions etc, pass the win service class instance along
+        loopCode(serviceObject=self, yklocker=yklocker)
 
 
 def main(argv):
-    # Create ykLock object
-    yklocker = ykLock()
+    # If Windows, start a service based on the class AppServerSvc
+    if getOS() == OS.WIN:
+        servicemanager.Initialize()
+        servicemanager.PrepareToHostSingle(AppServerSvc)
+        servicemanager.StartServiceCtrlDispatcher()
+    # If LX or MAC, check arguments then initiate yklock object and then run code
+    elif getOS() == OS.LX or getOS() == OS.MAC:
+        lockType = lockMethod.LOCK
+        timeout = 10
 
-    # If Windows check registry settings to override defaults:
-    if yklocker.getOS() == OS.WIN:
-        initRegCheck(yklocker)
+        # Check arguments
+        opts, args = getopt.getopt(argv, "l:t:")
+        for opt, arg in opts:
+            if opt == "-l":
+                if arg == lockMethod.LOGOUT:
+                    lockType = lockMethod.LOGOUT
+            elif opt == "-t":
+                if arg.isdecimal():
+                    timeout = int(arg)
 
-    print(argv)
-
-    # Check arguments to override defaults:
-    opts, args = getopt.getopt(argv, "l:t:")
-    print("opts", opts)
-    print("args", args)
-    for opt, arg in opts:
-        if opt == "-l":
-            if arg == lockMethod.LOGOUT:
-                yklocker.setLockMethod(lockMethod.LOGOUT)
-        elif opt == "-t":
-            if arg.isdecimal():
-                yklocker.setTimeout(int(arg))
-
-    # All arguments have been parsed, initiate the next function
-    if yklocker.getOS() == OS.WIN:
-        windowsService(yklocker)
-    elif yklocker.getOS() == OS.LX or yklocker.getOS() == OS.MAC:
-        loopCode(None, yklocker)
+        yklocker = initYklocker(lockType, timeout)
+        loopCode(serviceObject=None, yklocker=yklocker)
 
 
 if __name__ == "__main__":
