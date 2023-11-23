@@ -9,22 +9,23 @@ from sciber_yklocker import (
     REG_TIMEOUT,
     AppServerSvc,
     getOS,
-    initRegCheck,
     initYklocker,
     lockMethod,
     loopCode,
     main,
     os,
     platform,
-    regcheck,
+    regCheckRemovalOption,
+    regCheckTimeout,
+    regCheckUpdates,
     regCreateKey,
+    regHandler,
     regQueryKey,
     regSetKey,
     servicemanager,
     socket,
     win32event,
     win32service,
-    windowsCheckRegUpdates,
     ykLock,
 )
 
@@ -234,7 +235,7 @@ def test_regQueryKey():
         input = "1"
         key_handle = regCreateKey()
         regSetKey(key_handle, REG_TIMEOUT, input)
-        assert regQueryKey(key_handle, REG_TIMEOUT)[0] is input
+        assert regQueryKey(key_handle, REG_TIMEOUT) is input
         fake_winreg.CloseKey(key_handle)
 
 
@@ -259,7 +260,7 @@ def test_regSetKey():
 
         # Successfully querying that value should, return the value
         ret = regQueryKey(key_handle, "name1")
-        assert ret[0] == "value1"
+        assert ret == "value1"
 
         fake_winreg.CloseKey(key_handle)
 
@@ -268,87 +269,93 @@ def test_regSetKey_error():
     reg_reset()
     # Use fake registry
     with patch("sciber_yklocker.winreg", fake_winreg):
+        # "1" is an invalid key handle
         assert regSetKey("1", "2", "3") is False
 
 
-def test_regcheck_removaloption():
-    reg_reset()
-    # Use fake registry
-    with patch("sciber_yklocker.winreg", fake_winreg):
-        input = lockMethod.LOGOUT
-        assert regcheck(REG_REMOVALOPTION, input) == input
+def test_regHandler():
+    # No real key handle to close so mock winreg
+    with patch("sciber_yklocker.winreg", MagicMock()):
+        # Our key handle
+        with patch("sciber_yklocker.regCreateKey", lambda: True):
+            # Assume no previous entries in the registry
+            with patch("sciber_yklocker.regQueryKey", lambda a, b: False):
+                # Mock successful key create
+                with patch("sciber_yklocker.regSetKey", MagicMock()) as mock_set:
+                    assert regHandler("a", "woo") == "woo"
+                    mock_set.assert_called_once()
 
 
-def test_regcheck_timeout():
-    reg_reset()
-    # Use fake registry
-    with patch("sciber_yklocker.winreg", fake_winreg):
-        input = 15
-        assert int(regcheck(REG_TIMEOUT, input)) == input
+def test_regHandler_error():
+    # Our key handle is True
+    with patch("sciber_yklocker.regCreateKey", lambda: False):
+        assert regHandler("a", "b") is False
 
 
-def test_test_regcheck_error():
-    reg_reset()
-    # Use no registry
-    with patch("sciber_yklocker.winreg", None):
-        assert regcheck("1", "2") is False
+def test_regCheckTimeout():
+    yklocker = ykLock()
+    # Assume the registry returns 15
+    with patch("sciber_yklocker.regHandler", lambda a, b: "15"):
+        regCheckTimeout(yklocker)
+
+    assert yklocker.getTimeout() == 15
 
 
-# Test new defaults
-def test_initRegCheck():
-    reg_reset()
-    # Use fake registry
-    with patch("sciber_yklocker.winreg", fake_winreg):
-        yklocker = ykLock()
-        # Using different inputs than the defaults set in ykLock()
-        input1 = lockMethod.LOGOUT
-        input2 = 15
-        yklocker.setLockMethod(input1)
-        yklocker.setTimeout(input2)
+def test_regCheckTimeout_error():
+    yklocker = ykLock()
+    # Check with another value than the default
+    yklocker.setTimeout(15)
+    with patch("sciber_yklocker.regHandler", lambda a, b: False):
+        regCheckTimeout(yklocker)
 
-        lockValue, timeoutValue = initRegCheck(yklocker)
-        assert lockValue == input1
-        assert timeoutValue == input2
+    assert yklocker.getTimeout() == 15
 
 
-@patch("sciber_yklocker.servicemanager")
-def test_windowsCheckRegUpdates_no_update(m_servicemanager):
-    reg_reset()
-    # Use fake registry
-    with patch("sciber_yklocker.winreg", fake_winreg):
-        platform.system = lambda: "Windows"
-        winlocker = ykLock()
-        input1 = lockMethod.LOCK
-        input2 = 11
-        winlocker.setLockMethod(input1)
-        winlocker.setTimeout(input2)
+def test_regCheckRemovalOption():
+    yklocker = ykLock()
+    # Assume the registry returns logout
+    with patch("sciber_yklocker.regHandler", lambda a, b: lockMethod.LOGOUT):
+        regCheckRemovalOption(yklocker)
 
-        windowsCheckRegUpdates(winlocker)
-
-        m_servicemanager.LogInfoMsg.assert_not_called()
-        assert winlocker.getLockMethod() == input1
-        assert winlocker.getTimeout() == input2
+    assert yklocker.getLockMethod() == lockMethod.LOGOUT
 
 
-@patch("sciber_yklocker.servicemanager")
-def test_windowsCheckRegUpdates_with_update(m_servicemanager):
-    reg_reset()
-    # Use fake registry
-    with patch("sciber_yklocker.winreg", fake_winreg):
-        platform.system = lambda: "Windows"
-        winlocker = ykLock()
-        input1 = lockMethod.LOCK
-        input2 = 10
-        winlocker.setLockMethod(input1)
-        winlocker.setTimeout(input2)
+def test_regCheckRemovalOption_error():
+    yklocker = ykLock()
+    # Check with another value than the default
+    yklocker.setLockMethod(lockMethod.LOGOUT)
+    with patch("sciber_yklocker.regHandler", lambda a, b: False):
+        regCheckRemovalOption(yklocker)
 
-        # Call windowsCheckRegUpdates where it will find updates in the registry
-        with patch("sciber_yklocker.regQueryKey", mock_regQueryKey):
-            windowsCheckRegUpdates(winlocker)
+    assert yklocker.getLockMethod() == lockMethod.LOGOUT
 
-        m_servicemanager.LogInfoMsg.assert_called_once()
-        assert winlocker.getLockMethod() != input1
-        assert winlocker.getTimeout() != input2
+
+def test_regCheckUpdates_no_update():
+    yklocker = ykLock()
+
+    # No updates just return the default values
+    with patch("sciber_yklocker.regCheckTimeout", lambda a: yklocker.getTimeout()):
+        with patch(
+            "sciber_yklocker.regCheckRemovalOption", lambda a: yklocker.getLockMethod()
+        ):
+            with patch("sciber_yklocker.ykLock.logger", MagicMock()) as mock_logger:
+                regCheckUpdates(yklocker)
+                # Logger should not have been called. No new values.
+                mock_logger.assert_not_called()
+
+
+def test_regCheckUpdates_with_update():
+    yklocker = ykLock()
+
+    # Updates from registy are non-default values:
+    with patch("sciber_yklocker.regCheckTimeout", lambda a: 15):
+        with patch(
+            "sciber_yklocker.regCheckRemovalOption", lambda a: lockMethod.LOGOUT
+        ):
+            with patch("sciber_yklocker.ykLock.logger", MagicMock()) as mock_logger:
+                regCheckUpdates(yklocker)
+                # Logger should not have been called. No new values.
+                mock_logger.assert_called_once()
 
 
 @patch.object(ykLock, "lock")
@@ -402,11 +409,15 @@ def test_loopCode_with_yubikey_windows(m_servicemanager, mock_lock):
 def test_initYklocker():
     platform.system = lambda: "Windows"
     # Call the function with non-default settings and verify them
-    with patch("sciber_yklocker.initRegCheck", MagicMock()) as mock_initRegCheck:
-        yklocker = initYklocker(lockMethod.LOGOUT, 15)
+    with patch("sciber_yklocker.regCheckTimeout", MagicMock()) as mock_regCheckTimeout:
+        with patch(
+            "sciber_yklocker.regCheckRemovalOption", MagicMock()
+        ) as mock_regCheckRemovalOption:
+            yklocker = initYklocker(lockMethod.LOGOUT, 15)
 
-        # Make sure initRegCheck was called but dont enter the function
-        mock_initRegCheck.assert_called_once()
+            # Make sure gets were called but dont enter the functions
+            mock_regCheckRemovalOption.assert_called_once()
+            mock_regCheckTimeout.assert_called_once()
 
     assert yklocker.getLockMethod() == lockMethod.LOGOUT
     assert yklocker.getTimeout() == 15

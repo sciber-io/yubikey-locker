@@ -169,7 +169,9 @@ def regCreateKey():
 
 def regQueryKey(key_handle, key_name):
     try:
-        return winreg.QueryValueEx(key_handle, key_name)
+        # QueryValueEx returns a tuple, the value and the type
+        # We assume our values are REG_SZ
+        return (winreg.QueryValueEx(key_handle, key_name))[0]
     except (OSError, TypeError, FileNotFoundError, KeyError):
         traceback.print_exc()
         return False
@@ -184,7 +186,7 @@ def regSetKey(key_handle, key_name, key_value):
         return False
 
 
-def regcheck(key_name, key_value):
+def regHandler(key_name, key_value):
     # Open / Create the key - need admin privs
     key_handle = regCreateKey()
     if key_handle:
@@ -193,40 +195,44 @@ def regcheck(key_name, key_value):
         if ret is False:
             # We need to set the value
             if regSetKey(key_handle, key_name, key_value):
-                # Then sanity check by getting it
-                ret = regQueryKey(key_handle, key_name)
+                # If successful, key_value is the new value in the registry
+                ret = key_value
 
         # Close the key handle
         winreg.CloseKey(key_handle)
 
         if ret:
-            return ret[0]
+            return ret
 
     # Else
     return False
 
 
-def initRegCheck(yklocker):
-    # Call regcheck with default values to use if registry is not populated
-    lockValue = regcheck(REG_REMOVALOPTION, yklocker.getLockMethod())
-    if lockValue is not False:
-        yklocker.setLockMethod(lockValue)
-
-    # Call regcheck with default values to use if registry is not populated
-    timeoutValue = int(regcheck(REG_TIMEOUT, yklocker.getTimeout()))
+def regCheckTimeout(yklocker):
+    # Call regHandler with default values to use if registry is not populated
+    timeoutValue = int(regHandler(REG_TIMEOUT, yklocker.getTimeout()))
     if timeoutValue is not False:
         yklocker.setTimeout(timeoutValue)
+    # Return current timeout
+    return yklocker.getTimeout()
 
-    return lockValue, timeoutValue
+
+def regCheckRemovalOption(yklocker):
+    # Call regHandler with default values to use if registry is not populated
+    lockValue = regHandler(REG_REMOVALOPTION, yklocker.getLockMethod())
+    if lockValue is not False:
+        yklocker.setLockMethod(lockValue)
+    # Return current lockmethod
+    return yklocker.getLockMethod()
 
 
-def windowsCheckRegUpdates(yklocker):
+def regCheckUpdates(yklocker):
     # check for changes in the registry
     timeoutValue = yklocker.getTimeout()
     removalOption = yklocker.getLockMethod()
-    initRegCheck(yklocker)
-    timeoutValue2 = yklocker.getTimeout()
-    removalOption2 = yklocker.getLockMethod()
+    # Check registry and get the latest values
+    timeoutValue2 = regCheckTimeout(yklocker)
+    removalOption2 = regCheckRemovalOption(yklocker)
 
     if timeoutValue != timeoutValue2 or removalOption != removalOption2:
         message = f"Updated Sciber-YkLocker with lockMethod {yklocker.getLockMethod()} after {yklocker.getTimeout()} seconds without a detected YubiKey"
@@ -247,7 +253,7 @@ def loopCode(serviceObject, yklocker):
 
         if getOS() == OS.WIN:
             # Check for any timeout or lockmethod updates from the registry
-            windowsCheckRegUpdates(yklocker)
+            regCheckUpdates(yklocker)
 
             # Check if hWaitStop has been issued
             if (
@@ -280,7 +286,8 @@ def initYklocker(lockType, timeout):
 
     # If Windows - Check registry to override settings
     if getOS() == OS.WIN:
-        initRegCheck(yklocker)
+        regCheckTimeout(yklocker)
+        regCheckRemovalOption(yklocker)
 
     return yklocker
 
