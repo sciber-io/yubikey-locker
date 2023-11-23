@@ -504,7 +504,7 @@ def test_main_no_args():
             mock_init_yklocker.assert_called_once()
 
 
-def test_main_other_with_args():
+def test_main_with_logout():
     platform.system = lambda: "Linux"
     # Dont go inte the loop but make sure it was called
     with patch("sciber_yklocker.loop_code", MagicMock()) as mock_loop_code:
@@ -512,3 +512,13 @@ def test_main_other_with_args():
             main(["-l", "Logout", "-t", "5"])
             mock_loop_code.assert_called_once()
             mock_init_yklocker.assert_called_once_with(RemovalOption.LOGOUT, 5)
+
+
+def test_main_with_args():
+    platform.system = lambda: "Linux"
+    # Dont go inte the loop but make sure it was called
+    with patch("sciber_yklocker.loop_code", MagicMock()) as mock_loop_code:
+        with patch("sciber_yklocker.init_yklocker", MagicMock()) as mock_init_yklocker:
+            main(["-l", "doNothing", "-t", "5"])
+            mock_loop_code.assert_called_once()
+            mock_init_yklocker.assert_called_once_with(RemovalOption.NOTHING, 5)

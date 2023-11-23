@@ -340,6 +340,8 @@ def main(argv):
             if opt == "-l":
                 if arg == RemovalOption.LOGOUT:
                     removal_option = RemovalOption.LOGOUT
+                elif arg == RemovalOption.NOTHING:
+                    removal_option = RemovalOption.NOTHING
             elif opt == "-t":
                 if arg.isdecimal():
                     timeout = int(arg)
