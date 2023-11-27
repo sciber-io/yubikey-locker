@@ -537,9 +537,13 @@ def test_main_win(m_servicemanager):
     platform.system = lambda: "Windows"
 
     m_servicemanager.StartServiceCtrlDispatcher = MagicMock()
+    m_servicemanager.PrepareToHostSingle = MagicMock()
+    m_servicemanager.Initialize = MagicMock()
     main("")
 
-    # Make sure the code calls StartServiceCtrlDispatcher
+    # Make sure the code calls these:
+    m_servicemanager.Initialize.assert_called_once_with()
+    m_servicemanager.PrepareToHostSingle.assert_called_once()
     m_servicemanager.StartServiceCtrlDispatcher.assert_called_once()
 
 

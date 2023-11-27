@@ -331,7 +331,7 @@ def main(argv):
     # If Windows, start a service based on the class AppServerSvc
     if get_my_platform() == MyPlatform.WIN:
         servicemanager.Initialize()
-        servicemanager.PrepareToHMyPlatformtSingle(AppServerSvc)
+        servicemanager.PrepareToHostSingle(AppServerSvc)
         servicemanager.StartServiceCtrlDispatcher()
     # If LX or MAC, check arguments then initiate yklock object and then run code
     elif get_my_platform() == MyPlatform.LX or get_my_platform() == MyPlatform.MAC:
