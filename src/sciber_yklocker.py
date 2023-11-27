@@ -15,7 +15,7 @@ from ykman.device import list_all_devices, scan_devices
 
 # Enable Windows global imports
 # If not reassigned - code running on Linux/Mac would break
-if platform.system() != "Windows":
+if platform.system() == "Windows":
     import EmptyModule
 
     # Modules only used by the Windows service
@@ -162,6 +162,18 @@ class YkLock:
                 return False
         return True
 
+    def continue_looping(self, serviceObject):
+        # Function to handle interruptions signal sent to the program
+        if get_my_platform() == MyPlatform.WIN:
+            # Check if hWaitStop has been issued
+            if (
+                win32event.WaitForSingleObject(serviceObject.hWaitStop, 5000)
+                == win32event.WAIT_OBJECT_0
+            ):  # Then stop the loop
+                return False
+
+        return True
+
 
 def reg_create_key():
     try:
@@ -251,26 +263,12 @@ def loop_code(serviceObject, yklocker):
     yklocker.logger(message1)
     yklocker.logger(message2)
 
-    loop = True
-    while loop:
+    while yklocker.continue_looping(serviceObject):
         sleep(yklocker.get_timeout())
 
         if get_my_platform() == MyPlatform.WIN:
             # Check for any timeout or RemovalOption updates from the registry
             reg_check_updates(yklocker)
-
-            # Check if hWaitStop has been issued
-            if (
-                win32event.WaitForSingleObject(serviceObject.hWaitStop, 5000)
-                == win32event.WAIT_OBJECT_0
-            ):  # Then stop the loop
-                loop = False
-        # else:
-        #    import signal#
-
-        #    signal.signal(signal.SIGTERM, loop=False)
-
-        # launchd in Macos sends signal.SIGTERM when it wants the program to stop
 
         if not yklocker.is_yubikey_connected():
             locking_message = "YubiKey Disconnected. Locking workstation"

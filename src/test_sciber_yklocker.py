@@ -29,8 +29,9 @@ from sciber_yklocker import (
     win32service,
 )
 
-
 ### Helper Functions ##
+
+
 def reg_reset():
     # Delete our values
     try:
@@ -55,6 +56,20 @@ def mock_list_one_device():
     devices.append(mydict.values())
 
     return devices
+
+
+# global counter
+temp_counter = 0
+
+
+# Get the mock_continue_looping function to first return True then False
+def mock_continue_looping(a):
+    global temp_counter
+    if temp_counter == 0:
+        temp_counter += 1
+        return True
+    elif temp_counter > 0:
+        return False
 
 
 ## Test Functions ##
@@ -159,11 +174,12 @@ def test_yklock_lockMac(mock_CDLL):
 
 @patch("sciber_yklocker.servicemanager")
 def test_yklock_logger_windows(m_servicemanager):
+    m_servicemanager.LogInfoMsg = MagicMock()
+
     platform.system = lambda: "Windows"
     winlocker = YkLock()
-    with patch("sciber_yklocker.servicemanager.LogInfoMsg") as mock_log:
-        winlocker.logger("testmessage")
-        mock_log.assert_called_once_with("testmessage")
+    winlocker.logger("testmessage")
+    m_servicemanager.LogInfoMsg.assert_called_once_with("testmessage")
 
 
 def test_yklock_logger():
@@ -175,7 +191,7 @@ def test_yklock_logger():
 
 
 @patch("sciber_yklocker.scan_devices", return_value=[0, 1])
-def test_YkLock_is_yubikey_connected_false(_):
+def test_YkLock_is_yubikey_connected_false(m_scan_devices):
     platform.system = lambda: "Windows"
     winlocker = YkLock()
 
@@ -186,10 +202,11 @@ def test_YkLock_is_yubikey_connected_false(_):
             assert winlocker.is_yubikey_connected() is False
 
         mock_logger.assert_not_called()
+    m_scan_devices.assert_called_once()
 
 
 @patch("sciber_yklocker.scan_devices", return_value=[0, 1])
-def test_YkLock_is_yubikey_connected_true(_):
+def test_YkLock_is_yubikey_connected_true(m_scan_devices):
     platform.system = lambda: "Windows"
     winlocker = YkLock()
 
@@ -200,6 +217,39 @@ def test_YkLock_is_yubikey_connected_true(_):
             assert winlocker.is_yubikey_connected() is True
         # Make sure we got the right serial
         assert "0123456789#" in mock_logger.call_args[0][0]
+    m_scan_devices.assert_called_once()
+
+
+def test_YkLock_continue_looping_false():
+    # Mock win32event constant and function
+    mock_win32event = win32event
+    mock_win32event.WAIT_OBJECT_0 = 0
+    mock_win32event.WaitForSingleObject = MagicMock(return_value=0)
+
+    platform.system = lambda: "Windows"
+    winlocker = YkLock()
+
+    # MagicMock the serviceObject
+    # Expect WaitForSingleObject to have been called
+    # Expet the return to be false  == stop looping
+    assert winlocker.continue_looping(MagicMock()) is False
+    mock_win32event.WaitForSingleObject.assert_called_once()
+
+
+def test_YkLock_continue_looping_true():
+    # Mock win32event constant and function
+    mock_win32event = win32event
+    mock_win32event.WAIT_OBJECT_0 = 1
+    mock_win32event.WaitForSingleObject = MagicMock(return_value=0)
+
+    platform.system = lambda: "Windows"
+    winlocker = YkLock()
+
+    # MagicMock the serviceObject
+    # Expect WaitForSingleObject to have been called
+    # Expet the return to be True == continue looping
+    assert winlocker.continue_looping(MagicMock()) is True
+    mock_win32event.WaitForSingleObject.assert_called_once()
 
 
 def test_reg_create_key():
@@ -353,52 +403,57 @@ def test_reg_check_updates_with_update():
                 mock_logger.assert_called_once()
 
 
-@patch.object(YkLock, "lock")
-@patch("sciber_yklocker.servicemanager")
-# Make sure we trigger the service interruption to quit the loop
-def test_loop_code_no_yubikey_windows(m_servicemanager, mock_lock):
+def test_loop_code_no_yubikey_windows():
     platform.system = lambda: "Windows"
     winlocker = YkLock()
+
     # Patch sleep and connection
     winlocker.get_timeout = lambda: 0
     winlocker.is_yubikey_connected = lambda: False
 
-    # Mock win32event constant and function
-    mock_win32event = win32event
-    mock_win32event.WAIT_OBJECT_0 = 0
-    mock_win32event.WaitForSingleObject = lambda a, b: 0
+    # Get the global counter and set it to zero
+    global temp_counter
+    temp_counter = 0
 
-    # Patch logger to catch messages
-    with patch("sciber_yklocker.YkLock.logger", MagicMock()) as mock_logger:
-        loop_code(MagicMock(), winlocker)
+    # Patch continue_looping to enter while-loop only once
+    with patch("sciber_yklocker.YkLock.continue_looping", MagicMock()) as mock_loop:
+        mock_loop.side_effect = mock_continue_looping
+        # Dont actually lock the device during tests
+        with patch("sciber_yklocker.YkLock.lock", MagicMock()) as mock_lock:
+            # Patch logger to catch messages
+            with patch("sciber_yklocker.YkLock.logger", MagicMock()) as mock_logger:
+                loop_code(MagicMock(), winlocker)
 
-        # Make sure we got the right message
-        mock_logger.assert_called_with("YubiKey Disconnected. Locking workstation")
+                # Make sure we got the right message
+                mock_logger.assert_called_with(
+                    "YubiKey Disconnected. Locking workstation"
+                )
 
-    # Make sure lock was called, no arguments expected
-    mock_lock.assert_called_once_with()
+            # Make sure lock was called, no arguments expected
+            mock_lock.assert_called_once_with()
 
 
-@patch.object(YkLock, "lock")
-@patch("sciber_yklocker.servicemanager")
-# Make sure we trigger the service interruption to quit the loop
-def test_loop_code_with_yubikey_windows(m_servicemanager, mock_lock):
+def test_loop_code_with_yubikey_windows():
     platform.system = lambda: "Windows"
     winlocker = YkLock()
     # Patch sleep and connection
     winlocker.get_timeout = lambda: 0
     winlocker.is_yubikey_connected = lambda: True
 
-    # Mock win32event constant and function
-    mock_win32event = win32event
-    mock_win32event.WAIT_OBJECT_0 = 0
-    mock_win32event.WaitForSingleObject = lambda a, b: 0
+    # Get the global counter and set it to zero
+    global temp_counter
+    temp_counter = 0
 
-    # Patch logger to catch messages
-    with patch("sciber_yklocker.YkLock.logger", MagicMock()):
-        loop_code(MagicMock(), winlocker)
-    # Make sure lock was not called
-    mock_lock.assert_not_called()
+    # Patch continue_looping to enter while-loop only once
+    with patch("sciber_yklocker.YkLock.continue_looping", MagicMock()) as mock_loop:
+        mock_loop.side_effect = mock_continue_looping
+        # Dont actually lock the device during tests
+        with patch("sciber_yklocker.YkLock.lock", MagicMock()) as mock_lock:
+            # Patch logger to catch messages
+            with patch("sciber_yklocker.YkLock.logger", MagicMock()):
+                loop_code(MagicMock(), winlocker)
+            # Make sure lock was not called
+            mock_lock.assert_not_called()
 
 
 def test_init_yklocker():
