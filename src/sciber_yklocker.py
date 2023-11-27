@@ -15,7 +15,7 @@ from ykman.device import list_all_devices, scan_devices
 
 # Enable Windows global imports
 # If not reassigned - code running on Linux/Mac would break
-if platform.system() == "Windows":
+if platform.system() != "Windows":
     import EmptyModule
 
     # Modules only used by the Windows service
