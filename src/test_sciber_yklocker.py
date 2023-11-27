@@ -46,16 +46,6 @@ def reg_reset():
         print("No registry values to delete")
 
 
-def mock_reg_query_key(key_name, key_value):
-    print("mock_reg_query_key")
-    print(key_name, key_value)
-    #
-    if key_value == REG_REMOVALOPTION:
-        return [RemovalOption.LOGOUT, fake_winreg.REG_SZ]
-    elif key_value == REG_TIMEOUT:
-        return ["15", fake_winreg.REG_SZ]
-
-
 def mock_list_one_device():
     class info:
         serial = "0123456789#"

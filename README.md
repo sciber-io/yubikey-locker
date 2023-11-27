@@ -3,13 +3,13 @@
 
 To enable automatic lock when removing the YubiKey.
 
-### Comandline options (ALL OS's)
+### Comandline options (Linux and MAC)
 ```bash
-# Defaults to LOCKOUT, can be set to LOGOUT with
-sciber-yklocker.exe -l logout
+# [Optional] Set removalOption - defaults to Lock
+-l Lock|Logout|doNothing
 
-# Defaults to checking for a yubikey every 10 seconds, can be changed with
-sciber-yklocker.exe -t 20
+# [Optional] Set timeout - defaults to 10 seconds
+-t 20
 ```
 
 ### Windows
@@ -19,7 +19,7 @@ sciber-yklocker.exe -t 20
 
 ```bash
 # Change behavior on Windows via the registry:
-# removalOptions: lock,logout
+# removalOptions: Lock,Logout,doNothing
 HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Yubico\YubiKey Removal Behavior
   - removalOption lock
   - timeout 10
