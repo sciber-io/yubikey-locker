@@ -302,9 +302,8 @@ def init_yklocker(removal_option, timeout):
 
 # Windows Service Class Definition
 class AppServerSvc(win32serviceutil.ServiceFramework):
-    _svc_name_ = "SciberYkLocker"
+    _svc_name_ = "SciberYklocker"
     _svc_display_name_ = "Sciber YubiKey Locker"
-    _svc_description_ = "To enable automatic lock when removing the YubiKey."
 
     def __init__(self, args):
         win32serviceutil.ServiceFramework.__init__(self, args)
