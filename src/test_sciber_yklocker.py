@@ -67,11 +67,15 @@ def test_get_my_platform():
 
 def test_yklock_getset_removal_option():
     yklocker = YkLock()
-    input = RemovalOption.LOGOUT
-    yklocker.set_removal_option(input)
+    yklocker.set_removal_option(RemovalOption.LOGOUT)
     yklocker.set_removal_option("hello")
+    assert yklocker.get_removal_option() == RemovalOption.LOGOUT
 
-    assert yklocker.get_removal_option() == input
+    yklocker.set_removal_option(RemovalOption.LOCK)
+    assert yklocker.get_removal_option() == RemovalOption.LOCK
+
+    yklocker.set_removal_option(RemovalOption.NOTHING)
+    assert yklocker.get_removal_option() == RemovalOption.NOTHING
 
 
 def test_yklock_getset_timeout():

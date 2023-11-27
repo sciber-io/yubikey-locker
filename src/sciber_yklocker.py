@@ -95,7 +95,7 @@ class YkLock:
                 self.timeout = timeout
 
     def set_removal_option(self, method):
-        if method == RemovalOption.LOCK or method == RemovalOption.LOGOUT:
+        if method in RemovalOption.__members__.values():
             self.removal_option = method
 
     def get_removal_option(self):
@@ -265,6 +265,12 @@ def loop_code(serviceObject, yklocker):
                 == win32event.WAIT_OBJECT_0
             ):  # Then stop the loop
                 loop = False
+        else:
+            import signal
+
+            signal.signal(signal.SIGTERM, loop=False)
+
+            # launchd in Macos sends signal.SIGTERM when it wants the program to stop
 
         if not yklocker.is_yubikey_connected():
             locking_message = "YubiKey Disconnected. Locking workstation"
