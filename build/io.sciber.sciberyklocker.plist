@@ -23,7 +23,7 @@ https://medium.com/@chetcorcos/a-simple-launchd-tutorial-9fecfcf2dbb3
 
     <key>ProgramArguments</key>
     <array>
-        <string>/Applications/sciber-yklocker-darwin</string>
+        <string>/Applications/sciber-yklocker-macos</string>
         <!-- <string>-l Lock -t 10</string> -->
     </array>
 
