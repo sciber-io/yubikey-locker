@@ -9,7 +9,7 @@ permissions:
   contents: write # to enable releases
 
 jobs:
-  build:
+  dev_build:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
