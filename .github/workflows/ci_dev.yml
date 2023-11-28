@@ -3,7 +3,7 @@ name: Package Application with Pyinstaller
 
 on:
   push:
-    branches: [ main ]
+    branches: [ dev ]
 
 permissions:
   contents: write # to enable releases
@@ -67,6 +67,6 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           token: "${{ secrets.GITHUB_TOKEN }}"
-          tag_name: "v1.0-main"
+          tag_name: "v1.0-dev"
           prerelease: True
           files: build/dist/*
