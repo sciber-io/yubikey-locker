@@ -1,15 +1,15 @@
 
-name: main - test and build
+name: Dev - test and build
 
 on:
   push:
-    branches: [ main ]
+    branches: [ dev ]
 
 permissions:
   contents: write # to enable releases
 
 jobs:
-  main_build:
+  dev_build:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -67,6 +67,6 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           token: "${{ secrets.GITHUB_TOKEN }}"
-          tag_name: "v1.0-main"
-          prerelease: False
+          tag_name: "v1.0-dev"
+          prerelease: True
           files: build/dist/*
