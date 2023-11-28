@@ -1,5 +1,5 @@
 
-name: Package Application with Pyinstaller
+name: main - test and build
 
 on:
   push:
@@ -68,5 +68,5 @@ jobs:
         with:
           token: "${{ secrets.GITHUB_TOKEN }}"
           tag_name: "v1.0-main"
-          prerelease: True
+          prerelease: False
           files: build/dist/*
