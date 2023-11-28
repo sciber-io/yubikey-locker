@@ -19,16 +19,12 @@ jobs:
         #
         include:
           - os: windows-2022
-            #build_cmd: cd build && .\build.bat
             build_filename: sciber-yklocker.exe
           - os: ubuntu-22.04
-            #build_cmd: cd build && chmod +x build.sh && ./build.sh && mv dist/sciber-yklocker dist/sciber-yklocker-linux
             build_filename: sciber-yklocker-linux
           - os: macos-12
-            #build_cmd: cd build && chmod +x build.sh && ./build.sh && mv dist/sciber-yklocker dist/sciber-yklocker-macos
             build_filename: sciber-yklocker-macos
 
-# swig pcscd
     steps:
       - uses: actions/checkout@v4
       - name: Set up Python
@@ -74,11 +70,3 @@ jobs:
           tag_name: "v0.1-beta"
           prerelease: True
           files: build/dist/*
-
-
-
-## RUN WINDOWS OUTSIDE THE MATRIX?!
-        # build/dist/sciber-yklocker.exe.msi
- # build2:
- #   runs-on: "windows-2022"
- #     job2:
