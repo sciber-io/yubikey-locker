@@ -331,7 +331,10 @@ def main(argv):
     if get_my_platform() == MyPlatform.WIN:
         servicemanager.Initialize()
         servicemanager.PrepareToHostSingle(AppServerSvc)
-        servicemanager.StartServiceCtrlDispatcher()
+        try:
+            servicemanager.StartServiceCtrlDispatcher()
+        except SystemError:
+            print("The executable needs to be installed and started as a service.")
     # If LX or MAC, check arguments then initiate yklock object and then run code
     elif get_my_platform() == MyPlatform.LX or get_my_platform() == MyPlatform.MAC:
         removal_option = RemovalOption.LOCK
