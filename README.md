@@ -1,5 +1,6 @@
-
 # YubiKey Autolocker by Sciber
+[![main - tests and build](https://github.com/sciber-io/yklocker/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/sciber-io/yklocker/actions/workflows/ci.yml)
+
 For YubiKey users to enable automatic device locking when removing the YubiKey.
 
 ![YubiKey Autolocker by Sciber](src/sciber_yklocker.png "sciber-yklocker")
