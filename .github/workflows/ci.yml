@@ -55,7 +55,7 @@ jobs:
         run: |
           dotnet tool install --global wix
           wix.exe build -arch x64 .\src\sciber-yklocker.wxs
-          cp .\src\sciber-yklocker.msi build/dist/sciber-yklocker.msi
+          cp .\src\sciber-yklocker.msi dist/sciber-yklocker.msi
 
       - if: matrix.os == 'ubuntu-22.04'
         name: Pytest coverage comment
@@ -69,4 +69,4 @@ jobs:
           token: "${{ secrets.GITHUB_TOKEN }}"
           tag_name: "v1.0-main"
           prerelease: False
-          files: build/dist/*
+          files: dist/*

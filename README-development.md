@@ -18,3 +18,13 @@ python3.11 -m tox -e build -- sciber-yklocker.exe
 
 ```
 In case something is unclear - you should be able to follow the process in ci.yml
+
+
+### Other
+Pyinstaller cmd:
+pyinstaller --clean -F -n "sciber-yklocker" "..\src\sciber_yklocker.py"
+
+In case you do not want to skip the MSI:
+
+sc.exe create SciberYkLocker binPath="C:\Program Files\Sciber\sciber-yklocker\sciber-yklocker.exe" start=auto
+sc.exe start SciberYkLocker

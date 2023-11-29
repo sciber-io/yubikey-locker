@@ -46,7 +46,7 @@
                 <!-- Copies the App.WindowsService.exe file using the
                      project reference preprocessor variables -->
                 <File Id="SciberYklocker"
-                      Source="build/dist/sciber-yklocker.exe"
+                      Source="dist/sciber-yklocker.exe"
                       KeyPath="true" />
 
                 <!-- Remove all files from the INSTALLFOLDER on uninstall -->
