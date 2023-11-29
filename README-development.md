@@ -1,5 +1,6 @@
 
 # YubiKey Autolocker by Sciber
+Requirements: Python3.11+
 
 ### Development
 ```
