@@ -1,7 +1,8 @@
 
 # YubiKey Autolocker by Sciber
-
 For YubiKey users to enable automatic device locking when removing the YubiKey.
+
+![YubiKey Autolocker by Sciber](src/sciber_yklocker.png "sciber-yklocker")
 
 :warning: Avoid running this tool without a YubiKey present as it will then lock your computer.
 
