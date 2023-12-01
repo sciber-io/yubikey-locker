@@ -26,24 +26,8 @@ from sciber_yklocker import (
     win32service,
 )
 
+
 ### Helper Functions ##
-
-
-def reg_reset():
-    # Delete our values
-    try:
-        key_handle = fake_winreg.OpenKey(fake_winreg.HKEY_LOCAL_MACHINE, REG_PATH)
-
-        fake_winreg.DeleteValue(key_handle, REG_REMOVALOPTION)
-        fake_winreg.DeleteValue(key_handle, REG_TIMEOUT)
-        fake_winreg.DeleteKey(key_handle, REG_REMOVALOPTION)
-        fake_winreg.DeleteKey(key_handle, REG_TIMEOUT)
-        fake_winreg.CloseKey(key_handle)
-
-    except OSError:
-        print("No registry values to delete")
-
-
 def mock_list_one_device():
     class info:
         serial = "0123456789#"
@@ -250,7 +234,6 @@ def test_YkLock_continue_looping_true():
 
 
 def test_reg_query_key_empty():
-    reg_reset()
     # Use fake registry
     with patch("sciber_yklocker.winreg", fake_winreg):
         # Empty registry should return False
@@ -259,7 +242,6 @@ def test_reg_query_key_empty():
 
 
 def test_reg_query_key_with_values():
-    reg_reset()
     # Use fake registry - with values
     key_handle = fake_winreg.CreateKey(fake_winreg.HKEY_LOCAL_MACHINE, REG_PATH)
     fake_winreg.SetValueEx(
@@ -271,6 +253,13 @@ def test_reg_query_key_with_values():
     with patch("sciber_yklocker.winreg", fake_winreg):
         assert reg_query_key(REG_REMOVALOPTION) == RemovalOption.LOCK
         assert int(reg_query_key(REG_TIMEOUT)) == 22
+
+    # Cleanup: Delete our values
+    key_handle = fake_winreg.OpenKey(fake_winreg.HKEY_LOCAL_MACHINE, REG_PATH)
+    fake_winreg.DeleteValue(key_handle, REG_REMOVALOPTION)
+    fake_winreg.DeleteValue(key_handle, REG_TIMEOUT)
+    fake_winreg.CloseKey(key_handle)
+    key_handle.Close()
 
 
 def test_reg_check_timeout():
