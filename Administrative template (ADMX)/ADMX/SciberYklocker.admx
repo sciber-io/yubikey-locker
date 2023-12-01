@@ -2,7 +2,6 @@
 <policyDefinitions revision="1.0" schemaVersion="1.0">
   <policyNamespaces>
     <target prefix="Sciber" namespace="Sciber.Policies"/>
-    <using prefix="windows" namespace="Microsoft.Policies.Windows"/>
   </policyNamespaces>
   <resources minRequiredRevision="1.0"/>
   <categories>
@@ -12,7 +11,7 @@
   <policies>
     <policy name="SciberYklocker" class="Both" displayName="$(string.SciberYklocker)" explainText="$(string.SciberYklocker_Help)" presentation="$(presentation.SciberYklocker)" key="Software\Policies\Sciber\YubiKey Removal Behavior">
       <parentCategory ref="SciberPolicies"/>
-      <supportedOn ref="windows:SUPPORTED_Windows_10_0_NOSERVER"/>
+      <supportedOn ref="Sciber:SUPPORTED_Windows_10_0_NOSERVER"/>
       <elements>
         <enum id="RemovalOption" valueName="RemovalOption" required="true">
           <item displayName="$(string.Lock)">
