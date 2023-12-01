@@ -355,19 +355,21 @@ def test_loop_code_no_yubikey_windows():
     # Patch continue_looping to enter while-loop only once
     with patch("sciber_yklocker.YkLock.continue_looping", MagicMock()) as mock_loop:
         mock_loop.side_effect = mock_continue_looping
-        # Dont actually lock the device during tests
-        with patch("sciber_yklocker.YkLock.lock", MagicMock()) as mock_lock:
-            # Patch logger to catch messages
-            with patch("sciber_yklocker.YkLock.logger", MagicMock()) as mock_logger:
-                loop_code(MagicMock(), winlocker)
+        # Patch registry updates func
+        with patch("sciber_yklocker.reg_check_updates", MagicMock()):
+            # Dont actually lock the device during tests
+            with patch("sciber_yklocker.YkLock.lock", MagicMock()) as mock_lock:
+                # Patch logger to catch messages
+                with patch("sciber_yklocker.YkLock.logger", MagicMock()) as mock_logger:
+                    loop_code(MagicMock(), winlocker)
 
-                # Make sure we got the right message
-                mock_logger.assert_called_with(
-                    "YubiKey Disconnected. Locking workstation"
-                )
+                    # Make sure we got the right message
+                    mock_logger.assert_called_with(
+                        "YubiKey Disconnected. Locking workstation"
+                    )
 
-            # Make sure lock was called, no arguments expected
-            mock_lock.assert_called_once_with()
+                # Make sure lock was called, no arguments expected
+                mock_lock.assert_called_once_with()
 
 
 def test_loop_code_with_yubikey_windows():
@@ -384,13 +386,15 @@ def test_loop_code_with_yubikey_windows():
     # Patch continue_looping to enter while-loop only once
     with patch("sciber_yklocker.YkLock.continue_looping", MagicMock()) as mock_loop:
         mock_loop.side_effect = mock_continue_looping
-        # Dont actually lock the device during tests
-        with patch("sciber_yklocker.YkLock.lock", MagicMock()) as mock_lock:
-            # Patch logger to catch messages
-            with patch("sciber_yklocker.YkLock.logger", MagicMock()):
-                loop_code(MagicMock(), winlocker)
-            # Make sure lock was not called
-            mock_lock.assert_not_called()
+        # Patch registry updates func
+        with patch("sciber_yklocker.reg_check_updates", MagicMock()):
+            # Dont actually lock the device during tests
+            with patch("sciber_yklocker.YkLock.lock", MagicMock()) as mock_lock:
+                # Patch logger to catch messages
+                with patch("sciber_yklocker.YkLock.logger", MagicMock()):
+                    loop_code(MagicMock(), winlocker)
+                # Make sure lock was not called
+                mock_lock.assert_not_called()
 
 
 def test_init_yklocker():
