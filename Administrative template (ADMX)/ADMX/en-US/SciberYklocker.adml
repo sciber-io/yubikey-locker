@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<policyDefinitionResources revision="1.0" schemaVersion="1.0">
+  <displayName>Sciber Policy Definitions</displayName>
+  <description>Sciber Policy Definitions</description>
+  <resources>
+    <stringTable>
+      <string id="Sciber">Sciber Yklocker</string>
+      <string id="SciberPolicies">Sciber Yklocker Settings</string>
+      <string id="SciberYklocker">Sciber Yklocker Settings</string>
+      <string id="SciberYklocker_Help">Policy settings for Sciber Yklocker.
+
+* removalOption sets what action to take when no connected YubiKey is detected.
+* timeout sets at which interval to check for a connected YubiKey.
+
+</string>
+      <string id="Lock">Lock</string>
+      <string id="Logout">Logout</string>
+      <string id="doNothing">doNothing</string>
+
+      <string id="RemovalOptionLabel">Removal option:</string>
+      <string id="TimeoutLabel">Timeout (seconds):</string>
+    </stringTable>
+    <presentationTable>
+      <presentation id="SciberYklocker">
+        <dropdownList refId="RemovalOption" defaultItem="0">RemovalOption:</dropdownList>
+        <decimalTextBox refId="Timeout" label="$(string.TimeoutLabel)" value="10" defaultValue="10" spin="true" min="1" max="60">Timeout:</decimalTextBox>
+      </presentation>
+    </presentationTable>
+  </resources>
+</policyDefinitionResources>
+<!-- inspired by swjm.blog -->
