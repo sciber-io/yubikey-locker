@@ -43,9 +43,9 @@ import win32service
 import win32serviceutil
 import win32ts
 
-REG_REMOVALOPTION = "removalOption"
-REG_TIMEOUT = "timeout"
-REG_PATH = r"SOFTWARE\\Policies\\Yubico\\YubiKey Removal Behavior\\"
+REG_REMOVALOPTION = "RemovalOption"
+REG_TIMEOUT = "Timeout"
+REG_PATH = r"SOFTWARE\\Policies\\Sciber\\YubiKey Removal Behavior\\"
 
 
 class MyPlatform(Enum):
@@ -175,58 +175,22 @@ class YkLock:
         return True
 
 
-def reg_create_key():
+def reg_query_key(key_name):
     try:
-        return winreg.CreateKey(winreg.HKEY_LOCAL_MACHINE, REG_PATH)
-    except (OSError, AttributeError):
-        traceback.print_exc()
-        return False
-
-
-def reg_query_key(key_handle, key_name):
-    try:
+        # Attemt to open the handle to registry
+        key_handle = winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, REG_PATH)
         # QueryValueEx returns a tuple, the value and the type
-        # We assume our values are REG_SZ
-        return (winreg.QueryValueEx(key_handle, key_name))[0]
+        ret = winreg.QueryValueEx(key_handle, key_name)[0]
+        # Close the handle to the key
+        key_handle.Close()
+        return ret
     except (OSError, TypeError, FileNotFoundError, KeyError):
         traceback.print_exc()
         return False
 
 
-def reg_set_key(key_handle, key_name, key_value):
-    try:
-        winreg.SetValueEx(key_handle, key_name, 0, winreg.REG_SZ, str(key_value))
-        return True
-    except (OSError, TypeError):
-        traceback.print_exc()
-        return False
-
-
-def reg_handler(key_name, key_value):
-    # Open / Create the key - need admin privs
-    key_handle = reg_create_key()
-    if key_handle:
-        # Query the keyname for its value, if it does not exist create it with default value and try again.
-        ret = reg_query_key(key_handle, key_name)
-        if ret is False:
-            # We need to set the value
-            if reg_set_key(key_handle, key_name, key_value):
-                # If successful, key_value is the new value in the registry
-                ret = key_value
-
-        # Close the key handle
-        winreg.CloseKey(key_handle)
-
-        if ret:
-            return ret
-
-    # Else
-    return False
-
-
 def reg_check_timeout(yklocker):
-    # Call reg_handler with default values to use if registry is not populated
-    timeoutValue = int(reg_handler(REG_TIMEOUT, yklocker.get_timeout()))
+    timeoutValue = int(reg_query_key(REG_TIMEOUT))
     if timeoutValue is not False:
         yklocker.set_timeout(timeoutValue)
     # Return current timeout
@@ -234,10 +198,12 @@ def reg_check_timeout(yklocker):
 
 
 def reg_check_removal_option(yklocker):
-    # Call reg_handler with default values to use if registry is not populated
-    lockValue = reg_handler(REG_REMOVALOPTION, yklocker.get_removal_option())
+    lockValue = reg_query_key(REG_REMOVALOPTION)
     if lockValue is not False:
         yklocker.set_removal_option(lockValue)
+    else:
+        # If no Windows Registry option is set. Default to doNothing
+        yklocker.set_removal_option(RemovalOption.NOTHING)
     # Return current RemovalOption
     return yklocker.get_removal_option()
 

@@ -19,34 +19,15 @@ from sciber_yklocker import (
     reg_check_removal_option,
     reg_check_timeout,
     reg_check_updates,
-    reg_create_key,
-    reg_handler,
     reg_query_key,
-    reg_set_key,
     servicemanager,
     socket,
     win32event,
     win32service,
 )
 
+
 ### Helper Functions ##
-
-
-def reg_reset():
-    # Delete our values
-    try:
-        key_handle = fake_winreg.OpenKey(fake_winreg.HKEY_LOCAL_MACHINE, REG_PATH)
-
-        fake_winreg.DeleteValue(key_handle, REG_REMOVALOPTION)
-        fake_winreg.DeleteValue(key_handle, REG_TIMEOUT)
-        fake_winreg.DeleteKey(key_handle, REG_REMOVALOPTION)
-        fake_winreg.DeleteKey(key_handle, REG_TIMEOUT)
-        fake_winreg.CloseKey(key_handle)
-
-    except OSError:
-        print("No registry values to delete")
-
-
 def mock_list_one_device():
     class info:
         serial = "0123456789#"
@@ -252,94 +233,39 @@ def test_YkLock_continue_looping_true():
     mock_win32event.WaitForSingleObject.assert_called_once()
 
 
-def test_reg_create_key():
-    reg_reset()
+def test_reg_query_key_empty():
     # Use fake registry
     with patch("sciber_yklocker.winreg", fake_winreg):
-        create_key_handle = reg_create_key()
-
-        # open key assumes the key has already been created
-        open_key_handle = fake_winreg.OpenKey(fake_winreg.HKEY_LOCAL_MACHINE, REG_PATH)
-        assert create_key_handle.handle.full_key == open_key_handle.handle.full_key
-        fake_winreg.CloseKey(create_key_handle)
-        fake_winreg.CloseKey(open_key_handle)
+        # Empty registry should return False
+        assert reg_query_key(REG_REMOVALOPTION) is False
+        assert reg_query_key(REG_TIMEOUT) is False
 
 
-# Test non-existing registry
-def test_reg_create_key_error():
-    reg_reset()
-    with patch("sciber_yklocker.winreg", None):
-        assert reg_create_key() is False
+def test_reg_query_key_with_values():
+    # Use fake registry - with values
+    key_handle = fake_winreg.CreateKey(fake_winreg.HKEY_LOCAL_MACHINE, REG_PATH)
+    fake_winreg.SetValueEx(
+        key_handle, REG_REMOVALOPTION, 0, fake_winreg.REG_SZ, str(RemovalOption.LOCK)
+    )
+    fake_winreg.SetValueEx(key_handle, REG_TIMEOUT, 0, fake_winreg.REG_DWORD, 22)
+    key_handle.Close()
 
-
-def test_reg_query_key():
-    reg_reset()
-    # Use fake registry
     with patch("sciber_yklocker.winreg", fake_winreg):
-        input = "1"
-        key_handle = reg_create_key()
-        reg_set_key(key_handle, REG_TIMEOUT, input)
-        assert reg_query_key(key_handle, REG_TIMEOUT) is input
-        fake_winreg.CloseKey(key_handle)
+        assert reg_query_key(REG_REMOVALOPTION) == RemovalOption.LOCK
+        assert int(reg_query_key(REG_TIMEOUT)) == 22
 
-
-def test_reg_query_key_error():
-    reg_reset()
-    # Use fake registry
-    with patch("sciber_yklocker.winreg", fake_winreg):
-        key_handle = reg_create_key()
-        # Non-existing key should return None
-        assert reg_query_key(key_handle, "nada") is False
-        fake_winreg.CloseKey(key_handle)
-
-
-def test_reg_set_key():
-    reg_reset()
-    # Use fake registry
-    with patch("sciber_yklocker.winreg", fake_winreg):
-        key_handle = reg_create_key()
-        # Successfully creating a key:value should return True
-        ret = reg_set_key(key_handle, "name1", "value1")
-        assert ret is True
-
-        # Successfully querying that value should, return the value
-        ret = reg_query_key(key_handle, "name1")
-        assert ret == "value1"
-
-        fake_winreg.CloseKey(key_handle)
-
-
-def test_reg_set_key_error():
-    reg_reset()
-    # Use fake registry
-    with patch("sciber_yklocker.winreg", fake_winreg):
-        # "1" is an invalid key handle
-        assert reg_set_key("1", "2", "3") is False
-
-
-def test_reg_handler():
-    # No real key handle to close so mock winreg
-    with patch("sciber_yklocker.winreg", MagicMock()):
-        # Our key handle
-        with patch("sciber_yklocker.reg_create_key", lambda: True):
-            # Assume no previous entries in the registry
-            with patch("sciber_yklocker.reg_query_key", lambda a, b: False):
-                # Mock successful key create
-                with patch("sciber_yklocker.reg_set_key", MagicMock()) as mock_set:
-                    assert reg_handler("a", "woo") == "woo"
-                    mock_set.assert_called_once()
-
-
-def test_reg_handler_error():
-    # Our key handle is True
-    with patch("sciber_yklocker.reg_create_key", lambda: False):
-        assert reg_handler("a", "b") is False
+    # Cleanup: Delete our values
+    key_handle = fake_winreg.OpenKey(fake_winreg.HKEY_LOCAL_MACHINE, REG_PATH)
+    fake_winreg.DeleteValue(key_handle, REG_REMOVALOPTION)
+    fake_winreg.DeleteValue(key_handle, REG_TIMEOUT)
+    fake_winreg.CloseKey(key_handle)
+    key_handle.Close()
 
 
 def test_reg_check_timeout():
     yklocker = YkLock()
     # Assume the registry returns 15
-    with patch("sciber_yklocker.reg_handler", lambda a, b: "15"):
+    with patch("sciber_yklocker.reg_query_key", lambda a: "15"):
         reg_check_timeout(yklocker)
 
     assert yklocker.get_timeout() == 15
@@ -349,7 +275,7 @@ def test_reg_check_timeout_error():
     yklocker = YkLock()
     # Check with another value than the default
     yklocker.set_timeout(15)
-    with patch("sciber_yklocker.reg_handler", lambda a, b: False):
+    with patch("sciber_yklocker.reg_query_key", lambda a: False):
         reg_check_timeout(yklocker)
 
     assert yklocker.get_timeout() == 15
@@ -358,7 +284,7 @@ def test_reg_check_timeout_error():
 def test_reg_check_removal_option():
     yklocker = YkLock()
     # Assume the registry returns logout
-    with patch("sciber_yklocker.reg_handler", lambda a, b: RemovalOption.LOGOUT):
+    with patch("sciber_yklocker.reg_query_key", lambda a: RemovalOption.LOGOUT):
         reg_check_removal_option(yklocker)
 
     assert yklocker.get_removal_option() == RemovalOption.LOGOUT
@@ -367,11 +293,11 @@ def test_reg_check_removal_option():
 def test_reg_check_removal_option_error():
     yklocker = YkLock()
     # Check with another value than the default
-    yklocker.set_removal_option(RemovalOption.LOGOUT)
-    with patch("sciber_yklocker.reg_handler", lambda a, b: False):
+    with patch("sciber_yklocker.reg_query_key", lambda a: False):
         reg_check_removal_option(yklocker)
 
-    assert yklocker.get_removal_option() == RemovalOption.LOGOUT
+    # IF no registry then it should be doNothing
+    assert yklocker.get_removal_option() == RemovalOption.NOTHING
 
 
 def test_reg_check_updates_no_update():
@@ -418,19 +344,21 @@ def test_loop_code_no_yubikey_windows():
     # Patch continue_looping to enter while-loop only once
     with patch("sciber_yklocker.YkLock.continue_looping", MagicMock()) as mock_loop:
         mock_loop.side_effect = mock_continue_looping
-        # Dont actually lock the device during tests
-        with patch("sciber_yklocker.YkLock.lock", MagicMock()) as mock_lock:
-            # Patch logger to catch messages
-            with patch("sciber_yklocker.YkLock.logger", MagicMock()) as mock_logger:
-                loop_code(MagicMock(), winlocker)
+        # Patch registry updates func
+        with patch("sciber_yklocker.reg_check_updates", MagicMock()):
+            # Dont actually lock the device during tests
+            with patch("sciber_yklocker.YkLock.lock", MagicMock()) as mock_lock:
+                # Patch logger to catch messages
+                with patch("sciber_yklocker.YkLock.logger", MagicMock()) as mock_logger:
+                    loop_code(MagicMock(), winlocker)
 
-                # Make sure we got the right message
-                mock_logger.assert_called_with(
-                    "YubiKey Disconnected. Locking workstation"
-                )
+                    # Make sure we got the right message
+                    mock_logger.assert_called_with(
+                        "YubiKey Disconnected. Locking workstation"
+                    )
 
-            # Make sure lock was called, no arguments expected
-            mock_lock.assert_called_once_with()
+                # Make sure lock was called, no arguments expected
+                mock_lock.assert_called_once_with()
 
 
 def test_loop_code_with_yubikey_windows():
@@ -447,13 +375,15 @@ def test_loop_code_with_yubikey_windows():
     # Patch continue_looping to enter while-loop only once
     with patch("sciber_yklocker.YkLock.continue_looping", MagicMock()) as mock_loop:
         mock_loop.side_effect = mock_continue_looping
-        # Dont actually lock the device during tests
-        with patch("sciber_yklocker.YkLock.lock", MagicMock()) as mock_lock:
-            # Patch logger to catch messages
-            with patch("sciber_yklocker.YkLock.logger", MagicMock()):
-                loop_code(MagicMock(), winlocker)
-            # Make sure lock was not called
-            mock_lock.assert_not_called()
+        # Patch registry updates func
+        with patch("sciber_yklocker.reg_check_updates", MagicMock()):
+            # Dont actually lock the device during tests
+            with patch("sciber_yklocker.YkLock.lock", MagicMock()) as mock_lock:
+                # Patch logger to catch messages
+                with patch("sciber_yklocker.YkLock.logger", MagicMock()):
+                    loop_code(MagicMock(), winlocker)
+                # Make sure lock was not called
+                mock_lock.assert_not_called()
 
 
 def test_init_yklocker():

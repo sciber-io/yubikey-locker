@@ -11,20 +11,15 @@ For YubiKey users to enable automatic device locking when removing the YubiKey.
 ### Default behavior
 sciber-yklocker will check if htere is a YubiKey present every 10 seconds, and if there is not the computer will be locked.
 
+On Windows this will only happen if the proper register values are set - otherwise it defaults to doNothing.
+
 ## Installation
 ### Windows
 1. Download the installer sciber-yklocker.msi from [releases](https://github.com/sciber-io/yklocker/releases)
 2. Run the installer (installs the service SciberYklocker for you)
 3. Follow Jonas guide on his blog: https://swjm.blog/locking-the-workstation-on-fido2-security-key-removal-part-2-80962c944c78 to set up GPO/Intune control to decide what you want to do if the YubiKey is removed.
+(4. Without Intune: download the amdx and adml file to your computer and place them in C:\Windows\PolicyDefinitions, then start local group policy editor -> Computer Configuration -> Administrative Templates -> Sciber Yklocker Settings --> turn on to get registry values)
 
-```bash
-# Instead of changing the program's behavior via the commandline its done via the registry.
-# removalOptions: Lock,Logout,doNothing
-# timout: a number
-HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Yubico\YubiKey Removal Behavior
-  - removalOption Lock
-  - timeout 10
-```
 
 ### Linux
 Download sciber-yklocker-linux and execute it in a terminal (requires you to keep that terminal window open).
