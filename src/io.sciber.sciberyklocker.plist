@@ -21,6 +21,11 @@ https://medium.com/@chetcorcos/a-simple-launchd-tutorial-9fecfcf2dbb3
     <key>RunAtLoad</key>
     <true/>
 
+    <key>StandardOutPath</key>
+    <string>/Applications/sciber-yklocker-macos.log</string>
+    <key>StandardErrorPath</key>
+    <string>/Applications/sciber-yklocker-macos-error.log</string>
+
     <key>ProgramArguments</key>
     <array>
         <string>/Applications/sciber-yklocker-macos</string>
