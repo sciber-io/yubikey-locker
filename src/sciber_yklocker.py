@@ -11,7 +11,7 @@ from enum import Enum, StrEnum  # StrEnum is python 3.11+
 from time import sleep
 
 # Yubikey imports
-from ykman.device import list_all_devices, scan_devices
+from ykman.device import list_all_devices  # , scan_devices
 
 # Enable Windows global imports
 # If not reassigned - code running on Linux/Mac would break
@@ -78,13 +78,6 @@ class YkLock:
         self.MyPlatformversion = get_my_platform()
         self.timeout = 10
         self.removal_option = RemovalOption.LOCK
-        self.yubikeyState = None
-
-    def get_state(self):
-        return self.yubikeyState
-
-    def set_state(self, state):
-        self.yubikeyState = state
 
     def get_timeout(self):
         return self.timeout
@@ -150,17 +143,11 @@ class YkLock:
             print(message)
 
     def is_yubikey_connected(self):
-        # This avoids connecting to the same YubiKey every loop. Only connect to it on state changes
-        pids, new_state = scan_devices()
-        if new_state != self.get_state():
-            self.set_state(new_state)  # State has changed
-            devices = list_all_devices()
-            for device, info in devices:
-                connected_message = f"YubiKey Connected with serial: {info.serial}"
-                self.logger(connected_message)
-            if len(devices) == 0:
-                return False
-        return True
+        devices = list_all_devices()
+        if len(devices) == 0:
+            return False
+        else:
+            return True
 
     def continue_looping(self, serviceObject):
         # Function to handle interruptions signal sent to the program
@@ -224,10 +211,8 @@ def reg_check_updates(yklocker):
 def loop_code(serviceObject, yklocker):
     # Print start messages
     message1 = f"Initiated Sciber-YkLocker with RemovalOption {yklocker.get_removal_option()} after {yklocker.get_timeout()} seconds without a detected YubiKey"
-    message2 = "Started scan for YubiKeys"
 
     yklocker.logger(message1)
-    yklocker.logger(message2)
 
     while yklocker.continue_looping(serviceObject):
         sleep(yklocker.get_timeout())
@@ -237,7 +222,7 @@ def loop_code(serviceObject, yklocker):
             reg_check_updates(yklocker)
 
         if not yklocker.is_yubikey_connected():
-            locking_message = "YubiKey Disconnected. Locking workstation"
+            locking_message = "YubiKey not found. Locking workstation"
             yklocker.logger(locking_message)
             yklocker.lock()
 
