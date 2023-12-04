@@ -50,6 +50,11 @@ jobs:
         run: |
           python -m tox -e build -- ${{matrix.build_filename}}
 
+      - if: matrix.os == 'macos-12'
+        name: "chmod file"
+        run: |
+          chmod +x dist/${{matrix.build_filename}}
+
       - if: matrix.os == 'windows-2022'
         name: MSI STUFF
         run: |
