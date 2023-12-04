@@ -17,16 +17,29 @@ On Windows this will only happen if the proper register values are set - otherwi
 ### Windows
 1. Download the installer sciber-yklocker.msi from [releases](https://github.com/sciber-io/yklocker/releases)
 2. Run the installer (installs the service SciberYklocker for you)
-3. Follow Jonas guide on his blog: https://swjm.blog/locking-the-workstation-on-fido2-security-key-removal-part-2-80962c944c78 to set up GPO/Intune control to decide what you want to do if the YubiKey is removed.
-(4. Without Intune: download the amdx and adml file to your computer and place them in C:\Windows\PolicyDefinitions, then start local group policy editor -> Computer Configuration -> Administrative Templates -> Sciber Yklocker Settings --> turn on to get registry values)
+#### Set registry values
+1. Download the .admx and .adml files from the "Administrative template" folder
+2. Intune/GPO: Follow Jonas guide on his blog: https://swjm.blog/locking-the-workstation-on-fido2-security-key-removal-part-2-80962c944c78 to set up GPO/Intune control to decide what you want to do if the YubiKey is removed.
+3. (Locally: download the amdx and adml file to your computer and place them in C:\Windows\PolicyDefinitions, then start local group policy editor -> Computer Configuration -> Administrative Templates -> Sciber Yklocker Settings --> turn on to get registry values)
 
 
 ### Linux
 Download sciber-yklocker-linux and execute it in a terminal (requires you to keep that terminal window open).
 
+
+
 ### Mac
-Download sciber-yklocker-macos and execute it in a terminal (requires you to keep that terminal window open).
 - Does not support Logout
+
+Download sciber-yklocker-macos and execute it in a terminal (requires you to keep that terminal window open).
+
+#### No terminal
+1. Download sciber-yklocker-macos and io.sciberyklocker.plist to (and then restart computer)
+- /Applications/sciber-yklocker-macos
+- /Library/LaunchAgents/io.sciber.sciberyklocker.plist
+2. Application output is written to /Applications/sciber-yklocker-macos.log and /Applications/sciber-yklocker-macos-error.log
+
+
 
 ### Comandline options (Linux and Mac)
 ```bash
