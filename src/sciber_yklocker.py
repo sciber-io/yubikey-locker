@@ -5,6 +5,7 @@ import getopt
 import os
 import platform
 import sys
+import syslog
 import traceback
 from ctypes import CDLL
 from enum import Enum, StrEnum  # StrEnum is python 3.11+
@@ -140,7 +141,7 @@ class YkLock:
         if self.MyPlatformversion == MyPlatform.WIN:
             servicemanager.LogInfoMsg(message)
         else:
-            print(message)
+            syslog.syslog(syslog.LOG_INFO, message)
 
     def is_yubikey_connected(self):
         devices = list_all_devices()

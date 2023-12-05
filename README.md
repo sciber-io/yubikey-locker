@@ -35,16 +35,14 @@ Download sciber-yklocker-macos and execute it in a terminal (requires you to kee
 
 #### No terminal
 1. Download sciber-yklocker-macos and io.sciberyklocker.plist to (and then restart computer)
-- /Applications/sciber-yklocker/sciber-yklocker-macos
+- /Applications/sciber-yklocker-macos
 - /Library/LaunchAgents/io.sciber.sciberyklocker.plist
-2. Application output is written to
-- /Applications/sciber-yklocker/stdout.log
-- /Applications/sciber-yklocker/stderr.log
+2. Application output is written to syslog, view with Console.app
 
 #### Intune
-Devices->macOS->configurational profile-> Create a profile -> profile type: templates -> template name: preference file -> upload io.sciber.sciberyklocker.plist
+(You can upload plist files but not sure they are saved to /Library/LaunchAgents)
 
-(unsure about where this will be located?)
+possible to upload a shell-script that writes the .plist-file to the correct location?
 
 
 ### Comandline options (Linux and Mac)

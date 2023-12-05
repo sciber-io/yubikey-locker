@@ -21,14 +21,9 @@ https://medium.com/@chetcorcos/a-simple-launchd-tutorial-9fecfcf2dbb3
     <key>RunAtLoad</key>
     <true/>
 
-    <key>StandardOutPath</key>
-    <string>/Applications/sciber-yklocker/stdout.log</string>
-    <key>StandardErrorPath</key>
-    <string>/Applications/sciber-yklocker/stderr.log</string>
-
     <key>ProgramArguments</key>
     <array>
-        <string>/Applications/sciber-yklocker/sciber-yklocker-macos</string>
+        <string>/Applications/sciber-yklocker-macos</string>
         <!-- <string>-l Lock -t 10</string> -->
     </array>
 
