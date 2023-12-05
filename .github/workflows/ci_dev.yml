@@ -51,10 +51,13 @@ jobs:
           python -m tox -e build -- ${{matrix.build_filename}}
 
       - if: matrix.os == 'macos-12'
-        name: "chmod file"
+        name: "macos dmg"
         run: |
-          chmod +x dist/${{matrix.build_filename}}
-          ls -la dist
+          brew install create-dmg
+          mkdir dist/dmg
+          cp -r dist/${{matrix.os.build_filename}}.app dist/dmg
+          create dmg --volname "Sciber-Yklocker" dist/sciber-yklocker.dmg dist/dmg/
+
 
       - if: matrix.os == 'windows-2022'
         name: MSI STUFF
