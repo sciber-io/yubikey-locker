@@ -52,7 +52,7 @@ jobs:
           ls
           ls ..
 
-      - if: matrix.os == 'macos-12'
+      - if: matrix.os == 'macos-123'
         name: "macos dmg"
         run: |
           brew install create-dmg
