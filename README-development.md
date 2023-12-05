@@ -14,7 +14,7 @@ python3.11 -m tox
 python3.11 -m tox -e lint
 
 # Build binary
-python3.11 -m tox -e build -- sciber-yklocker.exe
+python3.11 -m tox -e build_win
 
 ```
 In case something is unclear - you should be able to follow the process in ci.yml

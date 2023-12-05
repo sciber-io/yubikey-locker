@@ -20,9 +20,12 @@ jobs:
         include:
           - os: windows-2022
             build_filename: sciber-yklocker.exe
+            toxbuild: build_win
           - os: ubuntu-22.04
             build_filename: sciber-yklocker-linux
+            toxbuild: build_linux
           - os: macos-12
+            toxbuild: build_macos
             build_filename: sciber-yklocker-macos
 
     steps:
@@ -48,7 +51,7 @@ jobs:
 
       - name: Build for ${{matrix.os}}
         run: |
-          python -m tox -e build -- ${{matrix.build_filename}}
+          python -m tox -e ${{matrix.toxbuild}}
           ls
           ls ..
 
