@@ -166,9 +166,10 @@ def test_yklock_logger_windows(m_servicemanager):
 def test_yklock_logger():
     platform.system = lambda: "Linux"
     linuxLocker = YkLock()
-    with patch("builtins.print") as mock_print:
+    with patch("sciber_yklocker.syslog", MagicMock()) as mock_print:
         linuxLocker.logger("testmessage")
-        mock_print.assert_called_once_with("testmessage")
+        mock_print.syslog.assert_called_once()
+        assert "testmessage" in mock_print.syslog.call_args[0]
 
 
 # @patch("sciber_yklocker.scan_devices", return_value=[0, 1])
@@ -469,6 +470,23 @@ def test_main_win(m_servicemanager):
     m_servicemanager.Initialize = MagicMock()
     main("")
 
+    # Make sure the code calls these:
+    m_servicemanager.Initialize.assert_called_once_with()
+    m_servicemanager.PrepareToHostSingle.assert_called_once()
+    m_servicemanager.StartServiceCtrlDispatcher.assert_called_once()
+
+
+@patch("sciber_yklocker.servicemanager")
+def test_main_win_error(m_servicemanager):
+    platform.system = lambda: "Windows"
+    m_servicemanager.StartServiceCtrlDispatcher = MagicMock()
+    m_servicemanager.PrepareToHostSingle = MagicMock()
+    m_servicemanager.Initialize = MagicMock()
+
+    m_servicemanager.StartServiceCtrlDispatcher.side_effect = SystemError
+    with patch("builtins.print") as mock_print:
+        main("")
+        mock_print.assert_called_once()
     # Make sure the code calls these:
     m_servicemanager.Initialize.assert_called_once_with()
     m_servicemanager.PrepareToHostSingle.assert_called_once()
