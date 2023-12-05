@@ -54,6 +54,7 @@ jobs:
         name: "chmod file"
         run: |
           chmod +x dist/${{matrix.build_filename}}
+          ls -la dist
 
       - if: matrix.os == 'windows-2022'
         name: MSI STUFF
