@@ -37,8 +37,12 @@ Download sciber-yklocker-macos and execute it in a terminal (requires you to kee
 1. Download sciber-yklocker-macos and io.sciberyklocker.plist to (and then restart computer)
 - /Applications/sciber-yklocker-macos
 - /Library/LaunchAgents/io.sciber.sciberyklocker.plist
-2. Application output is written to /Applications/sciber-yklocker-macos.log and /Applications/sciber-yklocker-macos-error.log
+2. Application output is written to syslog, view with Console.app
 
+#### Intune
+(You can upload plist files but not sure they are saved to /Library/LaunchAgents)
+
+possible to upload a shell-script that writes the .plist-file to the correct location?
 
 
 ### Comandline options (Linux and Mac)

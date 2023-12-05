@@ -13,25 +13,30 @@ from time import sleep
 # Yubikey imports
 from ykman.device import list_all_devices  # , scan_devices
 
-# Enable Windows global imports
-# If not reassigned - code running on Linux/Mac would break
-if platform.system() != "Windows":
-    import EmptyModule
+import EmptyModule
 
+# Enable global imports
+# If not reassigned - code running on the "wrong" OS would break
+if platform.system() != "Windows":
     # Modules only used by the Windows service
-    sys.modules["win32con"] = EmptyModule
-    sys.modules["win32process"] = EmptyModule
-    sys.modules["win32profile"] = EmptyModule
-    sys.modules["win32ts"] = EmptyModule
-    sys.modules["socket"] = EmptyModule
-    sys.modules["win32ts"] = EmptyModule
-    sys.modules["servicemanager"] = EmptyModule
-    sys.modules["win32event"] = EmptyModule
-    sys.modules["win32service"] = EmptyModule
-    sys.modules["win32serviceutil"] = EmptyModule
-    sys.modules["winreg"] = EmptyModule
+    sys.modules["win32con"] = EmptyModule  # pragma: no cover
+    sys.modules["win32process"] = EmptyModule  # pragma: no cover
+    sys.modules["win32profile"] = EmptyModule  # pragma: no cover
+    sys.modules["win32ts"] = EmptyModule  # pragma: no cover
+    sys.modules["socket"] = EmptyModule  # pragma: no cover
+    sys.modules["win32ts"] = EmptyModule  # pragma: no cover
+    sys.modules["servicemanager"] = EmptyModule  # pragma: no cover
+    sys.modules["win32event"] = EmptyModule  # pragma: no cover
+    sys.modules["win32service"] = EmptyModule  # pragma: no cover
+    sys.modules["win32serviceutil"] = EmptyModule  # pragma: no cover
+    sys.modules["winreg"] = EmptyModule  # pragma: no cover
+
+if platform.system() == "Windows":
+    # Modules only used by non-windows OS
+    sys.modules["syslog"] = EmptyModule  # pragma: no cover
 
 import socket
+import syslog
 import winreg
 
 import servicemanager
@@ -140,7 +145,7 @@ class YkLock:
         if self.MyPlatformversion == MyPlatform.WIN:
             servicemanager.LogInfoMsg(message)
         else:
-            print(message)
+            syslog.syslog(syslog.LOG_INFO, message)
 
     def is_yubikey_connected(self):
         devices = list_all_devices()
