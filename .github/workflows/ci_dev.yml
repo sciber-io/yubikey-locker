@@ -49,12 +49,14 @@ jobs:
       - name: Build for ${{matrix.os}}
         run: |
           python -m tox -e build -- ${{matrix.build_filename}}
+          ls
 
       - if: matrix.os == 'macos-12'
         name: "macos dmg"
         run: |
           brew install create-dmg
           ls
+          ls src
           ls dist
           mkdir dist/dmg
           ls dist
