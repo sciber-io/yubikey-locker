@@ -50,6 +50,7 @@ jobs:
         run: |
           python -m tox -e build -- ${{matrix.build_filename}}
           ls
+          ls ..
 
       - if: matrix.os == 'macos-12'
         name: "macos dmg"
