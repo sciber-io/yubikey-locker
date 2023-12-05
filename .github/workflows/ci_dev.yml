@@ -54,8 +54,11 @@ jobs:
         name: "macos dmg"
         run: |
           brew install create-dmg
+          ls
+          ls dist
           mkdir dist/dmg
-          cp -r dist/${{matrix.os.build_filename}}.app dist/dmg
+          ls dist
+          cp -r dist/sciber-yklocker-macos.app dist/dmg
           create dmg --volname "Sciber-Yklocker" dist/sciber-yklocker.dmg dist/dmg/
 
 
