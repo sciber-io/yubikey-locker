@@ -20,9 +20,12 @@ jobs:
         include:
           - os: windows-2022
             build_filename: sciber-yklocker.exe
+            toxbuild: build_win
           - os: ubuntu-22.04
             build_filename: sciber-yklocker-linux
+            toxbuild: build_linux
           - os: macos-12
+            toxbuild: build_macos
             build_filename: sciber-yklocker-macos
 
     steps:
@@ -48,15 +51,16 @@ jobs:
 
       - name: Build for ${{matrix.os}}
         run: |
-          python -m tox -e build -- ${{matrix.build_filename}}
+          python -m tox -e ${{matrix.toxbuild}}
+          ls dist
 
       - if: matrix.os == 'macos-12'
-        name: "chmod file"
+        name: "MacOS pkg"
         run: |
-          chmod +x dist/${{matrix.build_filename}}
+          pkgbuild --install-location /Applications --component dist/sciber-yklocker-macos.app dist/sciber-yklocker-macos.pkg
 
       - if: matrix.os == 'windows-2022'
-        name: MSI STUFF
+        name: "Windows MSI build"
         run: |
           dotnet tool install --global wix
           wix.exe build -arch x64 .\src\sciber-yklocker.wxs

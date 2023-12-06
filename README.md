@@ -26,10 +26,11 @@ On Windows this will only happen if the proper register values are set - otherwi
 ### Linux
 Download sciber-yklocker-linux and execute it in a terminal (requires you to keep that terminal window open).
 
-
+- Output is written to syslog.
 
 ### Mac
 - Does not support Logout
+- Output is written to syslog, view with Console.app
 
 Download sciber-yklocker-macos and execute it in a terminal (requires you to keep that terminal window open).
 
@@ -37,7 +38,6 @@ Download sciber-yklocker-macos and execute it in a terminal (requires you to kee
 1. Download sciber-yklocker-macos and io.sciberyklocker.plist to (and then restart computer)
 - /Applications/sciber-yklocker-macos
 - /Library/LaunchAgents/io.sciber.sciberyklocker.plist
-2. Application output is written to syslog, view with Console.app
 
 #### Intune
 (You can upload plist files but not sure they are saved to /Library/LaunchAgents)

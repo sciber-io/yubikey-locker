@@ -6,4 +6,4 @@ pytest-cov==4.1.0
 pre-commit==3.4.0
 fake_winreg
 pytest-random-order
-pillow
+pillow # Needed for pyinstaller on mac to create icns icon
