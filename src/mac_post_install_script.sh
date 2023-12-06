@@ -1,15 +1,11 @@
+#!/bin/bash
+cat << EOF > /Library/LaunchAgents/io.sciber.sciberyklocker.plist
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 
 <!--
 File location: /Library/LaunchAgents/io.sciber.sciberyklocker.plist
-
-Apple plist documentation:
-https://developer.apple.com/library/archive/documentation/MacOSX/Conceptual/BPSystemStartup/Chapters/CreatingLaunchdJobs.html
-
-Good tutorial:
-https://medium.com/@chetcorcos/a-simple-launchd-tutorial-9fecfcf2dbb3
 -->
 
 
@@ -23,7 +19,8 @@ https://medium.com/@chetcorcos/a-simple-launchd-tutorial-9fecfcf2dbb3
 
     <key>ProgramArguments</key>
     <array>
-        <string>/Applications/sciber-yklocker-macos</string>
+        <string>/Applications/sciber-yklocker-macos.app</string>
+        <!-- Add arguments if you want to change app behavior-->
         <!-- <string>-l Lock -t 10</string> -->
     </array>
 
@@ -32,3 +29,4 @@ https://medium.com/@chetcorcos/a-simple-launchd-tutorial-9fecfcf2dbb3
     <true/>
 </dict>
 </plist>
+EOF
