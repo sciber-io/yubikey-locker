@@ -55,12 +55,12 @@ jobs:
           ls dist
 
       - if: matrix.os == 'macos-12'
-        name: "macos dmg"
+        name: "MacOS pkg"
         run: |
-          pkgbuild --install-location /Applications --component dist/sciber-yklocker-macos.app dist/sciber-yklocker.pkg
+          pkgbuild --install-location /Applications --component dist/sciber-yklocker-macos.app dist/sciber-yklocker-macos.pkg
 
       - if: matrix.os == 'windows-2022'
-        name: MSI STUFF
+        name: "Windows MSI build"
         run: |
           dotnet tool install --global wix
           wix.exe build -arch x64 .\src\sciber-yklocker.wxs
