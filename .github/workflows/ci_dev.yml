@@ -57,7 +57,7 @@ jobs:
       - if: matrix.os == 'macos-12'
         name: "MacOS pkg"
         run: |
-          pkgbuild --install-location /Applications --component dist/sciber-yklocker-macos.app dist/sciber-yklocker-macos.pkg --version 1.0.0
+          pkgbuild --identifier "io.sciber.sciberyklocker" --version "1.0.0" --install-location /Applications --component dist/sciber-yklocker-macos.app dist/sciber-yklocker-macos.pkg
 
       - if: matrix.os == 'windows-2022'
         name: "Windows MSI build"

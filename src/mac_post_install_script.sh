@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 logger "Starting sciber-yklocker post-install-scripts"
 touch "/Library/LaunchAgents/io.sciber.sciberyklocker.plist"
 if [ $? != 0 ]; then
