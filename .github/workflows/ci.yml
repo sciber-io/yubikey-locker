@@ -62,8 +62,8 @@ jobs:
         name: "Windows MSI build"
         run: |
           dotnet tool install --global wix
-          wix.exe build -arch x64 .\src\sciber-yklocker.wxs
-          cp .\src\sciber-yklocker.msi dist/sciber-yklocker.msi
+          wix.exe build -arch x64 .\src\windows\sciber-yklocker.wxs
+          cp .\src\windows\sciber-yklocker.msi dist/sciber-yklocker.msi
 
       - if: matrix.os == 'ubuntu-22.04'
         name: Pytest coverage comment
