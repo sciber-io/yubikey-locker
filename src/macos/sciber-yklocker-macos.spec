@@ -2,7 +2,7 @@
 
 
 a = Analysis(
-    ['src/sciber_yklocker.py'],
+    ['../sciber_yklocker.py'],
     pathex=[],
     binaries=[],
     datas=[],
@@ -34,12 +34,12 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
-    icon=['src/sciber_yklocker.ico'],
+    icon=['../sciber_yklocker.ico'],
 )
 app = BUNDLE(
     exe,
     name='sciber-yklocker-macos.app',
-    icon='src/sciber_yklocker.ico',
+    icon='../sciber_yklocker.ico',
     bundle_identifier='io.sciber.sciberyklocker',
     version='0.0.5',
 )

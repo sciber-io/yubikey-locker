@@ -53,12 +53,11 @@ jobs:
         run: |
           python -m tox -e ${{matrix.toxbuild}}
           ls dist
-          cp *.spec dist/
 
       - if: matrix.os == 'macos-12'
         name: "MacOS pkg"
         run: |
-          pkgbuild --identifier "io.sciber.sciberyklocker" --version "1.0.0" --install-location /Applications --component dist/sciber-yklocker-macos.app dist/sciber-yklocker-macos.pkg
+          pkgbuild --identifier "io.sciber.sciberyklocker" --install-location /Applications --component dist/sciber-yklocker-macos.app dist/sciber-yklocker-macos.pkg
 
       - if: matrix.os == 'windows-2022'
         name: "Windows MSI build"
