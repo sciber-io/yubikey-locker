@@ -88,6 +88,7 @@ def test_yklock_lockLinux():
     # Test Linux lock
     platform.system = lambda: "Linux"
     linuxLocker = YkLock()
+    linuxLocker.set_removal_option(RemovalOption.LOCK)
     with patch.object(os, "popen") as mock_popen:
         linuxLocker.lock()
         mock_popen.assert_called_once()
@@ -112,6 +113,7 @@ def test_yklock_logoutLinux():
 def test_yklock_lockWindows(m_win32profile, m_win32process, m_win32ts, m_win32con):
     platform.system = lambda: "Windows"
     windowsLocker = YkLock()
+    windowsLocker.set_removal_option(RemovalOption.LOCK)
     m_win32con.NORMAL_PRIORITY_CLASS = 0
     m_win32ts.WTSQueryUserToken = MagicMock()
     m_win32profile.CreateEnvironmentBlock = MagicMock()
@@ -148,6 +150,7 @@ def test_yklock_lockMac(mock_CDLL):
     # Test Mac Lock
     platform.system = lambda: "Darwin"
     macLocker = YkLock()
+    macLocker.set_removal_option(RemovalOption.LOCK)
     macLocker.lock()
 
     mock_CDLL.assert_called_once()

@@ -21,7 +21,7 @@ File location: /Library/LaunchAgents/io.sciber.sciberyklocker.plist
     <array>
         <string>/Applications/sciber-yklocker-macos.app</string>
         <!-- Add arguments if you want to change app behavior-->
-        <!-- <string>-l Lock -t 10</string> -->
+        <string>-l Lock -t 10</string>
     </array>
 
     <!-- Tell launchd that this program should be running at all times -->

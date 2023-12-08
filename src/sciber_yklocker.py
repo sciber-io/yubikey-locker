@@ -82,7 +82,7 @@ class YkLock:
         # Set default values
         self.MyPlatformversion = get_my_platform()
         self.timeout = 10
-        self.removal_option = RemovalOption.LOCK
+        self.removal_option = RemovalOption.NOTHING
 
     def get_timeout(self):
         return self.timeout

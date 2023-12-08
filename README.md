@@ -6,12 +6,9 @@ For YubiKey users to enable automatic device locking when removing the YubiKey.
 <img src="src/sciber_yklocker.png" alt="YubiKey Autolocker by Sciber" width="250"/>
 
 
-:warning: Avoid running this tool without a YubiKey present as it will then lock your computer.
-
 ### Default behavior
-sciber-yklocker will check if htere is a YubiKey present every 10 seconds, and if there is not the computer will be locked.
+sciber-yklocker will check if there is a YubiKey present every 10 seconds. If no command-line arguments / registry values instruments the application to lock the computer it will do nothing.
 
-On Windows this will only happen if the proper register values are set - otherwise it defaults to doNothing.
 
 ## Installation
 ### Windows
