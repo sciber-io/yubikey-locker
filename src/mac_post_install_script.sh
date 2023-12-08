@@ -1,5 +1,10 @@
 #!/bin/bash
-cat << EOF > /Library/LaunchAgents/io.sciber.sciberyklocker.plist
+logger "Starting sciber-yklocker post-install-scripts"
+touch "/Library/LaunchAgents/io.sciber.sciberyklocker.plist"
+if [ $? != 0 ]; then
+    logger "Something went wrong with touch plist"
+fi
+cat > /Library/LaunchAgents/io.sciber.sciberyklocker.plist <<EOF
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
@@ -30,3 +35,7 @@ File location: /Library/LaunchAgents/io.sciber.sciberyklocker.plist
 </dict>
 </plist>
 EOF
+if [ $? != 0 ]; then
+    logger "Something went wrong with cat to plist"
+fi
+logger "Finished sciber-yklocker post-install-scripts"
