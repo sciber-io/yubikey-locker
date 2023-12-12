@@ -98,9 +98,9 @@ jobs:
           file $msi
           msiexec /package $msi /norestart /quiet -RunAsAdmin
           echo $?
-          Start-Sleep -Seconds 5
-          Start-Sleep -Seconds 5
-          Start-Sleep -Seconds 5
+          Start-Sleep -Seconds 10
+          Start-Sleep -Seconds 10
+          Start-Sleep -Seconds 10
           ls 'C:\Program Files\Sciber\SciberYklocker\'
 
       - if: matrix.os == 'ubuntu-22.04'

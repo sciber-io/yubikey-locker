@@ -26,7 +26,7 @@ File location: /Library/LaunchAgents/io.sciber.sciberyklocker.plist
 
     <key>ProgramArguments</key>
     <array>
-        <string>/Applications/sciber-yklocker-macos.app</string>
+        <string>/Applications/sciber-yklocker-macos.app/Contents/MacOS/sciber-yklocker-macos</string>
         <!-- Add arguments if you want to change app behavior-->
         <string>-l Lock -t 10</string>
     </array>
