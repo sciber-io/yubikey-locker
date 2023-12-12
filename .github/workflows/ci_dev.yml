@@ -95,11 +95,10 @@ jobs:
           msiexec /package $msi /norestart /quiet -RunAsAdmin
           echo $?
           Start-Sleep -Seconds 10
-          Start-Sleep -Seconds 10
-          Start-Sleep -Seconds 10
-          ls 'C:\'
+          Get-PsDrive
+          ls 'C:\Program Files (x86)\'
           ls 'C:\Program Files\'
-          ls 'C:\Program Files\Sciber\SciberYklocker\'
+          #ls 'C:\Program Files\Sciber\SciberYklocker\'
 
       - if: matrix.os == 'ubuntu-22.04'
         name: Pytest coverage comment
