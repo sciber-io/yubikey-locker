@@ -68,6 +68,7 @@ jobs:
         name: "MacOS pkg install"
         run: |
           sudo installer -pkg dist/${{matrix.build_pkgname}} -target ${{matrix.install_target_location}}
+          sleep 2
           ls ${{matrix.install_target_location}}
           ls -la ${{matrix.install_target_location}}/${{matrix.build_appname}}
           file ${{matrix.install_target_location}}/${{matrix.build_appname}}
