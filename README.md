@@ -6,12 +6,9 @@ For YubiKey users to enable automatic device locking when removing the YubiKey.
 <img src="src/sciber_yklocker.png" alt="YubiKey Autolocker by Sciber" width="250"/>
 
 
-:warning: Avoid running this tool without a YubiKey present as it will then lock your computer.
-
 ### Default behavior
-sciber-yklocker will check if htere is a YubiKey present every 10 seconds, and if there is not the computer will be locked.
+sciber-yklocker will check if there is a YubiKey present every 10 seconds. If no command-line arguments / registry values instruments the application to lock the computer it will do nothing.
 
-On Windows this will only happen if the proper register values are set - otherwise it defaults to doNothing.
 
 ## Installation
 ### Windows
@@ -34,15 +31,18 @@ Download sciber-yklocker-linux and execute it in a terminal (requires you to kee
 
 Download sciber-yklocker-macos and execute it in a terminal (requires you to keep that terminal window open).
 
-#### No terminal
-1. Download sciber-yklocker-macos and io.sciberyklocker.plist to (and then restart computer)
-- /Applications/sciber-yklocker-macos
+#### Manual install of app
+1. Download sciber-yklocker-macos.pkg from releases and execute it.
+2. Download src/macos/post_install_script.sh and execute it
+
+Files generated:
+- /Applications/sciber-yklocker-macos.app
 - /Library/LaunchAgents/io.sciber.sciberyklocker.plist
 
-#### Intune
-(You can upload plist files but not sure they are saved to /Library/LaunchAgents)
-
-possible to upload a shell-script that writes the .plist-file to the correct location?
+#### Intune install of app
+- Add an macOS app, upload sciber-yklocker-macos.pkg
+- Add the contents of src/macos/post_install_script.sh to the post-install-script box in Intune
+- Depending on the groups that the app is pushed to, change contents of the post-install-script to pass apropriate arguments to the application
 
 
 ### Comandline options (Linux and Mac)
