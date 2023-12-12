@@ -59,7 +59,7 @@ jobs:
         run: |
           pkgbuild --identifier "io.sciber.sciberyklocker" --install-location /Applications --component dist/sciber-yklocker-macos.app dist/sciber-yklocker-macos.pkg
           # Test install
-          sudo installer -pkg dist/sciber-yklocker-macos-pkg -target /
+          sudo installer -pkg dist/sciber-yklocker-macos.pkg -target /
           ls /Applications
           ls -la /Applications/sciber-yklocker-macos.app
           file /Applications/sciber-yklocker-macos.app
