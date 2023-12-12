@@ -68,13 +68,15 @@ jobs:
         name: "MacOS pkg install"
         run: |
           sudo installer -pkg dist/${{matrix.build_pkgname}} -target ${{matrix.install_target_location}}
-          sleep 2
-          ls ${{matrix.install_target_location}}
-          ls -la ${{matrix.install_target_location}}/${{matrix.build_appname}}
-          file ${{matrix.install_target_location}}/${{matrix.build_appname}}
-          ls -la ${{matrix.install_target_location}}/${{matrix.build_appname}}/Contents
-          cat ${{matrix.install_target_location}}/${{matrix.build_appname}}/Contents/Info.plist # verify app version as specified in .spec file
-          file ${{matrix.install_target_location}}/${{matrix.build_appname}}/Contents/MacOS/sciber-yklocker-macos
+          if [ $? -eq 0 ]; then
+            sleep 5
+            ls ${{matrix.install_target_location}}
+            ls -la ${{matrix.install_target_location}}/${{matrix.build_appname}}
+            file ${{matrix.install_target_location}}/${{matrix.build_appname}}
+            ls -la ${{matrix.install_target_location}}/${{matrix.build_appname}}/Contents
+            cat ${{matrix.install_target_location}}/${{matrix.build_appname}}/Contents/Info.plist # verify app version as specified in .spec file
+            file ${{matrix.install_target_location}}/${{matrix.build_appname}}/Contents/MacOS/sciber-yklocker-macos
+          fi
 
       - if: matrix.os == 'windows-2022'
         name: "Windows MSI build"
