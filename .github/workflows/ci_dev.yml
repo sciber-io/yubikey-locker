@@ -105,7 +105,8 @@ jobs:
         with:
           pytest-xml-coverage-path: ./cov.xml
 
-      - name: "Publish release files"
+      - if: contains(github.ref,'dev')
+        name: "Publish release files"
         uses: softprops/action-gh-release@v1
         with:
           token: "${{ secrets.GITHUB_TOKEN }}"
