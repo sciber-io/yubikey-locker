@@ -27,6 +27,8 @@ jobs:
           - os: macos-12
             toxbuild: build_macos
             build_filename: sciber-yklocker-macos
+            build_appname: sciber-yklocker-macos.app
+            build_pkgname: sciber-yklocker-macos.pkg
 
     steps:
       - uses: actions/checkout@v4
@@ -57,19 +59,19 @@ jobs:
       - if: matrix.os == 'macos-12'
         name: "MacOS pkg build"
         run: |
-          pkgbuild --identifier "io.sciber.sciberyklocker" --install-location /Applications --component dist/sciber-yklocker-macos.app dist/sciber-yklocker-macos.pkg
+          pkgbuild --identifier "io.sciber.sciberyklocker" --install-location /Applications --component dist/${{matrix.build_appname}} dist/${{matrix.build_pkgname}}
           ls dist
 
       - if: matrix.os == 'macos-12'
         name: "MacOS pkg install"
         run: |
-          sudo installer -pkg dist/sciber-yklocker-macos.pkg -target /
+          sudo installer -pkg dist/${{matrix.build_pkgname}} -target /
           ls /Applications
-          ls -la /Applications/sciber-yklocker-macos.app
-          file /Applications/sciber-yklocker-macos.app
-          ls -la /Applications/sciber-yklocker-macos.app/Contents
-          cat /Applications/sciber-yklocker-macos.app/Contents/Info.plist # verify app version as specified in .spec file
-          file /Applications/sciber-yklocker-macos.app/Contents/MacOS/sciber-yklocker-macos
+          ls -la /Applications/${{matrix.build_appname}}
+          file /Applications/${{matrix.build_appname}}
+          ls -la /Applications/${{matrix.build_appname}}/Contents
+          cat /Applications/${{matrix.build_appname}}/Contents/Info.plist # verify app version as specified in .spec file
+          file /Applications/${{matrix.build_appname}}/Contents/MacOS/sciber-yklocker-macos
 
       - if: matrix.os == 'windows-2022'
         name: "Windows MSI build"
@@ -82,6 +84,7 @@ jobs:
       - if: matrix.os == 'windows-2022'
         name: "Windows MSI install"
         run: |
+          file dist/sciber-yklocker.msi
           msiexec /package dist/sciber-yklocker.msi /norestart /quiet
           ls 'C:\Program Files\Sciber\SciberYklocker\'
 
