@@ -58,7 +58,11 @@ jobs:
         name: "MacOS pkg"
         run: |
           pkgbuild --identifier "io.sciber.sciberyklocker" --install-location /Applications --component dist/sciber-yklocker-macos.app dist/sciber-yklocker-macos.pkg
-          # Test install
+          ls dist
+
+      - if: matrix.os == 'macos-12'
+        name: "MacOS test install pkg"
+        run: |
           sudo installer -pkg dist/sciber-yklocker-macos.pkg -target /Applications
           ls /Applications
           ls -la /Applications/sciber-yklocker-macos.app
