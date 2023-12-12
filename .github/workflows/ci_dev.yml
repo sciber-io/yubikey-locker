@@ -87,10 +87,11 @@ jobs:
       - if: matrix.os == 'windows-2022'
         name: "Windows MSI install"
         run: |
-          $msi = "dist/${{matrix.msi_filename}}"
-          file $msi
           $pwd = pwd
-          msiexec /package $pwd"/"$msi /norestart /quiet
+          $msi = $pwd/dist/${{matrix.msi_filename}}
+          file $msi
+          msiexec /package $msi /norestart /quiet
+          Start-Sleep -Seconds 5
           ls 'C:\Program Files\Sciber\SciberYklocker\'
 
       - if: matrix.os == 'ubuntu-22.04'
