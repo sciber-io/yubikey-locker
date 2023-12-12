@@ -55,21 +55,21 @@ jobs:
           ls dist
 
       - if: matrix.os == 'macos-12'
-        name: "MacOS pkg"
+        name: "MacOS pkg build"
         run: |
           pkgbuild --identifier "io.sciber.sciberyklocker" --install-location /Applications --component dist/sciber-yklocker-macos.app dist/sciber-yklocker-macos.pkg
           ls dist
 
       - if: matrix.os == 'macos-12'
-        name: "MacOS test install pkg"
+        name: "MacOS pkg install"
         run: |
           sudo installer -pkg dist/sciber-yklocker-macos.pkg -target /
           ls /Applications
           ls -la /Applications/sciber-yklocker-macos.app
           file /Applications/sciber-yklocker-macos.app
           ls -la /Applications/sciber-yklocker-macos.app/Contents
-          cat /Applications/sciber-yklocker-macos.app/Contents/Info.plist
-          ls -la /Applications/sciber-yklocker-macos.app/Contents/MacOS
+          cat /Applications/sciber-yklocker-macos.app/Contents/Info.plist # verify app version as specified in .spec file
+          file /Applications/sciber-yklocker-macos.app/Contents/MacOS/sciber-yklocker-macos
 
       - if: matrix.os == 'windows-2022'
         name: "Windows MSI build"
@@ -77,6 +77,13 @@ jobs:
           dotnet tool install --global wix
           wix.exe build -arch x64 .\src\windows\sciber-yklocker.wxs
           cp .\src\windows\sciber-yklocker.msi dist/sciber-yklocker.msi
+          ls dist
+
+      - if: matrix.os == 'windows-2022'
+        name: "Windows MSI install"
+        run: |
+          msiexec /package dist/sciber-yklocker.msi /norestart /quiet
+          ls 'C:\Program Files\Sciber\SciberYklocker\'
 
       - if: matrix.os == 'ubuntu-22.04'
         name: Pytest coverage comment
