@@ -1,5 +1,7 @@
 #!/bin/sh
 logger "Starting sciber-yklocker post-install-scripts"
+# log show --process logger --debug --last 24h
+# log show --predicate 'eventMessage contains "sciber"' --info --last 30h
 touch "/Library/LaunchAgents/io.sciber.sciberyklocker.plist"
 if [ $? != 0 ]; then
     logger "Something went wrong with touch plist"
