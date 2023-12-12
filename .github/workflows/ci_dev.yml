@@ -70,6 +70,7 @@ jobs:
 
           # Sometimes the app instantly appears, sometimes it takes a while
           sleep 10
+          sleep 10
           ls ${{matrix.install_target_location}}
           ls -la ${{matrix.install_target_location}}/${{matrix.build_appname}}
           file ${{matrix.install_target_location}}/${{matrix.build_appname}}
