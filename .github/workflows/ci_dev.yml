@@ -97,6 +97,9 @@ jobs:
           $msi = "$pwd/$distPath"
           file $msi
           msiexec /package $msi /norestart /quiet -RunAsAdmin
+          echo $?
+          Start-Sleep -Seconds 5
+          Start-Sleep -Seconds 5
           Start-Sleep -Seconds 5
           ls 'C:\Program Files\Sciber\SciberYklocker\'
 

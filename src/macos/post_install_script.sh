@@ -1,10 +1,10 @@
 #!/bin/sh
 logger "Starting sciber-yklocker post-install-scripts"
 # log show --process logger --debug --last 24h
-# log show --predicate 'eventMessage contains "sciber"' --info --last 30h
+# log show --predicate 'eventMessage contains "sciber"' --info --last 2h
 touch "/Library/LaunchAgents/io.sciber.sciberyklocker.plist"
 if [ $? != 0 ]; then
-    logger "Something went wrong with touch plist"
+    logger "sciber-yklocker: Something went wrong with touch plist"
 fi
 cat > /Library/LaunchAgents/io.sciber.sciberyklocker.plist <<EOF
 <?xml version="1.0" encoding="UTF-8"?>
@@ -38,6 +38,6 @@ File location: /Library/LaunchAgents/io.sciber.sciberyklocker.plist
 </plist>
 EOF
 if [ $? != 0 ]; then
-    logger "Something went wrong with cat to plist"
+    logger "sciber-yklocker: Something went wrong with cat to plist"
 fi
 logger "Finished sciber-yklocker post-install-scripts"
