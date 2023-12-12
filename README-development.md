@@ -20,6 +20,11 @@ python3.11 -m tox -e build_win
 In case something is unclear - you should be able to follow the process in ci.yml
 
 
+### MacOS
+Version number is changed in src/macos/sciber-yklocker-macos.spec
+This needs to be increased for Intune to roll out a new version of the app.
+
+
 ### Other
 Pyinstaller cmd:
 pyinstaller --clean -F -n "sciber-yklocker" "..\src\sciber_yklocker.py"
