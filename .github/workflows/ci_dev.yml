@@ -63,6 +63,7 @@ jobs:
           ls /Applications
           ls -la /Applications/sciber-yklocker-macos.app
           file /Applications/sciber-yklocker-macos.app
+          ls -la /Applications/sciber-yklocker-macos.app/Contents
 
       - if: matrix.os == 'windows-2022'
         name: "Windows MSI build"
