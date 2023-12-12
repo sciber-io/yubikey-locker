@@ -62,18 +62,17 @@ jobs:
         name: "MacOS pkg build"
         run: |
           pkgbuild --identifier "io.sciber.sciberyklocker" --install-location ${{matrix.install_target_location}} --component dist/${{matrix.build_appname}} dist/${{matrix.build_pkgname}}
-          ls dist
 
       - if: matrix.os == 'macos-12'
         name: "MacOS pkg install"
         run: |
-          sudo installer -pkg dist/${{matrix.build_pkgname}} -target ${{matrix.install_target_location}}
+          sudo installer -pkg dist/${{matrix.build_pkgname}} -target ${{matrix.install_target_location}} -verbose
           echo $?
 
       - if: matrix.os == 'macos-12'
         name: "MacOS pkg install.."
         run: |
-          # Sometimes the app instantly appears, sometimes it takes a few seconds
+          # Sometimes the app instantly appears, sometimes it takes a while
           sleep 10
           sleep 10
           sleep 10
