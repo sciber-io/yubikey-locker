@@ -88,7 +88,8 @@ jobs:
         name: "Windows MSI install"
         run: |
           $pwd = pwd
-          $msi = $pwd/dist/${{matrix.msi_filename}}
+          $distPath = "/dist/${{matrix.msi_filename}}"
+          $msi = $pwd$distPath
           file $msi
           msiexec /package $msi /norestart /quiet
           Start-Sleep -Seconds 5
