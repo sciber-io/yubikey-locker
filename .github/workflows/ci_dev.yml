@@ -67,7 +67,7 @@ jobs:
       - if: matrix.os == 'macos-12'
         name: "MacOS pkg install"
         run: |
-          sudo installer -pkg dist/${{matrix.build_pkgname}} -target /
+          sudo installer -pkg dist/${{matrix.build_pkgname}} -target ${{matrix.install_target_location}}
           ls ${{matrix.install_target_location}}
           ls -la ${{matrix.install_target_location}}/${{matrix.build_appname}}
           file ${{matrix.install_target_location}}/${{matrix.build_appname}}
