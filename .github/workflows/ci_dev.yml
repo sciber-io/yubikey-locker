@@ -20,6 +20,7 @@ jobs:
         include:
           - os: windows-2022
             build_filename: sciber-yklocker.exe
+            msi_filename:  sciber-yklocker.msi
             toxbuild: build_win
           - os: ubuntu-22.04
             build_filename: sciber-yklocker-linux
@@ -29,6 +30,7 @@ jobs:
             build_filename: sciber-yklocker-macos
             build_appname: sciber-yklocker-macos.app
             build_pkgname: sciber-yklocker-macos.pkg
+            install_target_location: /Applications
 
     steps:
       - uses: actions/checkout@v4
@@ -59,33 +61,35 @@ jobs:
       - if: matrix.os == 'macos-12'
         name: "MacOS pkg build"
         run: |
-          pkgbuild --identifier "io.sciber.sciberyklocker" --install-location /Applications --component dist/${{matrix.build_appname}} dist/${{matrix.build_pkgname}}
+          pkgbuild --identifier "io.sciber.sciberyklocker" --install-location ${{matrix.install_target_location}} --component dist/${{matrix.build_appname}} dist/${{matrix.build_pkgname}}
           ls dist
 
       - if: matrix.os == 'macos-12'
         name: "MacOS pkg install"
         run: |
           sudo installer -pkg dist/${{matrix.build_pkgname}} -target /
-          ls /Applications
-          ls -la /Applications/${{matrix.build_appname}}
-          file /Applications/${{matrix.build_appname}}
-          ls -la /Applications/${{matrix.build_appname}}/Contents
-          cat /Applications/${{matrix.build_appname}}/Contents/Info.plist # verify app version as specified in .spec file
-          file /Applications/${{matrix.build_appname}}/Contents/MacOS/sciber-yklocker-macos
+          ls ${{matrix.install_target_location}}
+          ls -la ${{matrix.install_target_location}}/${{matrix.build_appname}}
+          file ${{matrix.install_target_location}}/${{matrix.build_appname}}
+          ls -la ${{matrix.install_target_location}}/${{matrix.build_appname}}/Contents
+          cat ${{matrix.install_target_location}}/${{matrix.build_appname}}/Contents/Info.plist # verify app version as specified in .spec file
+          file ${{matrix.install_target_location}}/${{matrix.build_appname}}/Contents/MacOS/sciber-yklocker-macos
 
       - if: matrix.os == 'windows-2022'
         name: "Windows MSI build"
         run: |
           dotnet tool install --global wix
           wix.exe build -arch x64 .\src\windows\sciber-yklocker.wxs
-          cp .\src\windows\sciber-yklocker.msi dist/sciber-yklocker.msi
+          cp .\src\windows\${{matrix.msi_filename}} dist/${{matrix.msi_filename}}
           ls dist
 
       - if: matrix.os == 'windows-2022'
         name: "Windows MSI install"
         run: |
-          file dist/sciber-yklocker.msi
-          msiexec /package dist/sciber-yklocker.msi /norestart /quiet
+          $msi = "dist/${{matrix.msi_filename}}"
+          file $msi
+          $pwd = pwd
+          msiexec /package $pwd"/"$msi /norestart /quiet
           ls 'C:\Program Files\Sciber\SciberYklocker\'
 
       - if: matrix.os == 'ubuntu-22.04'
