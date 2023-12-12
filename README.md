@@ -42,6 +42,7 @@ Files generated:
 #### Intune install of app
 - Add an macOS app, upload sciber-yklocker-macos.pkg
 - Add the contents of src/macos/post_install_script.sh to the post-install-script box in Intune
+- Depending on the groups that the app is pushed to, change contents of the post-install-script to pass apropriate arguments to the application
 
 
 ### Comandline options (Linux and Mac)
