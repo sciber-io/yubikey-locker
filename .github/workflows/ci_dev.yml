@@ -66,15 +66,9 @@ jobs:
       - if: matrix.os == 'macos-12'
         name: "MacOS pkg install"
         run: |
-          sudo installer -pkg dist/${{matrix.build_pkgname}} -target ${{matrix.install_target_location}} -verbose
-          echo $?
+          sudo installer -pkg dist/${{matrix.build_pkgname}} -target / -verbose
 
-      - if: matrix.os == 'macos-12'
-        name: "MacOS pkg install.."
-        run: |
           # Sometimes the app instantly appears, sometimes it takes a while
-          sleep 10
-          sleep 10
           sleep 10
           ls ${{matrix.install_target_location}}
           ls -la ${{matrix.install_target_location}}/${{matrix.build_appname}}
