@@ -3,7 +3,7 @@ pyinstaller==6.1.0
 tox==4.11.3
 pytest==7.4.2
 pytest-cov==4.1.0
-pre-commit==3.4.0
+pre-commit==3.6.1
 fake_winreg
 pytest-random-order
 pillow # Needed for pyinstaller on mac to create icns icon
