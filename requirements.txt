@@ -1,7 +1,7 @@
 yubikey-manager==5.2.1
 pyinstaller==6.1.0
 tox==4.11.3
-pytest==7.4.2
+pytest==8.0.1
 pytest-cov==4.1.0
 pre-commit==3.4.0
 fake_winreg
