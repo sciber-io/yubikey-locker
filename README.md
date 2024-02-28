@@ -1,4 +1,4 @@
-# YubiKey Autolocker by Sciber
+# Sciber YubiKey Locker
 [![main - tests and build](https://github.com/sciber-io/yklocker/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/sciber-io/yklocker/actions/workflows/ci.yml)
 
 For YubiKey users to enable automatic device locking when removing the YubiKey.
@@ -45,7 +45,7 @@ Files generated:
 - Depending on the groups that the app is pushed to, change contents of the post-install-script to pass apropriate arguments to the application
 
 
-### Comandline options (Linux and Mac)
+### Comand line options (Linux and Mac)
 ```bash
 # Run sciber-yklocker
 # Defaults to locking the device after 10 seconds without a YubiKey
@@ -64,10 +64,7 @@ sciber-yklocker -l Logout -t 30
 
 
 ### Credits
-####  [Jonas Markström](https://github.com/JMarkstrom/YubiKey-Removal-Behavior)
-Thank you for letting us reuse your AD/Intune templates to enable control via GPO's. Also thank you for the inspiration and discussions we have.
-- https://github.com/JMarkstrom/YubiKey-Removal-Behavior
-- https://swjm.blog/locking-the-workstation-on-fido2-security-key-removal-part-2-80962c944c78
+Special thanks to [Jonas Markström](https://github.com/JMarkstrom/) for valuable feedback and support during this project.
 
 
 ### Development
