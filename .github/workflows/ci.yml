@@ -1,7 +1,7 @@
 
 name: sciber-yklocker test and build
 
-# Enable all branches to run the tests
+
 on: [ push ]
 
 permissions:
@@ -66,16 +66,6 @@ jobs:
         name: "MacOS pkg install"
         run: |
           sudo installer -pkg dist/${{matrix.build_pkgname}} -target / -verbose
-
-          # Sometimes the app instantly appears, sometimes it takes a while
-          sleep 10
-          sleep 10
-          ls ${{matrix.install_target_location}}
-          ls -la ${{matrix.install_target_location}}/${{matrix.build_appname}}
-          file ${{matrix.install_target_location}}/${{matrix.build_appname}}
-          ls -la ${{matrix.install_target_location}}/${{matrix.build_appname}}/Contents
-          cat ${{matrix.install_target_location}}/${{matrix.build_appname}}/Contents/Info.plist # verify app version as specified in .spec file
-          file ${{matrix.install_target_location}}/${{matrix.build_appname}}/Contents/MacOS/sciber-yklocker-macos
 
       - if: matrix.os == 'windows-2022'
         name: "Windows MSI build"
