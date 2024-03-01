@@ -1,9 +1,10 @@
 
 name: sciber-yklocker test and build
 
-on:
+# Enable all branches to run the tests if they have the tag "run-tests"
+on: 
   push:
-    branches: [ dev, main ]
+    tags: "run-tests"
 
 permissions:
   contents: write # to enable releases
