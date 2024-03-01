@@ -1,4 +1,7 @@
 #!/bin/sh
+# Unload existing module
+logger "Unloading any existing module of sciber yklocker"
+launchctl unload -w /Library/LaunchAgents/io.sciber.sciberyklocker.plist
 logger "Starting sciber-yklocker post-install-scripts"
 # log show --process logger --debug --last 24h
 # log show --predicate 'eventMessage contains "sciber"' --info --last 2h
@@ -40,4 +43,6 @@ EOF
 if [ $? != 0 ]; then
     logger "sciber-yklocker: Something went wrong with cat to plist"
 fi
+logger "Starting service sciber-yklocker"
+launchctl load -w /Library/LaunchAgents/io.sciber.sciberyklocker.plist
 logger "Finished sciber-yklocker post-install-scripts"
