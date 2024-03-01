@@ -10,7 +10,6 @@ import win32serviceutil
 import win32ts
 
 from lib import RemovalOption
-from sciber_yklocker import init_yklocker, loop_code
 
 
 def lock_system(removal_option):
@@ -76,6 +75,8 @@ class AppServerSvc(win32serviceutil.ServiceFramework):
             servicemanager.PYS_SERVICE_STARTED,
             (self._svc_name_, ""),
         )
+        from sciber_yklocker import init_yklocker, loop_code
+
         # instantiate a yklocker-object and start running the code
         yklocker = init_yklocker(None, None)
         # To handle service interruptions etc, pass the win service class instance along
