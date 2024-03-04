@@ -235,6 +235,7 @@ if platform.system() == "Windows":
             with patch(
                 "lib_win.reg_check_removal_option",
                 lambda a: RemovalOption.LOGOUT,
+
             ):
                 with patch("sciber_yklocker.YkLock.logger", MagicMock()) as mock_logger:
                     reg_check_updates(yklocker)

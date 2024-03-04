@@ -31,6 +31,7 @@ For YubiKey users to enable automatic device locking when removing the YubiKey.
 1. Download the installer sciber-yklocker.msi from [releases](https://github.com/sciber-io/yklocker/releases)
 2. Run the installer (installs the service SciberYklocker for you)
 #### Set registry values
+
 1. Download the .admx and .adml files from the "src/windows/Administrative template" folder
 2. Locally: download the amdx and adml file to your computer and place them in C:\Windows\PolicyDefinitions, then start local group policy editor -> Computer Configuration -> Administrative Templates -> Sciber Yklocker Settings --> turn on to get registry values
 
@@ -105,6 +106,7 @@ This needs to be increased for Intune to roll out a new version of the app.
 ### Linux
 Necessary to install a few packages:
 sudo apt install -y libpcsclite-dev python3.11-dev swig
+
 
 
 ### Other
