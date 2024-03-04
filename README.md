@@ -3,7 +3,7 @@
 
 For YubiKey users to enable automatic device locking when removing the YubiKey.
 
-<img src="src/sciber_yklocker.png" alt="YubiKey Autolocker by Sciber" width="250"/>
+<img src="images/sciber_yklocker.png" alt="YubiKey Autolocker by Sciber" width="250"/>
 
 
 

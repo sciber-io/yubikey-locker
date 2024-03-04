@@ -12,7 +12,7 @@ from lib import MyPlatform, RemovalOption
 
 # Import platform specific code
 if platform.system() == "Windows":
-    from lib_win import (
+    from .windows.lib_win import (
         check_service_interruption,
         lock_system,
         log_message,
@@ -22,11 +22,12 @@ if platform.system() == "Windows":
         win_main,
     )
 
+
 elif platform.system() == "Linux":
-    from lib_lx import lock_system, log_message
+    from .linux.lib_lx import lock_system, log_message
 
 elif platform.system() == "Darwin":
-    from lib_mac import lock_system, log_message
+    from .macos.lib_mac import lock_system, log_message
 
 
 def get_my_platform():

@@ -3,8 +3,9 @@ import platform
 if platform.system() == "Linux":
     from unittest.mock import MagicMock, patch
 
-    from lib import RemovalOption
     from lib_lx import lock_system, log_message, os
+
+    from lib import RemovalOption
 
     def test_lock_system_lock():
         # Test Linux lock

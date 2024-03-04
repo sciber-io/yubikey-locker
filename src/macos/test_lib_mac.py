@@ -3,8 +3,9 @@ import platform
 if platform.system() == "Darwin":
     from unittest.mock import MagicMock, patch
 
-    from lib import RemovalOption
     from lib_mac import lock_system, log_message
+
+    from lib import RemovalOption
 
     @patch("lib_mac.CDLL")
     def test_lock_system(mock_CDLL):
