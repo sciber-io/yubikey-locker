@@ -179,23 +179,30 @@ def test_loop_code_with_yubikey():
                 mock_lock.assert_not_called()
 
 
-def test_init_yklocker():
-    # Call the function with non-default settings and verify them
-    with patch(
-        "sciber_yklocker.reg_check_timeout", MagicMock()
-    ) as mock_reg_check_timeout:
+def test_init_yklocker_win():
+    if get_my_platform() == MyPlatform.WIN:
+        # Call the function with non-default settings and verify them
         with patch(
-            "sciber_yklocker.reg_check_removal_option", MagicMock()
-        ) as mock_reg_check_removal_option:
-            yklocker = init_yklocker(RemovalOption.LOGOUT, 15)
+            "sciber_yklocker.reg_check_timeout", MagicMock()
+        ) as mock_reg_check_timeout:
+            with patch(
+                "sciber_yklocker.reg_check_removal_option", MagicMock()
+            ) as mock_reg_check_removal_option:
+                yklocker = init_yklocker(RemovalOption.LOGOUT, 15)
 
-            if yklocker.MyPlatformversion == MyPlatform.WIN:
                 # Make sure gets were called but dont enter the functions
                 mock_reg_check_removal_option.assert_called_once()
                 mock_reg_check_timeout.assert_called_once()
 
-    assert yklocker.get_removal_option() == RemovalOption.LOGOUT
-    assert yklocker.get_timeout() == 15
+        assert yklocker.get_removal_option() == RemovalOption.LOGOUT
+        assert yklocker.get_timeout() == 15
+
+
+def test_init_yklocker_lx():
+    if get_my_platform() == MyPlatform.LX or get_my_platform() == MyPlatform.MAC:
+        yklocker = init_yklocker(RemovalOption.LOGOUT, 15)
+        assert yklocker.get_removal_option() == RemovalOption.LOGOUT
+        assert yklocker.get_timeout() == 15
 
 
 def test_main_no_args():
