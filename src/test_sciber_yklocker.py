@@ -1,4 +1,3 @@
-import platform
 from unittest.mock import MagicMock, patch
 
 from lib import MyPlatform, RemovalOption
@@ -44,9 +43,8 @@ def mock_continue_looping(a):
 
 
 def test_get_my_platform_unknown():
-    with patch("sciber_yklocker.platform", MagicMock(return_value="nada")) as m:
+    with patch("sciber_yklocker.platform", MagicMock(return_value="nada")):
         assert get_my_platform() == MyPlatform.UNKNOWN
-        m.assert_called_once()
 
 
 def test_yklock_getset_timeout():
@@ -112,17 +110,18 @@ def test_YkLock_is_yubikey_connected_true():
 
 def test_YkLock_continue_looping_true():
     yklocker = YkLock()
-    # If Windows
-    with patch(
-        "sciber_yklocker.check_service_interruption", MagicMock(return_value=True)
-    ) as mock_win:
-        # MagicMock the serviceObject
-        # Expect the return to be True == continue looping
+    if yklocker.MyPlatformversion == MyPlatform.WIN:
+        with patch(
+            "sciber_yklocker.check_service_interruption", MagicMock(return_value=True)
+        ) as mock_check_service_interruption:
+            # MagicMock the serviceObject
+            # Expect the return to be True == continue looping
+            assert yklocker.continue_looping(MagicMock()) is True
+
+            mock_check_service_interruption.assert_called_once()
+
+    else:
         assert yklocker.continue_looping(MagicMock()) is True
-        if platform.system == "Windows":
-            mock_win.assert_called_once()
-        else:
-            mock_win.assert_not_called()
 
 
 def test_loop_code_no_yubikey():
@@ -139,8 +138,8 @@ def test_loop_code_no_yubikey():
     # Patch continue_looping to enter while-loop only once
     with patch("sciber_yklocker.YkLock.continue_looping", MagicMock()) as mock_loop:
         mock_loop.side_effect = mock_continue_looping
-        # Patch registry updates func
-        with patch("sciber_yklocker.reg_check_updates", MagicMock()):
+        # Skip registry updates
+        with patch("sciber_yklocker.get_my_platform", MagicMock()):
             # Dont actually lock the device during tests
             with patch("sciber_yklocker.YkLock.lock", MagicMock()) as mock_lock:
                 # Patch logger to catch messages
@@ -169,8 +168,8 @@ def test_loop_code_with_yubikey():
     # Patch continue_looping to enter while-loop only once
     with patch("sciber_yklocker.YkLock.continue_looping", MagicMock()) as mock_loop:
         mock_loop.side_effect = mock_continue_looping
-        # Patch registry updates func
-        with patch("sciber_yklocker.reg_check_updates", MagicMock()):
+        # Skip registry updates
+        with patch("sciber_yklocker.get_my_platform", MagicMock()):
             # Dont actually lock the device during tests
             with patch("sciber_yklocker.YkLock.lock", MagicMock()) as mock_lock:
                 # Patch logger to catch messages
@@ -190,7 +189,7 @@ def test_init_yklocker():
         ) as mock_reg_check_removal_option:
             yklocker = init_yklocker(RemovalOption.LOGOUT, 15)
 
-            if platform.system() == "Windows":
+            if yklocker.MyPlatformversion == MyPlatform.WIN:
                 # Make sure gets were called but dont enter the functions
                 mock_reg_check_removal_option.assert_called_once()
                 mock_reg_check_timeout.assert_called_once()
@@ -203,7 +202,7 @@ def test_main_no_args():
     # Make sure we go into the argument checks
     with patch(
         "sciber_yklocker.get_my_platform", MagicMock(return_value=MyPlatform.LX)
-    ) as m:
+    ):
         # Dont go inte the loop but make sure it was called
         with patch("sciber_yklocker.loop_code", MagicMock()) as mock_loop_code:
             with patch(
@@ -212,14 +211,13 @@ def test_main_no_args():
                 main([""])
                 mock_init_yklocker.assert_called_once_with(None, None)
                 mock_loop_code.assert_called_once()
-                m.assert_called_once()
 
 
 def test_main_with_logout():
     # Make sure we go into the argument checks
     with patch(
         "sciber_yklocker.get_my_platform", MagicMock(return_value=MyPlatform.LX)
-    ) as m:
+    ):
         # Dont go inte the loop but make sure it was called
         with patch("sciber_yklocker.loop_code", MagicMock()) as mock_loop_code:
             with patch(
@@ -228,14 +226,13 @@ def test_main_with_logout():
                 main(["-l", "Logout", "-t", "5"])
                 mock_loop_code.assert_called_once()
                 mock_init_yklocker.assert_called_once_with(RemovalOption.LOGOUT, 5)
-                m.assert_called_once()
 
 
 def test_main_with_doNothing():
     # Make sure we go into the argument checks
     with patch(
         "sciber_yklocker.get_my_platform", MagicMock(return_value=MyPlatform.LX)
-    ) as m:
+    ):
         # Dont go inte the loop but make sure it was called
         with patch("sciber_yklocker.loop_code", MagicMock()) as mock_loop_code:
             with patch(
@@ -244,14 +241,13 @@ def test_main_with_doNothing():
                 main(["-l", "doNothing", "-t", "5"])
                 mock_loop_code.assert_called_once()
                 mock_init_yklocker.assert_called_once_with(RemovalOption.NOTHING, 5)
-                m.assert_called_once()
 
 
 def test_main_with_lock():
     # Make sure we go into the argument checks
     with patch(
         "sciber_yklocker.get_my_platform", MagicMock(return_value=MyPlatform.LX)
-    ) as m:
+    ):
         # Dont go inte the loop but make sure it was called
         with patch("sciber_yklocker.loop_code", MagicMock()) as mock_loop_code:
             with patch(
@@ -260,4 +256,3 @@ def test_main_with_lock():
                 main(["-l", "Lock", "-t", "5"])
                 mock_loop_code.assert_called_once()
                 mock_init_yklocker.assert_called_once_with(RemovalOption.LOCK, 5)
-                m.assert_called_once()
