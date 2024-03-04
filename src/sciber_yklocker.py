@@ -1,11 +1,8 @@
 # sciber_yklocker.py
-
 # General imports
 import getopt
 import platform
 import sys
-import traceback
-import winreg
 from time import sleep
 
 # Yubikey imports
@@ -14,18 +11,21 @@ from ykman.device import list_all_devices  # , scan_devices
 from lib import MyPlatform, RemovalOption
 
 if platform.system() == "Windows":
-    from lib_win import check_service_interruption, lock_system, log_message, win_main
+    from lib_win import (
+        check_service_interruption,
+        lock_system,
+        log_message,
+        reg_check_removal_option,
+        reg_check_timeout,
+        reg_check_updates,
+        win_main,
+    )
 
 elif platform.system() == "Linux":
     from lib_lx import lock_system, log_message
 
 elif platform.system() == "Darwin":
     from lib_mac import lock_system, log_message
-
-
-REG_REMOVALOPTION = "RemovalOption"
-REG_TIMEOUT = "Timeout"
-REG_PATH = r"SOFTWARE\\Policies\\Sciber\\YubiKey Removal Behavior\\"
 
 
 def get_my_platform():
@@ -81,52 +81,6 @@ class YkLock:
             return check_service_interruption(serviceObject)
 
         return True
-
-
-def reg_query_key(key_name):
-    try:
-        # Attemt to open the handle to registry
-        key_handle = winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, REG_PATH)
-        # QueryValueEx returns a tuple, the value and the type
-        ret = winreg.QueryValueEx(key_handle, key_name)[0]
-        # Close the handle to the key
-        key_handle.Close()
-        return ret
-    except (OSError, TypeError, FileNotFoundError, KeyError):
-        traceback.print_exc()
-        return False
-
-
-def reg_check_timeout(yklocker):
-    timeoutValue = int(reg_query_key(REG_TIMEOUT))
-    if timeoutValue is not False:
-        yklocker.set_timeout(timeoutValue)
-    # Return current timeout
-    return yklocker.get_timeout()
-
-
-def reg_check_removal_option(yklocker):
-    lockValue = reg_query_key(REG_REMOVALOPTION)
-    if lockValue is not False:
-        yklocker.set_removal_option(lockValue)
-    else:
-        # If no Windows Registry option is set. Default to doNothing
-        yklocker.set_removal_option(RemovalOption.NOTHING)
-    # Return current RemovalOption
-    return yklocker.get_removal_option()
-
-
-def reg_check_updates(yklocker):
-    # check for changes in the registry
-    timeoutValue = yklocker.get_timeout()
-    removalOption = yklocker.get_removal_option()
-    # Check registry and get the latest values
-    timeoutValue2 = reg_check_timeout(yklocker)
-    removalOption2 = reg_check_removal_option(yklocker)
-
-    if timeoutValue != timeoutValue2 or removalOption != removalOption2:
-        message = f"Updated Sciber-YkLocker with RemovalOption {yklocker.get_removal_option()} after {yklocker.get_timeout()} seconds without a detected YubiKey"
-        yklocker.logger(message)
 
 
 def loop_code(serviceObject, yklocker):
