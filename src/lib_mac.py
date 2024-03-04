@@ -1,6 +1,5 @@
 import syslog
-
-import CDLL
+from ctypes import CDLL
 
 from lib import RemovalOption
 
