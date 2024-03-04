@@ -1,69 +1,32 @@
 # sciber_yklocker.py
-
 # General imports
 import getopt
-import os
 import platform
 import sys
-import traceback
-from ctypes import CDLL
-from enum import Enum, StrEnum  # StrEnum is python 3.11+
 from time import sleep
 
 # Yubikey imports
 from ykman.device import list_all_devices  # , scan_devices
 
-import EmptyModule
+from lib import MyPlatform, RemovalOption
 
-# Enable global imports
-# If not reassigned - code running on the "wrong" OS would break
-if platform.system() != "Windows":
-    # Modules only used by the Windows service
-    sys.modules["win32con"] = EmptyModule  # pragma: no cover
-    sys.modules["win32process"] = EmptyModule  # pragma: no cover
-    sys.modules["win32profile"] = EmptyModule  # pragma: no cover
-    sys.modules["win32ts"] = EmptyModule  # pragma: no cover
-    sys.modules["socket"] = EmptyModule  # pragma: no cover
-    sys.modules["win32ts"] = EmptyModule  # pragma: no cover
-    sys.modules["servicemanager"] = EmptyModule  # pragma: no cover
-    sys.modules["win32event"] = EmptyModule  # pragma: no cover
-    sys.modules["win32service"] = EmptyModule  # pragma: no cover
-    sys.modules["win32serviceutil"] = EmptyModule  # pragma: no cover
-    sys.modules["winreg"] = EmptyModule  # pragma: no cover
-
+# Import platform specific code
 if platform.system() == "Windows":
-    # Modules only used by non-windows OS
-    sys.modules["syslog"] = EmptyModule  # pragma: no cover
+    from lib_win import (
+        check_service_interruption,
+        lock_system,
+        log_message,
+        reg_check_removal_option,
+        reg_check_timeout,
+        reg_check_updates,
+        win_main,
+    )
 
-import socket
-import syslog
-import winreg
+elif platform.system() == "Linux":
+    from lib_lx import lock_system, log_message
 
-import servicemanager
-import win32con
-import win32event
-import win32process
-import win32profile
-import win32service
-import win32serviceutil
-import win32ts
-
-REG_REMOVALOPTION = "RemovalOption"
-REG_TIMEOUT = "Timeout"
-REG_PATH = r"SOFTWARE\\Policies\\Sciber\\YubiKey Removal Behavior\\"
-
-
-class MyPlatform(Enum):
-    MAC = 0
-    WIN = 1
-    LX = 2
-    UNKNOWN = -1
-
-
-class RemovalOption(StrEnum):
-    LOCK = "Lock"
-    LOGOUT = "Logout"
-    NOTHING = "doNothing"
+elif platform.system() == "Darwin":
+    from lib_mac import lock_system, log_message
 
 
 def get_my_platform():
@@ -101,51 +64,10 @@ class YkLock:
 
     def lock(self):
         if self.get_removal_option() != RemovalOption.NOTHING:
-            if self.MyPlatformversion == MyPlatform.MAC:
-                loginPF = CDLL(
-                    "/System/Library/PrivateFrameworks/login.framework/Versions/Current/login"
-                )
-                loginPF.SACLockScreenImmediate()
-            elif self.MyPlatformversion == MyPlatform.LX:
-                # Determine what type of lock-action to take. Defaults to lock
-                command = "dbus-send --type=method_call --dest=org.gnome.ScreenSaver /org/gnome/ScreenSaver org.gnome.ScreenSaver.Lock"
-                if self.get_removal_option() == RemovalOption.LOGOUT:
-                    command = "dbus-send --session --type=method_call --print-reply --dest=org.gnome.SessionManager /org/gnome/SessionManager org.gnome.SessionManager.Logout uint32:1"
+            lock_system(self.get_removal_option())
 
-                os.popen(command)
-            elif self.MyPlatformversion == MyPlatform.WIN:
-                # As the service will be running as System you require a session handle to interact with the Desktop logon
-                console_session_id = win32ts.WTSGetActiveConsoleSessionId()
-                console_user_token = win32ts.WTSQueryUserToken(console_session_id)
-                startup = win32process.STARTUPINFO()
-                priority = win32con.NORMAL_PRIORITY_CLASS
-                environment = win32profile.CreateEnvironmentBlock(
-                    console_user_token, False
-                )
-
-                # Determine what type of lock-action to take. Defaults to lock
-                command = "\\Windows\\system32\\rundll32.exe user32.dll,LockWorkStation"
-                if self.get_removal_option() == RemovalOption.LOGOUT:
-                    command = "\\Windows\\system32\\logoff.exe"
-
-                handle, thread_id, pid, tid = win32process.CreateProcessAsUser(
-                    console_user_token,
-                    None,
-                    command,
-                    None,
-                    None,
-                    True,
-                    priority,
-                    environment,
-                    None,
-                    startup,
-                )
-
-    def logger(self, message):
-        if self.MyPlatformversion == MyPlatform.WIN:
-            servicemanager.LogInfoMsg(message)
-        else:
-            syslog.syslog(syslog.LOG_INFO, message)
+    def logger(self, msg):
+        log_message(msg)
 
     def is_yubikey_connected(self):
         devices = list_all_devices()
@@ -154,63 +76,13 @@ class YkLock:
         else:
             return True
 
+    # Function to handle interruption signals sent to the program
     def continue_looping(self, serviceObject):
-        # Function to handle interruptions signal sent to the program
+        # Only the Windows service we need to check for incoming signals
         if get_my_platform() == MyPlatform.WIN:
-            # Check if hWaitStop has been issued
-            if (
-                win32event.WaitForSingleObject(serviceObject.hWaitStop, 5000)
-                == win32event.WAIT_OBJECT_0
-            ):  # Then stop the loop
-                return False
+            return check_service_interruption(serviceObject)
 
         return True
-
-
-def reg_query_key(key_name):
-    try:
-        # Attemt to open the handle to registry
-        key_handle = winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, REG_PATH)
-        # QueryValueEx returns a tuple, the value and the type
-        ret = winreg.QueryValueEx(key_handle, key_name)[0]
-        # Close the handle to the key
-        key_handle.Close()
-        return ret
-    except (OSError, TypeError, FileNotFoundError, KeyError):
-        traceback.print_exc()
-        return False
-
-
-def reg_check_timeout(yklocker):
-    timeoutValue = int(reg_query_key(REG_TIMEOUT))
-    if timeoutValue is not False:
-        yklocker.set_timeout(timeoutValue)
-    # Return current timeout
-    return yklocker.get_timeout()
-
-
-def reg_check_removal_option(yklocker):
-    lockValue = reg_query_key(REG_REMOVALOPTION)
-    if lockValue is not False:
-        yklocker.set_removal_option(lockValue)
-    else:
-        # If no Windows Registry option is set. Default to doNothing
-        yklocker.set_removal_option(RemovalOption.NOTHING)
-    # Return current RemovalOption
-    return yklocker.get_removal_option()
-
-
-def reg_check_updates(yklocker):
-    # check for changes in the registry
-    timeoutValue = yklocker.get_timeout()
-    removalOption = yklocker.get_removal_option()
-    # Check registry and get the latest values
-    timeoutValue2 = reg_check_timeout(yklocker)
-    removalOption2 = reg_check_removal_option(yklocker)
-
-    if timeoutValue != timeoutValue2 or removalOption != removalOption2:
-        message = f"Updated Sciber-YkLocker with RemovalOption {yklocker.get_removal_option()} after {yklocker.get_timeout()} seconds without a detected YubiKey"
-        yklocker.logger(message)
 
 
 def loop_code(serviceObject, yklocker):
@@ -256,45 +128,14 @@ def init_yklocker(removal_option, timeout):
     return yklocker
 
 
-# Windows Service Class Definition
-class AppServerSvc(win32serviceutil.ServiceFramework):
-    _svc_name_ = "SciberYklocker"
-    _svc_display_name_ = "Sciber YubiKey Locker"
-
-    def __init__(self, args):
-        win32serviceutil.ServiceFramework.__init__(self, args)
-        self.hWaitStop = win32event.CreateEvent(None, 0, 0, None)
-        socket.setdefaulttimeout(60)
-
-    def SvcStop(self):
-        self.ReportServiceStatus(win32service.SERVICE_STOP_PENDING)
-        win32event.SetEvent(self.hWaitStop)
-
-    def SvcDoRun(self):
-        servicemanager.LogMsg(
-            servicemanager.EVENTLOG_INFORMATION_TYPE,
-            servicemanager.PYS_SERVICE_STARTED,
-            (self._svc_name_, ""),
-        )
-        # instantiate a yklocker-object and start running the code
-        yklocker = init_yklocker(None, None)
-        # To handle service interruptions etc, pass the win service class instance along
-        loop_code(serviceObject=self, yklocker=yklocker)
-
-
 def main(argv):
     # If Windows, start a service based on the class AppServerSvc
     if get_my_platform() == MyPlatform.WIN:
-        servicemanager.Initialize()
-        servicemanager.PrepareToHostSingle(AppServerSvc)
-        try:
-            servicemanager.StartServiceCtrlDispatcher()
-        except SystemError:
-            print("The executable needs to be installed and started as a service.")
+        win_main()
     # If LX or MAC, check arguments then initiate yklock object and then run code
     elif get_my_platform() == MyPlatform.LX or get_my_platform() == MyPlatform.MAC:
-        removal_option = RemovalOption.LOCK
-        timeout = 10
+        removal_option = None
+        timeout = None
 
         # Check arguments
         opts, args = getopt.getopt(argv, "l:t:")
@@ -302,6 +143,8 @@ def main(argv):
             if opt == "-l":
                 if arg == RemovalOption.LOGOUT:
                     removal_option = RemovalOption.LOGOUT
+                if arg == RemovalOption.LOCK:
+                    removal_option = RemovalOption.LOCK
                 elif arg == RemovalOption.NOTHING:
                     removal_option = RemovalOption.NOTHING
             elif opt == "-t":
