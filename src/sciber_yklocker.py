@@ -10,6 +10,7 @@ from ykman.device import list_all_devices  # , scan_devices
 
 from lib import MyPlatform, RemovalOption
 
+# Import platform specific code
 if platform.system() == "Windows":
     from lib_win import (
         check_service_interruption,
@@ -77,6 +78,7 @@ class YkLock:
 
     # Function to handle interruption signals sent to the program
     def continue_looping(self, serviceObject):
+        # Only the Windows service we need to check for incoming signals
         if get_my_platform() == MyPlatform.WIN:
             return check_service_interruption(serviceObject)
 
@@ -132,8 +134,8 @@ def main(argv):
         win_main()
     # If LX or MAC, check arguments then initiate yklock object and then run code
     elif get_my_platform() == MyPlatform.LX or get_my_platform() == MyPlatform.MAC:
-        removal_option = RemovalOption.LOCK
-        timeout = 10
+        removal_option = None
+        timeout = None
 
         # Check arguments
         opts, args = getopt.getopt(argv, "l:t:")
@@ -141,6 +143,8 @@ def main(argv):
             if opt == "-l":
                 if arg == RemovalOption.LOGOUT:
                     removal_option = RemovalOption.LOGOUT
+                if arg == RemovalOption.LOCK:
+                    removal_option = RemovalOption.LOCK
                 elif arg == RemovalOption.NOTHING:
                     removal_option = RemovalOption.NOTHING
             elif opt == "-t":

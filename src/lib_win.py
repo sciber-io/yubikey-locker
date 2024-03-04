@@ -18,6 +18,10 @@ REG_TIMEOUT = "Timeout"
 REG_PATH = r"SOFTWARE\\Policies\\Sciber\\YubiKey Removal Behavior\\"
 
 
+def log_message(msg):
+    servicemanager.LogInfoMsg(msg)
+
+
 def lock_system(removal_option):
     # As the service will be running as System you require a session handle to interact with the Desktop logon
     console_session_id = win32ts.WTSGetActiveConsoleSessionId()
@@ -44,10 +48,6 @@ def lock_system(removal_option):
         None,
         startup,
     )
-
-
-def log_message(msg):
-    servicemanager.LogInfoMsg(msg)
 
 
 def check_service_interruption(serviceObject):
