@@ -233,7 +233,9 @@ if platform.system() == "Windows":
         # Updates from registy are non-default values:
         with patch("lib_win.reg_check_timeout", lambda a: 15):
             with patch(
-                "lib_win.reg_check_removal_option", lambda a: RemovalOption.LOGOUT
+                "lib_win.reg_check_removal_option",
+                lambda a: RemovalOption.LOGOUT,
+
             ):
                 with patch("sciber_yklocker.YkLock.logger", MagicMock()) as mock_logger:
                     reg_check_updates(yklocker)

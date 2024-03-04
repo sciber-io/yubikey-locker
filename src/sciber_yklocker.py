@@ -22,6 +22,7 @@ if platform.system() == "Windows":
         win_main,
     )
 
+
 elif platform.system() == "Linux":
     from lib_lx import lock_system, log_message
 

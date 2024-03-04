@@ -6,4 +6,4 @@ pytest-cov==4.1.0
 pre-commit==3.6.2
 fake_winreg
 pytest-random-order
-pillow # Needed for pyinstaller on mac to create icns icon
+pillow # Needed for pyinstaller to convert .jpg to correct icon formats

@@ -3,7 +3,7 @@
 
 For YubiKey users to enable automatic device locking when removing the YubiKey.
 
-<img src="src/sciber_yklocker.png" alt="YubiKey Autolocker by Sciber" width="250"/>
+<img src="images/sciber_yklocker.png" alt="YubiKey Autolocker by Sciber" width="250"/>
 
 
 
@@ -18,7 +18,7 @@ For YubiKey users to enable automatic device locking when removing the YubiKey.
 
 ## Installation via Intune
 ### Windows
-1. Download the .admx and .adml files from the "Administrative template" folder
+1. Download the .admx and .adml files from the "src/windows/Administrative template" folder
 2. Intune/GPO: Follow Jonas guide on his blog: https://swjm.blog/locking-the-workstation-on-fido2-security-key-removal-part-2-80962c944c78 to set up GPO/Intune control to decide what you want to do if the YubiKey is removed.
 ### Mac
 - Add an macOS app, upload sciber-yklocker-macos.pkg
@@ -31,7 +31,8 @@ For YubiKey users to enable automatic device locking when removing the YubiKey.
 1. Download the installer sciber-yklocker.msi from [releases](https://github.com/sciber-io/yklocker/releases)
 2. Run the installer (installs the service SciberYklocker for you)
 #### Set registry values
-1. Download the .admx and .adml files from the "Administrative template" folder
+
+1. Download the .admx and .adml files from the "src/windows/Administrative template" folder
 2. Locally: download the amdx and adml file to your computer and place them in C:\Windows\PolicyDefinitions, then start local group policy editor -> Computer Configuration -> Administrative Templates -> Sciber Yklocker Settings --> turn on to get registry values
 
 ### Mac
@@ -97,19 +98,22 @@ python3.11 -m tox -e build_win
 ```
 In case something is unclear - you should be able to follow the process in ci.yml
 
-
-### MacOS
-Version number is changed in src/macos/sciber-yklocker-macos.spec
+# Intune version of app:
 This needs to be increased for Intune to roll out a new version of the app.
+- Version number is changed in src/macos/sciber-yklocker-macos.spec
+- Version number is changed in src\windows\sciber-yklocker.wxs
 
 ### Linux
+Necessary to install a few packages:
 sudo apt install -y libpcsclite-dev python3.11-dev swig
+
+
 
 ### Other
 Pyinstaller cmd:
 pyinstaller --clean -F -n "sciber-yklocker" "..\src\sciber_yklocker.py"
 
-In case you do not want to skip the MSI:
+In case you do want to skip the MSI:
 
 sc.exe create SciberYkLocker binPath="C:\Program Files\Sciber\sciber-yklocker\sciber-yklocker.exe" start=auto
 sc.exe start SciberYkLocker
