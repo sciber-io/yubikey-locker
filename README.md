@@ -8,12 +8,19 @@ For YubiKey users to enable automatic device locking when removing the YubiKey.
 
 
 
-## Possible action to take when a YubiKey is not found
+### Possible action to take when a YubiKey is not found
 | Action        | Windows   | Mac  | Linux  |
 | ---           | ---       | ---  | ---    |
 | Nothing       | ✅       | ✅   | ✅    |
 | Lock Computer | ✅       | ✅   | ✅    |
 | Log Out User  | ✅       | ❌   | ✅    |
+
+### Available installation instructions
+| Method        | Windows   | Mac   | Linux |
+| ---           | ---       | ---  | ---    |
+| Intune        | ✅       | ✅   | ❌
+| Manual        | ✅       | ✅   | ✅    |
+
 
 
 ## Installation via Intune
@@ -55,10 +62,10 @@ sciber-yklocker will check if there is a YubiKey present every 10 seconds. If no
 
 
 
-### Comand line options
+### Comand line options for Linux/MacOS
 ```bash
 # Run sciber-yklocker
-# Defaults to locking the device after 10 seconds without a YubiKey
+# Defaults to doNothing with the device after 10 seconds without a YubiKey
 sciber-yklocker
 
 # Optional arguments:
@@ -76,44 +83,5 @@ sciber-yklocker -l Logout -t 30
 ### Credits
 Special thanks to [Jonas Markström](https://github.com/JMarkstrom/) for valuable feedback and support during this project.
 
-
-## Development
-To change behavior and compile your own executables
-
-Requirements: Python3.11+
-
-```
-# Install tox
-python3.11 -m pip install --user tox
-
-# Run tests
-python3.11 -m tox
-
-# Run linting
-python3.11 -m tox -e lint
-
-# Build binary
-python3.11 -m tox -e build_win
-
-```
-In case something is unclear - you should be able to follow the process in ci.yml
-
-# Intune version of app:
-This needs to be increased for Intune to roll out a new version of the app.
-- Version number is changed in src/macos/sciber-yklocker-macos.spec
-- Version number is changed in src\windows\sciber-yklocker.wxs
-
-### Linux
-Necessary to install a few packages:
-sudo apt install -y libpcsclite-dev python3.11-dev swig
-
-
-
-### Other
-Pyinstaller cmd:
-pyinstaller --clean -F -n "sciber-yklocker" "..\src\sciber_yklocker.py"
-
-In case you do want to skip the MSI:
-
-sc.exe create SciberYkLocker binPath="C:\Program Files\Sciber\sciber-yklocker\sciber-yklocker.exe" start=auto
-sc.exe start SciberYkLocker
+____
+For information regarding how to continue development and build your own binaries see [README-development.md](README-development.md)
