@@ -7,6 +7,7 @@ on: [ push ]
 permissions:
   contents: write # to enable releases
 
+# Create one job per specified OS
 jobs:
   yklocker_build:
     runs-on: ${{ matrix.os }}
@@ -16,6 +17,7 @@ jobs:
         python-version: ["3.11"]
         #exclude:
         #
+        # Define variable names
         include:
           - os: windows-2022
             build_filename: sciber-yklocker.exe
@@ -30,16 +32,16 @@ jobs:
             build_appname: sciber-yklocker-macos.app
             build_pkgname: sciber-yklocker-macos.pkg
             install_target_location: /Applications
-
+    # Get access to repo contents
     steps:
       - uses: actions/checkout@v4
-      - name: Set up Python
+      - name: Set up Python # Get Python with the minimum required version
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
 
       - if: matrix.os == 'ubuntu-22.04'
-        name: "Ubuntu specific APT install"
+        name: "Ubuntu specific APT install" # Make sure we install necessary prerequisites
         run: |
           sudo apt install -y libpcsclite-dev python3.11-dev swig
 
@@ -48,7 +50,8 @@ jobs:
           python -m pip install --upgrade pip
           pip install tox
 
-      - name: Test for ${{matrix.os}}
+        # Per OS install reqs and run tests
+      - name: Install requirements.txt and run tests for ${{matrix.os}}
         run: |
           python -m tox
 
