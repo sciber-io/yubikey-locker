@@ -2,7 +2,7 @@
 
 
 a = Analysis(
-    ['../sciber_yklocker.py'],
+    ['../sciber_yklocker/main.py'],
     pathex=[],
     binaries=[],
     datas=[],

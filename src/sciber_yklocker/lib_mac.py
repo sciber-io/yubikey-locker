@@ -1,7 +1,7 @@
 import syslog
 from ctypes import CDLL
 
-from lib import RemovalOption
+from sciber_yklocker.lib import RemovalOption
 
 
 def log_message(msg):

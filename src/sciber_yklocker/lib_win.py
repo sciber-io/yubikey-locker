@@ -11,7 +11,7 @@ import win32service
 import win32serviceutil
 import win32ts
 
-from lib import RemovalOption
+from sciber_yklocker.lib import RemovalOption
 
 REG_REMOVALOPTION = "RemovalOption"
 REG_TIMEOUT = "Timeout"
@@ -81,7 +81,7 @@ class AppServerSvc(win32serviceutil.ServiceFramework):
             servicemanager.PYS_SERVICE_STARTED,
             (self._svc_name_, ""),
         )
-        from sciber_yklocker import init_yklocker, loop_code
+        from sciber_yklocker.main import init_yklocker, loop_code
 
         # instantiate a yklocker-object and start running the code
         yklocker = init_yklocker(None, None)

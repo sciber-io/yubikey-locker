@@ -3,11 +3,11 @@ from unittest.mock import MagicMock, patch
 
 import fake_winreg
 
-from lib import RemovalOption
-from sciber_yklocker import YkLock
+from sciber_yklocker.lib import RemovalOption
+from sciber_yklocker.main import YkLock
 
 if platform.system() == "Windows":
-    from lib_win import (
+    from sciber_yklocker.lib_win import (
         REG_PATH,
         REG_REMOVALOPTION,
         REG_TIMEOUT,
@@ -28,17 +28,17 @@ if platform.system() == "Windows":
 
     #### Test functions ####
 
-    @patch("lib_win.servicemanager")
+    @patch("sciber_yklocker.lib_win.servicemanager")
     def test_log_message(m_servicemanager):
         m_servicemanager.LogInfoMsg = MagicMock()
 
         log_message("testmessage")
         m_servicemanager.LogInfoMsg.assert_called_once_with("testmessage")
 
-    @patch("lib_win.win32con")
-    @patch("lib_win.win32ts")
-    @patch("lib_win.win32process")
-    @patch("lib_win.win32profile")
+    @patch("sciber_yklocker.lib_win.win32con")
+    @patch("sciber_yklocker.lib_win.win32ts")
+    @patch("sciber_yklocker.lib_win.win32process")
+    @patch("sciber_yklocker.lib_win.win32profile")
     def test_lock_system_lock(m_win32profile, m_win32process, m_win32ts, m_win32con):
         m_win32con.NORMAL_PRIORITY_CLASS = 0
         m_win32ts.WTSQueryUserToken = MagicMock()
@@ -51,10 +51,10 @@ if platform.system() == "Windows":
         m_win32process.CreateProcessAsUser.assert_called_once()
         assert "LockWorkStation" in m_win32process.CreateProcessAsUser.call_args[0][2]
 
-    @patch("lib_win.win32con")
-    @patch("lib_win.win32ts")
-    @patch("lib_win.win32process")
-    @patch("lib_win.win32profile")
+    @patch("sciber_yklocker.lib_win.win32con")
+    @patch("sciber_yklocker.lib_win.win32ts")
+    @patch("sciber_yklocker.lib_win.win32process")
+    @patch("sciber_yklocker.lib_win.win32profile")
     def test_lock_system_logout(m_win32profile, m_win32process, m_win32ts, m_win32con):
         m_win32con.NORMAL_PRIORITY_CLASS = 0
         m_win32ts.WTSQueryUserToken = MagicMock()
@@ -114,9 +114,9 @@ if platform.system() == "Windows":
 
     def AppServerSvc_SvcDoRun(win_service):
         # Dont go inte the loop but make sure it was called
-        with patch("sciber_yklocker.loop_code", MagicMock()) as mock_loop_code:
+        with patch("sciber_yklocker.main.loop_code", MagicMock()) as mock_loop_code:
             with patch(
-                "sciber_yklocker.init_yklocker", MagicMock()
+                "sciber_yklocker.main.init_yklocker", MagicMock()
             ) as mock_init_yklocker:
                 mock_servicemanager = servicemanager
                 mock_servicemanager.LogMsg = MagicMock()
@@ -150,7 +150,7 @@ if platform.system() == "Windows":
 
     def test_reg_query_key_empty():
         # Use fake registry
-        with patch("lib_win.winreg", fake_winreg):
+        with patch("sciber_yklocker.lib_win.winreg", fake_winreg):
             # Empty registry should return False
             assert reg_query_key(REG_REMOVALOPTION) is False
             assert reg_query_key(REG_TIMEOUT) is False
@@ -168,7 +168,7 @@ if platform.system() == "Windows":
         fake_winreg.SetValueEx(key_handle, REG_TIMEOUT, 0, fake_winreg.REG_DWORD, 22)
         key_handle.Close()
 
-        with patch("lib_win.winreg", fake_winreg):
+        with patch("sciber_yklocker.lib_win.winreg", fake_winreg):
             assert reg_query_key(REG_REMOVALOPTION) == RemovalOption.LOCK
             assert int(reg_query_key(REG_TIMEOUT)) == 22
 
@@ -182,7 +182,7 @@ if platform.system() == "Windows":
     def test_reg_check_timeout():
         yklocker = YkLock()
         # Assume the registry returns 15
-        with patch("lib_win.reg_query_key", lambda a: "15"):
+        with patch("sciber_yklocker.lib_win.reg_query_key", lambda a: "15"):
             reg_check_timeout(yklocker)
 
         assert yklocker.get_timeout() == 15
@@ -191,7 +191,7 @@ if platform.system() == "Windows":
         yklocker = YkLock()
         # Check with another value than the default
         yklocker.set_timeout(15)
-        with patch("lib_win.reg_query_key", lambda a: False):
+        with patch("sciber_yklocker.lib_win.reg_query_key", lambda a: False):
             reg_check_timeout(yklocker)
 
         assert yklocker.get_timeout() == 15
@@ -199,7 +199,9 @@ if platform.system() == "Windows":
     def test_reg_check_removal_option():
         yklocker = YkLock()
         # Assume the registry returns logout
-        with patch("lib_win.reg_query_key", lambda a: RemovalOption.LOGOUT):
+        with patch(
+            "sciber_yklocker.lib_win.reg_query_key", lambda a: RemovalOption.LOGOUT
+        ):
             reg_check_removal_option(yklocker)
 
         assert yklocker.get_removal_option() == RemovalOption.LOGOUT
@@ -207,7 +209,7 @@ if platform.system() == "Windows":
     def test_reg_check_removal_option_error():
         yklocker = YkLock()
         # Check with another value than the default
-        with patch("lib_win.reg_query_key", lambda a: False):
+        with patch("sciber_yklocker.lib_win.reg_query_key", lambda a: False):
             reg_check_removal_option(yklocker)
 
         # IF no registry then it should be doNothing
@@ -217,12 +219,17 @@ if platform.system() == "Windows":
         yklocker = YkLock()
 
         # No updates just return the default values
-        with patch("lib_win.reg_check_timeout", lambda a: yklocker.get_timeout()):
+        with patch(
+            "sciber_yklocker.lib_win.reg_check_timeout",
+            lambda a: yklocker.get_timeout(),
+        ):
             with patch(
-                "lib_win.reg_check_removal_option",
+                "sciber_yklocker.lib_win.reg_check_removal_option",
                 lambda a: yklocker.get_removal_option(),
             ):
-                with patch("sciber_yklocker.YkLock.logger", MagicMock()) as mock_logger:
+                with patch(
+                    "sciber_yklocker.main.YkLock.logger", MagicMock()
+                ) as mock_logger:
                     reg_check_updates(yklocker)
                     # Logger should not have been called. No new values.
                     mock_logger.assert_not_called()
@@ -231,17 +238,19 @@ if platform.system() == "Windows":
         yklocker = YkLock()
 
         # Updates from registy are non-default values:
-        with patch("lib_win.reg_check_timeout", lambda a: 15):
+        with patch("sciber_yklocker.lib_win.reg_check_timeout", lambda a: 15):
             with patch(
-                "lib_win.reg_check_removal_option",
+                "sciber_yklocker.lib_win.reg_check_removal_option",
                 lambda a: RemovalOption.LOGOUT,
             ):
-                with patch("sciber_yklocker.YkLock.logger", MagicMock()) as mock_logger:
+                with patch(
+                    "sciber_yklocker.main.YkLock.logger", MagicMock()
+                ) as mock_logger:
                     reg_check_updates(yklocker)
                     # Logger should not have been called. No new values.
                     mock_logger.assert_called_once()
 
-    @patch("lib_win.servicemanager")
+    @patch("sciber_yklocker.lib_win.servicemanager")
     def test_win_main(m_servicemanager):
         m_servicemanager.StartServiceCtrlDispatcher = MagicMock()
         m_servicemanager.PrepareToHostSingle = MagicMock()
@@ -253,7 +262,7 @@ if platform.system() == "Windows":
         m_servicemanager.PrepareToHostSingle.assert_called_once()
         m_servicemanager.StartServiceCtrlDispatcher.assert_called_once()
 
-    @patch("lib_win.servicemanager")
+    @patch("sciber_yklocker.lib_win.servicemanager")
     def test_main_win_error(m_servicemanager):
         m_servicemanager.StartServiceCtrlDispatcher = MagicMock()
         m_servicemanager.PrepareToHostSingle = MagicMock()
