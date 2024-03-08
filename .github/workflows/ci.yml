@@ -43,7 +43,7 @@ jobs:
       - if: matrix.os == 'ubuntu-22.04'
         name: "Ubuntu specific APT install" # Make sure we install necessary prerequisites
         run: |
-          sudo apt install -y libpcsclite-dev python3.11-dev swig
+          sudo apt install -y libpcsclite-dev python3.11 swig
 
       - name: Install dependencies # Common for all OS's
         run: |
@@ -74,8 +74,8 @@ jobs:
         name: "Windows MSI build"
         run: |
           dotnet tool install --global wix
-          wix.exe build -arch x64 .\src\windows\sciber-yklocker.wxs
-          cp .\src\windows\${{matrix.msi_filename}} dist/${{matrix.msi_filename}}
+          wix.exe build -arch x64 .\src\windows_utils\sciber-yklocker.wxs
+          cp .\src\windows_utils\${{matrix.msi_filename}} dist/${{matrix.msi_filename}}
           ls dist
 
       - if: matrix.os == 'windows-2022'
@@ -91,8 +91,7 @@ jobs:
           # ls 'D:\Program Files\Sciber\SciberYklocker\'
           # ls 'C:\Program Files\Sciber\SciberYklocker\'
 
-      - if: matrix.os == 'ubuntu-22.04'
-        name: Pytest coverage comment
+      - name: Pytest coverage comment
         uses: MishaKav/pytest-coverage-comment@main
         with:
           pytest-xml-coverage-path: ./cov.xml

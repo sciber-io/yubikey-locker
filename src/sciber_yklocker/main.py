@@ -8,11 +8,11 @@ from time import sleep
 # Yubikey imports
 from ykman.device import list_all_devices  # , scan_devices
 
-from lib import MyPlatform, RemovalOption
+from sciber_yklocker.lib import MyPlatform, RemovalOption
 
 # Import platform specific code
 if platform.system() == "Windows":
-    from lib_win import (
+    from sciber_yklocker.lib_win import (
         check_service_interruption,
         lock_system,
         log_message,
@@ -24,10 +24,10 @@ if platform.system() == "Windows":
 
 
 elif platform.system() == "Linux":
-    from lib_lx import lock_system, log_message
+    from sciber_yklocker.lib_lx import lock_system, log_message
 
 elif platform.system() == "Darwin":
-    from lib_mac import lock_system, log_message
+    from sciber_yklocker.lib_mac import lock_system, log_message
 
 
 def get_my_platform():
