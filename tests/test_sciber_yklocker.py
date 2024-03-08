@@ -1,7 +1,8 @@
+import platform
 from unittest.mock import MagicMock, patch
 
-from sciber_yklocker.lib import MyPlatform, RemovalOption
-from sciber_yklocker.main import YkLock, get_my_platform, init_yklocker, loop_code, main
+from sciber_yklocker.lib import LX, MAC, WIN, RemovalOption
+from sciber_yklocker.main import YkLock, init_yklocker, loop_code, main
 
 ##### Helper Functions ######
 
@@ -22,12 +23,12 @@ temp_counter = 0
 
 
 # Get the mock_continue_looping function to first return True then False
-def mock_continue_looping(a):
+def mock_continue_looping(a) -> bool:
     global temp_counter
     if temp_counter == 0:
         temp_counter += 1
         return True
-    elif temp_counter > 0:
+    else:
         return False
 
 
@@ -36,12 +37,7 @@ def mock_continue_looping(a):
 ##### Test Functions ######
 
 
-def test_get_my_platform_unknown():
-    with patch("sciber_yklocker.main.platform", MagicMock(return_value="nada")):
-        assert get_my_platform() == MyPlatform.UNKNOWN
-
-
-def test_yklock_getset_timeout():
+def test_yklock_getset_timeout() -> None:
     yklocker = YkLock()
     input = 15
     yklocker.set_timeout(input)
@@ -51,7 +47,7 @@ def test_yklock_getset_timeout():
     assert yklocker.get_timeout() == input
 
 
-def test_yklock_getset_removal_option():
+def test_yklock_getset_removal_option() -> None:
     yklocker = YkLock()
     yklocker.set_removal_option(RemovalOption.LOGOUT)
     yklocker.set_removal_option("hello")
@@ -64,14 +60,14 @@ def test_yklock_getset_removal_option():
     assert yklocker.get_removal_option() == RemovalOption.NOTHING
 
 
-def test_yklock_lock_default():
+def test_yklock_lock_default() -> None:
     with patch("sciber_yklocker.main.lock_system", MagicMock()) as mock_lock_system:
         yklocker = YkLock()
         yklocker.lock()
     mock_lock_system.assert_not_called()
 
 
-def test_yklock_lock_lock():
+def test_yklock_lock_lock() -> None:
     with patch("sciber_yklocker.main.lock_system", MagicMock()) as mock_lock_system:
         yklocker = YkLock()
         yklocker.set_removal_option(RemovalOption.LOCK)
@@ -79,7 +75,7 @@ def test_yklock_lock_lock():
     mock_lock_system.assert_called_once()
 
 
-def test_yklock_logger():
+def test_yklock_logger() -> None:
     with patch("sciber_yklocker.main.log_message", MagicMock()) as mock_log_message:
         yklocker = YkLock()
         yklocker.logger("test message 1")
@@ -87,14 +83,14 @@ def test_yklock_logger():
     mock_log_message.assert_called_once_with("test message 1")
 
 
-def test_YkLock_is_yubikey_connected_false():
+def test_YkLock_is_yubikey_connected_false() -> None:
     yklocker = YkLock()
     # Make sure no YubiKeys are found by return an empty array
     with patch("sciber_yklocker.main.list_all_devices", lambda: []):
         assert yklocker.is_yubikey_connected() is False
 
 
-def test_YkLock_is_yubikey_connected_true():
+def test_YkLock_is_yubikey_connected_true() -> None:
     yklocker = YkLock()
 
     # Make sure one "YubiKey" is found
@@ -102,9 +98,9 @@ def test_YkLock_is_yubikey_connected_true():
         assert yklocker.is_yubikey_connected() is True
 
 
-def test_YkLock_continue_looping_true():
+def test_YkLock_continue_looping_true() -> None:
     yklocker = YkLock()
-    if yklocker.MyPlatformversion == MyPlatform.WIN:
+    if platform.system() == WIN:
         with patch(
             "sciber_yklocker.main.check_service_interruption",
             MagicMock(return_value=True),
@@ -119,7 +115,7 @@ def test_YkLock_continue_looping_true():
         assert yklocker.continue_looping(MagicMock()) is True
 
 
-def test_loop_code_no_yubikey():
+def test_loop_code_no_yubikey() -> None:
     yklocker = YkLock()
 
     # Patch sleep and connection
@@ -136,7 +132,7 @@ def test_loop_code_no_yubikey():
     ) as mock_loop:
         mock_loop.side_effect = mock_continue_looping
         # Skip registry updates
-        with patch("sciber_yklocker.main.get_my_platform", MagicMock()):
+        with patch("platform.system", MagicMock(return_value=LX)):
             # Dont actually lock the device during tests
             with patch("sciber_yklocker.main.YkLock.lock", MagicMock()) as mock_lock:
                 # Patch logger to catch messages
@@ -154,7 +150,7 @@ def test_loop_code_no_yubikey():
                 mock_lock.assert_called_once_with()
 
 
-def test_loop_code_with_yubikey():
+def test_loop_code_with_yubikey() -> None:
     yklocker = YkLock()
     # Patch sleep and connection
     yklocker.get_timeout = lambda: 0
@@ -170,7 +166,7 @@ def test_loop_code_with_yubikey():
     ) as mock_loop:
         mock_loop.side_effect = mock_continue_looping
         # Skip registry updates
-        with patch("sciber_yklocker.main.get_my_platform", MagicMock()):
+        with patch("platform.system", MagicMock(return_value=LX)):
             # Dont actually lock the device during tests
             with patch("sciber_yklocker.main.YkLock.lock", MagicMock()) as mock_lock:
                 # Patch logger to catch messages
@@ -180,8 +176,8 @@ def test_loop_code_with_yubikey():
                 mock_lock.assert_not_called()
 
 
-def test_init_yklocker_win():
-    if get_my_platform() == MyPlatform.WIN:
+def test_init_yklocker_win() -> None:
+    if platform.system() == WIN:
         # Call the function with non-default settings and verify them
         with patch(
             "sciber_yklocker.main.reg_check_timeout", MagicMock()
@@ -199,18 +195,16 @@ def test_init_yklocker_win():
         assert yklocker.get_timeout() == 15
 
 
-def test_init_yklocker_lx():
-    if get_my_platform() == MyPlatform.LX or get_my_platform() == MyPlatform.MAC:
+def test_init_yklocker_lx() -> None:
+    if platform.system() == LX or platform.system() == MAC:
         yklocker = init_yklocker(RemovalOption.LOGOUT, 15)
         assert yklocker.get_removal_option() == RemovalOption.LOGOUT
         assert yklocker.get_timeout() == 15
 
 
-def test_main_no_args():
+def test_main_no_args() -> None:
     # Make sure we go into the argument checks
-    with patch(
-        "sciber_yklocker.main.get_my_platform", MagicMock(return_value=MyPlatform.LX)
-    ):
+    with patch("platform.system", MagicMock(return_value=LX)):
         # Dont go inte the loop but make sure it was called
         with patch("sciber_yklocker.main.loop_code", MagicMock()) as mock_loop_code:
             with patch(
@@ -221,11 +215,9 @@ def test_main_no_args():
                 mock_loop_code.assert_called_once()
 
 
-def test_main_with_logout():
+def test_main_with_logout() -> None:
     # Make sure we go into the argument checks
-    with patch(
-        "sciber_yklocker.main.get_my_platform", MagicMock(return_value=MyPlatform.LX)
-    ):
+    with patch("platform.system", MagicMock(return_value=LX)):
         # Dont go inte the loop but make sure it was called
         with patch("sciber_yklocker.main.loop_code", MagicMock()) as mock_loop_code:
             with patch(
@@ -236,11 +228,9 @@ def test_main_with_logout():
                 mock_init_yklocker.assert_called_once_with(RemovalOption.LOGOUT, 5)
 
 
-def test_main_with_doNothing():
+def test_main_with_doNothing() -> None:
     # Make sure we go into the argument checks
-    with patch(
-        "sciber_yklocker.main.get_my_platform", MagicMock(return_value=MyPlatform.LX)
-    ):
+    with patch("platform.system", MagicMock(return_value=LX)):
         # Dont go inte the loop but make sure it was called
         with patch("sciber_yklocker.main.loop_code", MagicMock()) as mock_loop_code:
             with patch(
@@ -251,11 +241,9 @@ def test_main_with_doNothing():
                 mock_init_yklocker.assert_called_once_with(RemovalOption.NOTHING, 5)
 
 
-def test_main_with_lock():
+def test_main_with_lock() -> None:
     # Make sure we go into the argument checks
-    with patch(
-        "sciber_yklocker.main.get_my_platform", MagicMock(return_value=MyPlatform.LX)
-    ):
+    with patch("platform.system", MagicMock(return_value=LX)):
         # Dont go inte the loop but make sure it was called
         with patch("sciber_yklocker.main.loop_code", MagicMock()) as mock_loop_code:
             with patch(

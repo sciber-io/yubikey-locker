@@ -7,11 +7,11 @@ if platform.system() == "Darwin":
     from sciber_yklocker.lib_mac import lock_system, log_message
 
     @patch("sciber_yklocker.lib_mac.CDLL")
-    def test_lock_system(mock_CDLL):
+    def test_lock_system(mock_CDLL) -> None:
         lock_system(RemovalOption.LOCK)
         mock_CDLL.assert_called_once()
 
-    def test_log_message():
+    def test_log_message() -> None:
         with patch("sciber_yklocker.lib_mac.syslog", MagicMock()) as mock_print:
             log_message("testmessage")
             mock_print.syslog.assert_called_once()
