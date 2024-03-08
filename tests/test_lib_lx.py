@@ -3,7 +3,7 @@ import platform
 if platform.system() == "Linux":
     from unittest.mock import MagicMock, patch
 
-    from sciber_yklockerlib_lx import lock_system, log_message, os
+    from sciber_yklocker.lib_lx import lock_system, log_message, os
 
     from sciber_yklocker.lib import RemovalOption
 
