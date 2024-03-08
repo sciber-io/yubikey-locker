@@ -1,9 +1,10 @@
 import platform
 
-if platform.system() == "Darwin":
+from sciber_yklocker.lib import MyOS, RemovalOption
+
+if platform.system() == MyOS.MAC:
     from unittest.mock import MagicMock, patch
 
-    from sciber_yklocker.lib import RemovalOption
     from sciber_yklocker.lib_mac import lock_system, log_message
 
     @patch("sciber_yklocker.lib_mac.CDLL")

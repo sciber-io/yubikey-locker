@@ -3,10 +3,10 @@ from unittest.mock import MagicMock, patch
 
 import fake_winreg
 
-from sciber_yklocker.lib import RemovalOption
+from sciber_yklocker.lib import MyOS, RemovalOption
 from sciber_yklocker.main import YkLock
 
-if platform.system() == "Windows":
+if platform.system() == MyOS.WIN:
     from sciber_yklocker.lib_win import (
         REG_PATH,
         REG_REMOVALOPTION,
