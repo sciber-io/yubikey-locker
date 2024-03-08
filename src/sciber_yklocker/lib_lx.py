@@ -8,7 +8,7 @@ def log_message(msg):
     syslog.syslog(syslog.LOG_INFO, msg)
 
 
-def lock_system(removal_option):
+def lock_system(removal_option) -> None:
     # Determine what type of lock-action to take
     command = ""
     if removal_option == RemovalOption.LOCK:
