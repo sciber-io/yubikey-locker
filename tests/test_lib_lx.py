@@ -5,6 +5,7 @@ from sciber_yklocker.lib import MyOS, RemovalOption
 if platform.system() == MyOS.LX:
     from unittest.mock import MagicMock, patch
 
+    from sciber_yklocker.lib import RemovalOption
     from sciber_yklocker.lib_lx import lock_system, log_message, os
 
     def test_lock_system_lock() -> None:

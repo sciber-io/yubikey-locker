@@ -7,11 +7,11 @@ from time import sleep
 
 # Yubikey imports
 from ykman.device import list_all_devices  # , scan_devices
-
 from sciber_yklocker.lib import MyOS, RemovalOption
 
 # Import platform specific code
 if platform.system() == MyOS.WIN:
+
     from sciber_yklocker.lib_win import (
         check_service_interruption,
         lock_system,
@@ -21,7 +21,6 @@ if platform.system() == MyOS.WIN:
         reg_check_updates,
         win_main,
     )
-
 
 elif platform.system() == MyOS.LX:
     from sciber_yklocker.lib_lx import lock_system, log_message
@@ -70,6 +69,7 @@ class YkLock:
     def continue_looping(self, serviceObject):
         # Only the Windows service we need to check for incoming signals
         if platform.system() == MyOS.WIN:
+
             return check_service_interruption(serviceObject)
 
         return True
@@ -124,6 +124,7 @@ def main(argv) -> None:
         win_main()
     # If LX or MAC, check arguments then initiate yklock object and then run code
     elif platform.system() == MyOS.LX or platform.system() == MyOS.MAC:
+
         removal_option = None
         timeout = None
 
