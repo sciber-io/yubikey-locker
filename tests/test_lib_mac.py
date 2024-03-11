@@ -15,4 +15,4 @@ if platform.system() == "Darwin":
         with patch("sciber_yklocker.lib_mac.os_log", MagicMock()) as mock_print:
             log_message("testmessage")
             mock_print.assert_called_once()
-            assert "testmessage" in mock_print.syslog.call_args[0]
+            assert "testmessage" in mock_print.call_args[0]
