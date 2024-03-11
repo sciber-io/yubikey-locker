@@ -1,15 +1,14 @@
-from enum import Enum, StrEnum  # StrEnum is python 3.11+
+from enum import StrEnum  # StrEnum is python 3.11+
 
 WIN = "Windows"
 MAC = "Darwin"
 LX = "Linux"
 
 
-class MyPlatform(Enum):
-    MAC = 0
-    WIN = 1
-    LX = 2
-    UNKNOWN = -1
+class MyOS(StrEnum):
+    WIN = "Windows"
+    MAC = "Darwin"
+    LX = "Linux"
 
 
 class RemovalOption(StrEnum):

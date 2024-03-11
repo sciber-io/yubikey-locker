@@ -1,7 +1,7 @@
 import platform
 from unittest.mock import MagicMock, patch
 
-from sciber_yklocker.lib import LX, MAC, WIN, RemovalOption
+from sciber_yklocker.lib import MyOS, RemovalOption
 from sciber_yklocker.main import YkLock, init_yklocker, loop_code, main
 
 ##### Helper Functions ######
@@ -100,7 +100,7 @@ def test_YkLock_is_yubikey_connected_true() -> None:
 
 def test_YkLock_continue_looping_true() -> None:
     yklocker = YkLock()
-    if platform.system() == WIN:
+    if platform.system() == MyOS.WIN:
         with patch(
             "sciber_yklocker.main.check_service_interruption",
             MagicMock(return_value=True),
@@ -132,7 +132,7 @@ def test_loop_code_no_yubikey() -> None:
     ) as mock_loop:
         mock_loop.side_effect = mock_continue_looping
         # Skip registry updates
-        with patch("platform.system", MagicMock(return_value=LX)):
+        with patch("platform.system", MagicMock(return_value=MyOS.LX)):
             # Dont actually lock the device during tests
             with patch("sciber_yklocker.main.YkLock.lock", MagicMock()) as mock_lock:
                 # Patch logger to catch messages
@@ -166,7 +166,7 @@ def test_loop_code_with_yubikey() -> None:
     ) as mock_loop:
         mock_loop.side_effect = mock_continue_looping
         # Skip registry updates
-        with patch("platform.system", MagicMock(return_value=LX)):
+        with patch("platform.system", MagicMock(return_value=MyOS.LX)):
             # Dont actually lock the device during tests
             with patch("sciber_yklocker.main.YkLock.lock", MagicMock()) as mock_lock:
                 # Patch logger to catch messages
@@ -177,7 +177,7 @@ def test_loop_code_with_yubikey() -> None:
 
 
 def test_init_yklocker_win() -> None:
-    if platform.system() == WIN:
+    if platform.system() == MyOS.WIN:
         # Call the function with non-default settings and verify them
         with patch(
             "sciber_yklocker.main.reg_check_timeout", MagicMock()
@@ -196,7 +196,7 @@ def test_init_yklocker_win() -> None:
 
 
 def test_init_yklocker_lx() -> None:
-    if platform.system() == LX or platform.system() == MAC:
+    if platform.system() == MyOS.LX or platform.system() == MyOS.MAC:
         yklocker = init_yklocker(RemovalOption.LOGOUT, 15)
         assert yklocker.get_removal_option() == RemovalOption.LOGOUT
         assert yklocker.get_timeout() == 15
@@ -204,7 +204,7 @@ def test_init_yklocker_lx() -> None:
 
 def test_main_no_args() -> None:
     # Make sure we go into the argument checks
-    with patch("platform.system", MagicMock(return_value=LX)):
+    with patch("platform.system", MagicMock(return_value=MyOS.LX)):
         # Dont go inte the loop but make sure it was called
         with patch("sciber_yklocker.main.loop_code", MagicMock()) as mock_loop_code:
             with patch(
@@ -217,7 +217,7 @@ def test_main_no_args() -> None:
 
 def test_main_with_logout() -> None:
     # Make sure we go into the argument checks
-    with patch("platform.system", MagicMock(return_value=LX)):
+    with patch("platform.system", MagicMock(return_value=MyOS.LX)):
         # Dont go inte the loop but make sure it was called
         with patch("sciber_yklocker.main.loop_code", MagicMock()) as mock_loop_code:
             with patch(
@@ -230,7 +230,7 @@ def test_main_with_logout() -> None:
 
 def test_main_with_doNothing() -> None:
     # Make sure we go into the argument checks
-    with patch("platform.system", MagicMock(return_value=LX)):
+    with patch("platform.system", MagicMock(return_value=MyOS.LX)):
         # Dont go inte the loop but make sure it was called
         with patch("sciber_yklocker.main.loop_code", MagicMock()) as mock_loop_code:
             with patch(
@@ -243,7 +243,7 @@ def test_main_with_doNothing() -> None:
 
 def test_main_with_lock() -> None:
     # Make sure we go into the argument checks
-    with patch("platform.system", MagicMock(return_value=LX)):
+    with patch("platform.system", MagicMock(return_value=MyOS.LX)):
         # Dont go inte the loop but make sure it was called
         with patch("sciber_yklocker.main.loop_code", MagicMock()) as mock_loop_code:
             with patch(

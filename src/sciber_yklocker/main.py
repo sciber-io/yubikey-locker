@@ -7,11 +7,11 @@ from time import sleep
 
 # Yubikey imports
 from ykman.device import list_all_devices  # , scan_devices
-
-from sciber_yklocker.lib import LX, MAC, WIN, RemovalOption
+from sciber_yklocker.lib import MyOS, RemovalOption
 
 # Import platform specific code
-if platform.system() == WIN:
+if platform.system() == MyOS.WIN:
+
     from sciber_yklocker.lib_win import (
         check_service_interruption,
         lock_system,
@@ -22,11 +22,10 @@ if platform.system() == WIN:
         win_main,
     )
 
-
-elif platform.system() == LX:
+elif platform.system() == MyOS.LX:
     from sciber_yklocker.lib_lx import lock_system, log_message
 
-elif platform.system() == MAC:
+elif platform.system() == MyOS.MAC:
     from sciber_yklocker.lib_mac import lock_system, log_message
 
 
@@ -69,7 +68,8 @@ class YkLock:
     # Function to handle interruption signals sent to the program
     def continue_looping(self, serviceObject):
         # Only the Windows service we need to check for incoming signals
-        if platform.system() == WIN:
+        if platform.system() == MyOS.WIN:
+
             return check_service_interruption(serviceObject)
 
         return True
@@ -84,7 +84,7 @@ def loop_code(serviceObject, yklocker) -> None:
     while yklocker.continue_looping(serviceObject):
         sleep(yklocker.get_timeout())
 
-        if platform.system() == WIN:
+        if platform.system() == MyOS.WIN:
             # Check for any timeout or RemovalOption updates from the registry
             reg_check_updates(yklocker)
 
@@ -111,7 +111,7 @@ def init_yklocker(removal_option, timeout) -> YkLock:
         yklocker.set_timeout(timeout)
 
     # If Windows - Check registry to override settings
-    if platform.system() == WIN:
+    if platform.system() == MyOS.WIN:
         reg_check_timeout(yklocker)
         reg_check_removal_option(yklocker)
 
@@ -120,10 +120,11 @@ def init_yklocker(removal_option, timeout) -> YkLock:
 
 def main(argv) -> None:
     # If Windows, start a service based on the class AppServerSvc
-    if platform.system() == WIN:
+    if platform.system() == MyOS.WIN:
         win_main()
     # If LX or MAC, check arguments then initiate yklock object and then run code
-    elif platform.system() == LX or platform.system() == MAC:
+    elif platform.system() == MyOS.LX or platform.system() == MyOS.MAC:
+
         removal_option = None
         timeout = None
 
