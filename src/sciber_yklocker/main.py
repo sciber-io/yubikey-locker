@@ -7,7 +7,6 @@ from time import sleep
 
 # Yubikey imports
 from ykman.device import list_all_devices  # , scan_devices
-
 from sciber_yklocker.lib import MyPlatform, RemovalOption
 
 # Import platform specific code
@@ -27,7 +26,11 @@ elif platform.system() == "Linux":
     from sciber_yklocker.lib_lx import lock_system, log_message
 
 elif platform.system() == "Darwin":
-    from sciber_yklocker.lib_mac import lock_system, log_message
+    from sciber_yklocker.lib_mac import (
+        lock_system,
+        log_message,
+        have_yubikey_been_removed,
+    )
 
 
 def get_my_platform():
