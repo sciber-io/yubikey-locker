@@ -12,7 +12,7 @@ if platform.system() == "Darwin":
         mock_CDLL.assert_called_once()
 
     def test_log_message():
-        with patch("sciber_yklocker.lib_mac.syslog", MagicMock()) as mock_print:
+        with patch("sciber_yklocker.lib_mac.os_log", MagicMock()) as mock_print:
             log_message("testmessage")
-            mock_print.syslog.assert_called_once()
+            mock_print.assert_called_once()
             assert "testmessage" in mock_print.syslog.call_args[0]
