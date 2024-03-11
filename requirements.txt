@@ -4,6 +4,7 @@ tox==4.13.0
 pytest==8.1.0
 pytest-cov==4.1.0
 pre-commit==3.6.2
+pyoslog
 fake_winreg
 pytest-random-order
 pillow # Needed for pyinstaller to convert .jpg to correct icon formats

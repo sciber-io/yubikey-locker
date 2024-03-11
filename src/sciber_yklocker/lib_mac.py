@@ -1,4 +1,4 @@
-import syslog
+from pyoslog import os_log, OS_LOG_DEFAULT
 from ctypes import CDLL
 import subprocess
 
@@ -6,7 +6,7 @@ from sciber_yklocker.lib import RemovalOption
 
 
 def log_message(msg):
-    syslog.syslog(syslog.LOG_INFO, msg)
+    os_log(OS_LOG_DEFAULT, msg)
 
 
 def lock_system(removal_option):
