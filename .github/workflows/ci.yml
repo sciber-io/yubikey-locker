@@ -65,7 +65,8 @@ jobs:
         run: | 
           file dist/${{matrix.build_appname}}/Contents/MacOS/sciber-yklocker-macos
           dist/${{matrix.build_appname}}/Contents/MacOS/sciber-yklocker-macos -z
-          log show --predicate 'eventMessage contains "sciber"' --last 10s
+          echo $?
+          log show --predicate 'process = "sciber-yklocker-macos"' --last 10s
 
       - if: matrix.os == 'macos-12'
         name: "MacOS pkg build"
