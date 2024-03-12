@@ -34,7 +34,7 @@ class YkLock:
         # Set default values
         self.timeout: int = 10
         self.removal_option: RemovalOption = RemovalOption.NOTHING
-        self.serviceObject = None
+        self.service_object = None
 
     def get_timeout(self) -> int:
         return self.timeout
@@ -51,11 +51,11 @@ class YkLock:
         if method in RemovalOption.__members__.values():
             self.removal_option = method
 
-    def get_serviceObject(self):
-        return self.serviceObject
+    def get_service_object(self):
+        return self.service_object
 
-    def set_serviceObject(self, serviceObject):
-        self.serviceObject = serviceObject
+    def set_service_object(self, service_object):
+        self.service_object = service_object
 
     def lock(self) -> None:
         if self.get_removal_option() != RemovalOption.NOTHING:
@@ -75,7 +75,7 @@ class YkLock:
     def continue_looping(self):
         # Only the Windows service we need to check for incoming signals
         if platform.system() == MyOS.WIN:
-            return check_service_interruption(self.get_serviceObject())
+            return check_service_interruption(self.get_service_object())
 
         return True
 
