@@ -141,6 +141,11 @@ def main(argv) -> None:
             elif opt == "-t":
                 if arg.isdecimal():
                     timeout = int(arg)
+            elif opt == "-test":
+                yklocker = YkLock()
+                yklocker.set_timeout(1)
+                yklocker.logger("Test logging")
+                exit(0)
 
         yklocker = init_yklocker(removal_option, timeout)
         loop_code(serviceObject=None, yklocker=yklocker)

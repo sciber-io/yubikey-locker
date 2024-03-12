@@ -12,7 +12,7 @@ if platform.system() == MyOS.MAC:
         lock_system(RemovalOption.LOCK)
         mock_CDLL.assert_called_once()
 
-    def test_log_message():
+    def test_log_message() -> None:
         with patch("sciber_yklocker.lib_mac.os_log", MagicMock()) as mock_print:
             log_message("testmessage")
             mock_print.assert_called_once()
