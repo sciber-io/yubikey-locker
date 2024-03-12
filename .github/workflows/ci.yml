@@ -98,8 +98,8 @@ jobs:
         name: "Windows MSI install"
         run: |
           $pwd = pwd
-          $distPath = "dist/${{matrix.msi_filename}}"
-          $msi = "$pwd/$distPath"
+          $distPath = "dist\${{matrix.msi_filename}}"
+          $msi = "$pwd\$distPath"
           echo $msi
           file $msi
           # -RunAsAdmin is a GitHub-actions command to elevate into admin
