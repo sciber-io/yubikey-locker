@@ -9,7 +9,7 @@ def log_message(msg):
     os_log(OS_LOG_DEFAULT, msg)
 
 
-def lock_system(removal_option):
+def lock_system(removal_option) -> None:
     if removal_option == RemovalOption.LOCK:
         loginPF = CDLL(
             "/System/Library/PrivateFrameworks/login.framework/Versions/Current/login"

@@ -18,11 +18,11 @@ REG_TIMEOUT = "Timeout"
 REG_PATH = r"SOFTWARE\\Policies\\Sciber\\YubiKey Removal Behavior\\"
 
 
-def log_message(msg):
+def log_message(msg) -> None:
     servicemanager.LogInfoMsg(msg)
 
 
-def lock_system(removal_option):
+def lock_system(removal_option) -> None:
     # As the service will be running as System you require a session handle to interact with the Desktop logon
     console_session_id = win32ts.WTSGetActiveConsoleSessionId()
     console_user_token = win32ts.WTSQueryUserToken(console_session_id)
@@ -50,7 +50,7 @@ def lock_system(removal_option):
     )
 
 
-def check_service_interruption(serviceObject):
+def check_service_interruption(serviceObject) -> bool:
     # Check if hWaitStop has been issued
     if (
         win32event.WaitForSingleObject(serviceObject.hWaitStop, 5000)
@@ -66,16 +66,16 @@ class AppServerSvc(win32serviceutil.ServiceFramework):
     _svc_name_ = "SciberYklocker"
     _svc_display_name_ = "Sciber YubiKey Locker"
 
-    def __init__(self, args):
+    def __init__(self, args) -> None:
         win32serviceutil.ServiceFramework.__init__(self, args)
         self.hWaitStop = win32event.CreateEvent(None, 0, 0, None)
         socket.setdefaulttimeout(60)
 
-    def SvcStop(self):
+    def SvcStop(self) -> None:
         self.ReportServiceStatus(win32service.SERVICE_STOP_PENDING)
         win32event.SetEvent(self.hWaitStop)
 
-    def SvcDoRun(self):
+    def SvcDoRun(self) -> None:
         servicemanager.LogMsg(
             servicemanager.EVENTLOG_INFORMATION_TYPE,
             servicemanager.PYS_SERVICE_STARTED,
@@ -122,7 +122,7 @@ def reg_check_removal_option(yklocker):
     return yklocker.get_removal_option()
 
 
-def reg_check_updates(yklocker):
+def reg_check_updates(yklocker) -> None:
     # check for changes in the registry
     timeoutValue = yklocker.get_timeout()
     removalOption = yklocker.get_removal_option()
@@ -135,7 +135,7 @@ def reg_check_updates(yklocker):
         yklocker.logger(message)
 
 
-def win_main():
+def win_main() -> None:
     servicemanager.Initialize()
     servicemanager.PrepareToHostSingle(AppServerSvc)
     try:
