@@ -43,7 +43,7 @@ jobs:
       - if: matrix.os == 'ubuntu-22.04'
         name: "Ubuntu specific APT install" # Make sure we install necessary prerequisites
         run: |
-          sudo apt install -y libpcsclite-dev python3.11 swig pcscd
+          sudo apt install -y libpcsclite-dev python3.11-dev swig pcscd
 
       - name: Install dependencies # Common for all OS's
         run: |
@@ -64,7 +64,7 @@ jobs:
         name: "MacOS binary execution test"
         run: | 
           file dist/${{matrix.build_appname}}/Contents/MacOS/sciber-yklocker-macos
-          dist/${{matrix.build_appname}}/Contents/MacOS/sciber-yklocker-macos -test
+          dist/${{matrix.build_appname}}/Contents/MacOS/sciber-yklocker-macos -z
           log show --predicate 'eventMessage contains "sciber"' --last 10s
 
       - if: matrix.os == 'macos-12'

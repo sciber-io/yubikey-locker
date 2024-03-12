@@ -90,7 +90,9 @@ def loop_code(serviceObject, yklocker) -> None:
             reg_check_updates(yklocker)
 
         if not yklocker.is_yubikey_connected():
-            locking_message = "YubiKey not found. Locking workstation"
+            locking_message = (
+                f"YubiKey not found, action to take: {yklocker.get_removal_option()}"
+            )
             yklocker.logger(locking_message)
             yklocker.lock()
 
@@ -130,7 +132,7 @@ def main(argv) -> None:
         timeout = None
 
         # Check arguments
-        opts, args = getopt.getopt(argv, "l:t:test")
+        opts, args = getopt.getopt(argv, "l:t:z")
         for opt, arg in opts:
             if opt == "-l":
                 if arg == RemovalOption.LOGOUT:
@@ -142,11 +144,11 @@ def main(argv) -> None:
             elif opt == "-t":
                 if arg.isdecimal():
                     timeout = int(arg)
-            elif opt == "-test":
+            elif opt == "-z":
+                # Used for execution and logging test
                 yklocker = YkLock()
-                yklocker.set_timeout(1)
                 yklocker.logger("Sciber-Yklocker test logging")
-                exit(0)
+                sys.exit(0)
 
         yklocker = init_yklocker(removal_option, timeout)
         loop_code(serviceObject=None, yklocker=yklocker)
