@@ -101,8 +101,9 @@ jobs:
           $distPath = "dist/${{matrix.msi_filename}}"
           $msi = "$pwd/$distPath"
           file $msi
-          msiexec /package $msi /norestart /quiet -RunAsAdmin
-          echo $?
+          msiexec /i $msi /quiet /li install_log -RunAsAdmin
+          type install_log
+          # -RunAsAdmin is a GitHub-actions command to elevate into admin
           #Start-Sleep -Seconds 20
           # ls 'D:\Program Files\Sciber\SciberYklocker\'
           # ls 'C:\Program Files\Sciber\SciberYklocker\'
