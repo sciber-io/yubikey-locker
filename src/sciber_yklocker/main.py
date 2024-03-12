@@ -129,7 +129,7 @@ def main(argv) -> None:
         timeout = None
 
         # Check arguments
-        opts, args = getopt.getopt(argv, "l:t:")
+        opts, args = getopt.getopt(argv, "l:t:test")
         for opt, arg in opts:
             if opt == "-l":
                 if arg == RemovalOption.LOGOUT:
@@ -144,7 +144,7 @@ def main(argv) -> None:
             elif opt == "-test":
                 yklocker = YkLock()
                 yklocker.set_timeout(1)
-                yklocker.logger("Test logging")
+                yklocker.logger("Sciber-Yklocker test logging")
                 exit(0)
 
         yklocker = init_yklocker(removal_option, timeout)
