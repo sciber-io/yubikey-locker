@@ -34,6 +34,7 @@ class YkLock:
         # Set default values
         self.timeout: int = 10
         self.removal_option: RemovalOption = RemovalOption.NOTHING
+        self.serviceObject = None
 
     def get_timeout(self) -> int:
         return self.timeout
@@ -43,12 +44,18 @@ class YkLock:
             if timeout > 0:
                 self.timeout = timeout
 
+    def get_removal_option(self) -> RemovalOption:
+        return self.removal_option
+
     def set_removal_option(self, method) -> None:
         if method in RemovalOption.__members__.values():
             self.removal_option = method
 
-    def get_removal_option(self) -> RemovalOption:
-        return self.removal_option
+    def get_serviceObject(self):
+        return self.serviceObject
+
+    def set_serviceObject(self, serviceObject):
+        self.serviceObject = serviceObject
 
     def lock(self) -> None:
         if self.get_removal_option() != RemovalOption.NOTHING:
@@ -65,22 +72,21 @@ class YkLock:
             return True
 
     # Function to handle interruption signals sent to the program
-    def continue_looping(self, serviceObject):
+    def continue_looping(self):
         # Only the Windows service we need to check for incoming signals
         if platform.system() == MyOS.WIN:
-
-            return check_service_interruption(serviceObject)
+            return check_service_interruption(self.get_serviceObject())
 
         return True
 
 
-def loop_code(serviceObject, yklocker) -> None:
+def loop_code(yklocker) -> None:
     # Print start messages
     message1 = f"Initiated Sciber-YkLocker with RemovalOption {yklocker.get_removal_option()} after {yklocker.get_timeout()} seconds without a detected YubiKey"
 
     yklocker.logger(message1)
 
-    while yklocker.continue_looping(serviceObject):
+    while yklocker.continue_looping():
         sleep(yklocker.get_timeout())
 
         if platform.system() == MyOS.WIN:
@@ -142,7 +148,7 @@ def main(argv) -> None:
                     timeout = int(arg)
 
         yklocker = init_yklocker(removal_option, timeout)
-        loop_code(serviceObject=None, yklocker=yklocker)
+        loop_code(yklocker=yklocker)
 
 
 if __name__ == "__main__":

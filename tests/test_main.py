@@ -23,7 +23,7 @@ temp_counter = 0
 
 
 # Get the mock_continue_looping function to first return True then False
-def mock_continue_looping(a) -> bool:
+def mock_continue_looping() -> bool:
     global temp_counter
     if temp_counter == 0:
         temp_counter += 1
@@ -107,7 +107,7 @@ def test_YkLock_continue_looping_true() -> None:
         ) as mock_check_service_interruption:
             # MagicMock the serviceObject
             # Expect the return to be True == continue looping
-            assert yklocker.continue_looping(MagicMock()) is True
+            assert yklocker.continue_looping() is True
 
             mock_check_service_interruption.assert_called_once()
 
@@ -139,7 +139,7 @@ def test_loop_code_no_yubikey() -> None:
                 with patch(
                     "sciber_yklocker.main.YkLock.logger", MagicMock()
                 ) as mock_logger:
-                    loop_code(MagicMock(), yklocker)
+                    loop_code(yklocker)
 
                     # Make sure we got the right message
                     mock_logger.assert_called_with(
@@ -171,7 +171,7 @@ def test_loop_code_with_yubikey() -> None:
             with patch("sciber_yklocker.main.YkLock.lock", MagicMock()) as mock_lock:
                 # Patch logger to catch messages
                 with patch("sciber_yklocker.main.YkLock.logger", MagicMock()):
-                    loop_code(MagicMock(), yklocker)
+                    loop_code(yklocker)
                 # Make sure lock was not called
                 mock_lock.assert_not_called()
 
