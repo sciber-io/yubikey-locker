@@ -101,7 +101,9 @@ jobs:
           $distPath = "dist/${{matrix.msi_filename}}"
           $msi = "$pwd/$distPath"
           file $msi
-          msiexec /i $msi /quiet /li install_log -RunAsAdmin
+          msiexec /i $msi /quiet /li install_log #-RunAsAdmin
+          ls
+          ls dist
           type dist/install_log
           # -RunAsAdmin is a GitHub-actions command to elevate into admin
           #Start-Sleep -Seconds 20
