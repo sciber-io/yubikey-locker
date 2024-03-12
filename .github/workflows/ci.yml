@@ -59,7 +59,7 @@ jobs:
         run: |
           python -m tox -e ${{matrix.toxbuild}}
           ls dist
-      
+
       - if: matrix.os == 'ubuntu-22.04'
         name: "Ubuntu binary execution test"
         run: |
@@ -70,7 +70,7 @@ jobs:
 
       - if: matrix.os == 'macos-12'
         name: "MacOS binary execution test"
-        run: | 
+        run: |
           file dist/${{matrix.build_appname}}/Contents/MacOS/sciber-yklocker-macos
           dist/${{matrix.build_appname}}/Contents/MacOS/sciber-yklocker-macos -z
           echo $?

@@ -1,15 +1,16 @@
-from pyoslog import os_log, OS_LOG_DEFAULT
-from ctypes import CDLL
 import subprocess
+from ctypes import CDLL
+
+from pyoslog import OS_LOG_DEFAULT, os_log
 
 from sciber_yklocker.lib import RemovalOption
 
 
-def log_message(msg):
+def log_message(msg: str):
     os_log(OS_LOG_DEFAULT, msg)
 
 
-def lock_system(removal_option) -> None:
+def lock_system(removal_option: RemovalOption) -> None:
     if removal_option == RemovalOption.LOCK:
         loginPF = CDLL(
             "/System/Library/PrivateFrameworks/login.framework/Versions/Current/login"
@@ -17,11 +18,12 @@ def lock_system(removal_option) -> None:
         loginPF.SACLockScreenImmediate()
     elif removal_option == RemovalOption.LOGOUT:
         subprocess.run(
-            "/usr/bin/launchctl bootout user/$(/usr/bin/id -u $(/usr/bin/whoami))",
+            "/bin/launchctl bootout user/$(/usr/bin/id -u $(/usr/bin/whoami))",
             shell=True,
         )
 
 
+# Unusued function for now
 def have_yubikey_been_removed(timeout_in_seconds: int) -> bool:
     # Check the logs the last X seconds depending on how often the locker is configured to check the status
     command1 = f"/usr/bin/log show --last {timeout_in_seconds}s "

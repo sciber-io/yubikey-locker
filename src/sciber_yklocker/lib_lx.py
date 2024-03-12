@@ -4,11 +4,11 @@ import syslog
 from sciber_yklocker.lib import RemovalOption
 
 
-def log_message(msg):
+def log_message(msg: str):
     syslog.syslog(syslog.LOG_INFO, msg)
 
 
-def lock_system(removal_option) -> None:
+def lock_system(removal_option: RemovalOption) -> None:
     # Determine what type of lock-action to take
     command = ""
     if removal_option == RemovalOption.LOCK:

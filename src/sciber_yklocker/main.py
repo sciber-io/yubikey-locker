@@ -8,11 +8,11 @@ from time import sleep
 
 # Yubikey imports
 from ykman.device import list_all_devices  # , scan_devices
+
 from sciber_yklocker.lib import MyOS, RemovalOption
 
 # Import platform specific code
 if platform.system() == MyOS.WIN:
-
     from sciber_yklocker.lib_win import (
         check_service_interruption,
         lock_system,
@@ -22,7 +22,6 @@ if platform.system() == MyOS.WIN:
         reg_check_updates,
         win_main,
     )
-
 elif platform.system() == MyOS.LX:
     from sciber_yklocker.lib_lx import lock_system, log_message
 
@@ -31,7 +30,7 @@ elif platform.system() == MyOS.MAC:
 
 
 class YkLock:
-    def __init__(self):
+    def __init__(self) -> None:
         # Set default values
         self.timeout: int = 10
         self.removal_option: RemovalOption = RemovalOption.NOTHING
@@ -40,7 +39,7 @@ class YkLock:
     def get_timeout(self) -> int:
         return self.timeout
 
-    def set_timeout(self, timeout) -> None:
+    def set_timeout(self, timeout: int) -> None:
         if isinstance(timeout, int):
             if timeout > 0:
                 self.timeout = timeout
@@ -48,21 +47,21 @@ class YkLock:
     def get_removal_option(self) -> RemovalOption:
         return self.removal_option
 
-    def set_removal_option(self, method) -> None:
+    def set_removal_option(self, method: RemovalOption) -> None:
         if method in RemovalOption.__members__.values():
             self.removal_option = method
 
     def get_service_object(self):
         return self.service_object
 
-    def set_service_object(self, service_object):
+    def set_service_object(self, service_object) -> None:
         self.service_object = service_object
 
     def lock(self) -> None:
         if self.get_removal_option() != RemovalOption.NOTHING:
             lock_system(self.get_removal_option())
 
-    def logger(self, msg) -> None:
+    def logger(self, msg: str) -> None:
         log_message(msg)
 
     def is_yubikey_connected(self) -> bool:
@@ -73,7 +72,7 @@ class YkLock:
             return True
 
     # Function to handle interruption signals sent to the program
-    def continue_looping(self):
+    def continue_looping(self) -> bool:
         # Only the Windows service we need to check for incoming signals
         if platform.system() == MyOS.WIN:
             return check_service_interruption(self.get_service_object())
@@ -81,7 +80,7 @@ class YkLock:
         return True
 
 
-def loop_code(yklocker) -> None:
+def loop_code(yklocker: YkLock) -> None:
     # Print start messages
     message1 = f"Initiated Sciber-YkLocker with RemovalOption {yklocker.get_removal_option()} after {yklocker.get_timeout()} seconds without a detected YubiKey"
 
@@ -102,7 +101,7 @@ def loop_code(yklocker) -> None:
             yklocker.lock()
 
 
-def init_yklocker(removal_option, timeout) -> YkLock:
+def init_yklocker(removal_option: RemovalOption, timeout: int) -> YkLock:
     # Used order for settings
     # 1. Windows Registry
     # 2. CommandLine Arguments
@@ -132,9 +131,9 @@ def main(argv) -> None:
         win_main()
     # If LX or MAC, check arguments then initiate yklock object and then run code
     elif platform.system() == MyOS.LX or platform.system() == MyOS.MAC:
-
-        removal_option = None
-        timeout = None
+        # Default values
+        removal_option: RemovalOption = RemovalOption.NOTHING
+        timeout: int = 10
 
         # Check arguments
         opts, args = getopt.getopt(argv, "l:t:z")

@@ -1,6 +1,6 @@
 import platform
 
-from sciber_yklocker.lib import MyOS, RemovalOption
+from sciber_yklocker.lib import MyOS
 
 if platform.system() == MyOS.LX:
     from unittest.mock import MagicMock, patch

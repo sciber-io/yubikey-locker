@@ -211,7 +211,7 @@ def test_main_no_args() -> None:
                 "sciber_yklocker.main.init_yklocker", MagicMock()
             ) as mock_init_yklocker:
                 main([""])
-                mock_init_yklocker.assert_called_once_with(None, None)
+                mock_init_yklocker.assert_called_once_with(RemovalOption.NOTHING, 10)
                 mock_loop_code.assert_called_once()
 
 
