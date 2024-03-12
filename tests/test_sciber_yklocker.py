@@ -143,7 +143,7 @@ def test_loop_code_no_yubikey() -> None:
 
                     # Make sure we got the right message
                     mock_logger.assert_called_with(
-                        "YubiKey not found. Locking workstation"
+                        "YubiKey not found, action to take: doNothing"
                     )
 
                 # Make sure lock was called, no arguments expected
