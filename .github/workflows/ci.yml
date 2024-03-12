@@ -102,7 +102,7 @@ jobs:
           $msi = "$pwd/$distPath"
           file $msi
           msiexec /i $msi /quiet /li install_log -RunAsAdmin
-          type install_log
+          type dist/install_log
           # -RunAsAdmin is a GitHub-actions command to elevate into admin
           #Start-Sleep -Seconds 20
           # ls 'D:\Program Files\Sciber\SciberYklocker\'
