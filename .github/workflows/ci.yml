@@ -59,6 +59,14 @@ jobs:
         run: |
           python -m tox -e ${{matrix.toxbuild}}
           ls dist
+      
+      - if: matrix.os == 'ubuntu-22.04'
+        name: "Ubuntu binary execution test"
+        run: |
+          file dist/${{matrix.build_filename}}
+          dist/${{matrix.build_filename}} -z
+          echo $?
+          cat /var/log/syslog | grep sciber-yklocker
 
       - if: matrix.os == 'macos-12'
         name: "MacOS binary execution test"

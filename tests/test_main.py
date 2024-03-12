@@ -112,7 +112,7 @@ def test_YkLock_continue_looping_true() -> None:
             mock_check_service_interruption.assert_called_once()
 
     else:
-        assert yklocker.continue_looping(MagicMock()) is True
+        assert yklocker.continue_looping() is True
 
 
 def test_loop_code_no_yubikey() -> None:
