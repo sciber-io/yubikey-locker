@@ -102,8 +102,11 @@ jobs:
           $msi = "$pwd\$distPath"
           echo $msi
           file $msi
+          echo "log" > install_log
+          echo "before msiexec"
           # -RunAsAdmin is a GitHub-actions command to elevate into admin
           msiexec /i "$msi" /quiet /li install_log #-RunAsAdmin
+          echo "after msiexec"
           ls
           type install_log
           #Start-Sleep -Seconds 20
