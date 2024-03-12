@@ -32,11 +32,10 @@ elif platform.system() == MyOS.MAC:
 class YkLock:
     def __init__(self):
         # Set default values
-        # self.MyPlatformversion = get_my_platform()
-        self.timeout = 10
-        self.removal_option = RemovalOption.NOTHING
+        self.timeout: int = 10
+        self.removal_option: RemovalOption = RemovalOption.NOTHING
 
-    def get_timeout(self):
+    def get_timeout(self) -> int:
         return self.timeout
 
     def set_timeout(self, timeout) -> None:
@@ -48,7 +47,7 @@ class YkLock:
         if method in RemovalOption.__members__.values():
             self.removal_option = method
 
-    def get_removal_option(self):
+    def get_removal_option(self) -> RemovalOption:
         return self.removal_option
 
     def lock(self) -> None:
