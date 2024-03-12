@@ -85,8 +85,10 @@ class AppServerSvc(win32serviceutil.ServiceFramework):
 
         # instantiate a yklocker-object and start running the code
         yklocker = init_yklocker(None, None)
+        yklocker.set_service_object(self)
+
         # To handle service interruptions etc, pass the win service class instance along
-        loop_code(serviceObject=self, yklocker=yklocker)
+        loop_code(yklocker=yklocker)
 
 
 def reg_query_key(key_name):

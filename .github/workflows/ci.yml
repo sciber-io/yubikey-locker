@@ -98,6 +98,7 @@ jobs:
           # Start-Sleep -Seconds 10
           # ls 'D:\Program Files\Sciber\SciberYklocker\'
           # ls 'C:\Program Files\Sciber\SciberYklocker\'
+          Get-EventLog -LogName Application -Source SciberYklocker -Newest 5 | Select TimeGenerated,ReplacementStrings
 
       - name: Pytest coverage comment
         uses: MishaKav/pytest-coverage-comment@main
