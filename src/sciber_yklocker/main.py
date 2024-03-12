@@ -5,6 +5,7 @@ import platform
 import sys
 from time import sleep
 
+
 # Yubikey imports
 from ykman.device import list_all_devices  # , scan_devices
 from sciber_yklocker.lib import MyOS, RemovalOption

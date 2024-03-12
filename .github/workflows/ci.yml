@@ -43,7 +43,7 @@ jobs:
       - if: matrix.os == 'ubuntu-22.04'
         name: "Ubuntu specific APT install" # Make sure we install necessary prerequisites
         run: |
-          sudo apt install -y libpcsclite-dev python3.11 swig
+          sudo apt install -y libpcsclite-dev python3.11 swig pcscd
 
       - name: Install dependencies # Common for all OS's
         run: |

@@ -33,7 +33,7 @@ This needs to be increased for Intune to roll out a new version of the app.
 
 ### Linux prerequisites
 Necessary to install a few packages:
-sudo apt install -y libpcsclite-dev python3.11-dev swig
+sudo apt install -y libpcsclite-dev python3.11-dev swig pcscd
 
 
 ### Windows install service
