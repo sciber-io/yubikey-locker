@@ -9,14 +9,14 @@ For YubiKey users to enable automatic device locking when removing the YubiKey.
 
 
 ### Possible action to take when a YubiKey is not found
-| Action        | Windows   | Mac  | Linux  |
+| Action        | Windows   | Mac  | Linux (Ubuntu)  |
 | ---           | ---       | ---  | ---    |
 | Nothing       | ✅       | ✅   | ✅    |
 | Lock Computer | ✅       | ✅   | ✅    |
-| Log Out User  | ✅       | ❌   | ✅    |
+| Log Out User  | ✅       | ✅   | ✅    |
 
 ### Available installation instructions
-| Method        | Windows   | Mac   | Linux |
+| Method        | Windows   | Mac   | Linux (Ubuntu) |
 | ---           | ---       | ---  | ---    |
 | Intune        | ✅       | ✅   | ❌
 | Manual        | ✅       | ✅   | ✅    |
@@ -25,11 +25,11 @@ For YubiKey users to enable automatic device locking when removing the YubiKey.
 
 ## Installation via Intune
 ### Windows
-1. Download the .admx and .adml files from the "src/windows/Administrative template" folder
+1. Download the .admx and .adml files from the "src/windows_utils/Administrative template" folder
 2. Intune/GPO: Follow Jonas guide on his blog: https://swjm.blog/locking-the-workstation-on-fido2-security-key-removal-part-2-80962c944c78 to set up GPO/Intune control to decide what you want to do if the YubiKey is removed.
 ### Mac
 - Add an macOS app, upload sciber-yklocker-macos.pkg
-- Add the contents of src/macos/post_install_script.sh to the post-install-script box in Intune
+- Add the contents of src/macos_utils/post_install_script.sh to the post-install-script box in Intune
 - Depending on the groups that the app is pushed to, change contents of the post-install-script to pass apropriate arguments to the application
 
 
@@ -39,17 +39,17 @@ For YubiKey users to enable automatic device locking when removing the YubiKey.
 2. Run the installer (installs the service SciberYklocker for you)
 #### Set registry values
 
-1. Download the .admx and .adml files from the "src/windows/Administrative template" folder
+1. Download the .admx and .adml files from the "src/windows_utils/Administrative template" folder
 2. Locally: download the amdx and adml file to your computer and place them in C:\Windows\PolicyDefinitions, then start local group policy editor -> Computer Configuration -> Administrative Templates -> Sciber Yklocker Settings --> turn on to get registry values
 
 ### Mac
 - Output is written to syslog, view with Console.app
 
 1. Download sciber-yklocker-macos.pkg from releases and execute it.
-2. Download src/macos/post_install_script.sh and execute it
+2. Download src/macos_utils/post_install_script.sh and execute it
 3. Perform a logout or a reboot
 
-### Linux
+### Linux (Ubuntu)
 Download sciber-yklocker-linux and execute it in a terminal (requires you to keep that terminal window open).
 
 - Output is written to syslog.
