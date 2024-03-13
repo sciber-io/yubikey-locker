@@ -1,10 +1,11 @@
 import platform
 
-from sciber_yklocker.lib import MyOS, RemovalOption
+from sciber_yklocker.lib import MyOS
 
 if platform.system() == MyOS.MAC:
     from unittest.mock import MagicMock, patch
 
+    from sciber_yklocker.lib import MyOS, RemovalOption
     from sciber_yklocker.lib_mac import lock_system, log_message
 
     @patch("sciber_yklocker.lib_mac.CDLL")
@@ -13,7 +14,7 @@ if platform.system() == MyOS.MAC:
         mock_CDLL.assert_called_once()
 
     def test_log_message() -> None:
-        with patch("sciber_yklocker.lib_mac.syslog", MagicMock()) as mock_print:
+        with patch("sciber_yklocker.lib_mac.os_log", MagicMock()) as mock_print:
             log_message("testmessage")
-            mock_print.syslog.assert_called_once()
-            assert "testmessage" in mock_print.syslog.call_args[0]
+            mock_print.assert_called_once()
+            assert "testmessage" in mock_print.call_args[0]

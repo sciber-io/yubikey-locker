@@ -43,7 +43,7 @@ jobs:
       - if: matrix.os == 'ubuntu-22.04'
         name: "Ubuntu specific APT install" # Make sure we install necessary prerequisites
         run: |
-          sudo apt install -y libpcsclite-dev python3.11 swig
+          sudo apt install -y libpcsclite-dev python3.11-dev swig pcscd
 
       - name: Install dependencies # Common for all OS's
         run: |
@@ -60,6 +60,22 @@ jobs:
           python -m tox -e ${{matrix.toxbuild}}
           ls dist
 
+      - if: matrix.os == 'ubuntu-22.04'
+        name: "Ubuntu binary execution test"
+        run: |
+          file dist/${{matrix.build_filename}}
+          dist/${{matrix.build_filename}} -z
+          echo $?
+          cat /var/log/syslog | grep sciber-yklocker
+
+      - if: matrix.os == 'macos-12'
+        name: "MacOS binary execution test"
+        run: |
+          file dist/${{matrix.build_appname}}/Contents/MacOS/sciber-yklocker-macos
+          dist/${{matrix.build_appname}}/Contents/MacOS/sciber-yklocker-macos -z
+          echo $?
+          log show --predicate 'process = "sciber-yklocker-macos"' --last 10s
+
       - if: matrix.os == 'macos-12'
         name: "MacOS pkg build"
         run: |
@@ -68,7 +84,7 @@ jobs:
       - if: matrix.os == 'macos-12'
         name: "MacOS pkg install"
         run: |
-          sudo installer -pkg dist/${{matrix.build_pkgname}} -target / -verbose
+          sudo installer -pkg dist/${{matrix.build_pkgname}} -target /Applications -verbose
 
       - if: matrix.os == 'windows-2022'
         name: "Windows MSI build"
@@ -82,14 +98,21 @@ jobs:
         name: "Windows MSI install"
         run: |
           $pwd = pwd
-          $distPath = "dist/${{matrix.msi_filename}}"
-          $msi = "$pwd/$distPath"
+          $distPath = "dist\${{matrix.msi_filename}}"
+          $msi = "$pwd\$distPath"
+          echo $msi
           file $msi
-          msiexec /package $msi /norestart /quiet -RunAsAdmin
-          echo $?
-          # Start-Sleep -Seconds 10
+          echo "log" > install_log
+          echo "before msiexec"
+          # -RunAsAdmin is a GitHub-actions command to elevate into admin
+          msiexec /i "$msi" /quiet /li install_log #-RunAsAdmin
+          echo "after msiexec"
+          ls
+          type install_log
+          #Start-Sleep -Seconds 20
           # ls 'D:\Program Files\Sciber\SciberYklocker\'
           # ls 'C:\Program Files\Sciber\SciberYklocker\'
+          #Get-EventLog -LogName Application -Source SciberYklocker -Newest 5 | Select TimeGenerated,ReplacementStrings
 
       - name: Pytest coverage comment
         uses: MishaKav/pytest-coverage-comment@main

@@ -18,11 +18,11 @@ REG_TIMEOUT = "Timeout"
 REG_PATH = r"SOFTWARE\\Policies\\Sciber\\YubiKey Removal Behavior\\"
 
 
-def log_message(msg) -> None:
+def log_message(msg: str) -> None:
     servicemanager.LogInfoMsg(msg)
 
 
-def lock_system(removal_option) -> None:
+def lock_system(removal_option: RemovalOption) -> None:
     # As the service will be running as System you require a session handle to interact with the Desktop logon
     console_session_id = win32ts.WTSGetActiveConsoleSessionId()
     console_user_token = win32ts.WTSQueryUserToken(console_session_id)
@@ -85,8 +85,10 @@ class AppServerSvc(win32serviceutil.ServiceFramework):
 
         # instantiate a yklocker-object and start running the code
         yklocker = init_yklocker(None, None)
+        yklocker.set_service_object(self)
+
         # To handle service interruptions etc, pass the win service class instance along
-        loop_code(serviceObject=self, yklocker=yklocker)
+        loop_code(yklocker=yklocker)
 
 
 def reg_query_key(key_name):
@@ -103,7 +105,7 @@ def reg_query_key(key_name):
         return False
 
 
-def reg_check_timeout(yklocker):
+def reg_check_timeout(yklocker) -> int:
     timeoutValue = int(reg_query_key(REG_TIMEOUT))
     if timeoutValue is not False:
         yklocker.set_timeout(timeoutValue)
@@ -111,7 +113,7 @@ def reg_check_timeout(yklocker):
     return yklocker.get_timeout()
 
 
-def reg_check_removal_option(yklocker):
+def reg_check_removal_option(yklocker) -> RemovalOption:
     lockValue = reg_query_key(REG_REMOVALOPTION)
     if lockValue is not False:
         yklocker.set_removal_option(lockValue)

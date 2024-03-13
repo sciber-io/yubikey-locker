@@ -1,6 +1,9 @@
 
 # Development
 Requirements: Python3.11+
+Since we use yubikey-manager for checking if a YubiKey is present we get dependencies from that to Windows, Linux, Mac:
+https://developers.yubico.com/yubikey-manager/Development.html
+
 
 
 The automated test and buildflow in used for the GitHub builds can be seen in .github/workflows/ci.yml
@@ -13,7 +16,7 @@ ____
 After changing code make sure to run tests, and then build your excecutable:
 ```
 # Install tox
-python3.11 -m pip install --user tox
+python3.11 -m pip install tox --user
 
 # Install requirements and run tests
 python3.11 -m tox
@@ -33,7 +36,7 @@ This needs to be increased for Intune to roll out a new version of the app.
 
 ### Linux prerequisites
 Necessary to install a few packages:
-sudo apt install -y libpcsclite-dev python3.11-dev swig
+sudo apt install -y libpcsclite-dev python3.11-dev swig pcscd
 
 
 ### Windows install service
