@@ -6,7 +6,7 @@ if platform.system() == MyOS.MAC:
     from unittest.mock import MagicMock, patch
 
     from sciber_yklocker.lib.mac import lock_system, log_message
-    from sciber_yklocker.models.removaloption import MyOS, RemovalOption
+    from sciber_yklocker.models.removaloption import RemovalOption
 
     @patch("sciber_yklocker.lib.mac.CDLL")
     def test_lock_system(mock_CDLL) -> None:
