@@ -27,12 +27,14 @@ python3.11 -m tox -e lint
 # Build binary
 python3.11 -m tox -e build_win|build_linux|build_macos
 
+## Binaries will be placd in ./build/
+
 ```
 
 ### Intune version of app:
 This needs to be increased for Intune to roll out a new version of the app.
-- Version number is changed in src/macos/sciber-yklocker-macos.spec
-- Version number is changed in src\windows\sciber-yklocker.wxs
+- Version number is changed in src/macos_utils/sciber-yklocker-macos.spec
+- Version number is changed in src\windows_utils\sciber-yklocker.wxs
 
 ### Linux prerequisites
 Necessary to install a few packages:
