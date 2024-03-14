@@ -1,7 +1,7 @@
 import os
 import syslog
 
-from sciber_yklocker.lib import RemovalOption
+from sciber_yklocker.models.removaloption import RemovalOption
 
 
 def log_message(msg: str):

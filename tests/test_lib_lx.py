@@ -1,12 +1,12 @@
 import platform
 
-from sciber_yklocker.lib import MyOS
+from sciber_yklocker.models.myos import MyOS
 
 if platform.system() == MyOS.LX:
     from unittest.mock import MagicMock, patch
 
-    from sciber_yklocker.lib import RemovalOption
-    from sciber_yklocker.lib_lx import lock_system, log_message, os
+    from sciber_yklocker.lib.lx import lock_system, log_message, os
+    from sciber_yklocker.models.removaloption import RemovalOption
 
     def test_lock_system_lock() -> None:
         # Test Linux lock
@@ -23,7 +23,7 @@ if platform.system() == MyOS.LX:
             assert "SessionManager.Logout" in mock_popen.call_args[0][0]
 
     def test_log_message() -> None:
-        with patch("sciber_yklocker.lib_lx.syslog", MagicMock()) as mock_print:
+        with patch("sciber_yklocker.lib.lx.syslog", MagicMock()) as mock_print:
             log_message("testmessage")
             mock_print.syslog.assert_called_once()
             assert "testmessage" in mock_print.syslog.call_args[0]

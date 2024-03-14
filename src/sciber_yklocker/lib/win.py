@@ -11,7 +11,8 @@ import win32service
 import win32serviceutil
 import win32ts
 
-from sciber_yklocker.lib import RemovalOption
+from sciber_yklocker.models.removaloption import RemovalOption
+
 
 REG_REMOVALOPTION = "RemovalOption"
 REG_TIMEOUT = "Timeout"
@@ -50,17 +51,6 @@ def lock_system(removal_option: RemovalOption) -> None:
     )
 
 
-def check_service_interruption(serviceObject) -> bool:
-    # Check if hWaitStop has been issued
-    if (
-        win32event.WaitForSingleObject(serviceObject.hWaitStop, 5000)
-        == win32event.WAIT_OBJECT_0
-    ):  # Then stop the loop
-        return False
-    else:
-        return True
-
-
 # Windows Service Class Definition
 class AppServerSvc(win32serviceutil.ServiceFramework):
     _svc_name_ = "SciberYklocker"
@@ -91,7 +81,18 @@ class AppServerSvc(win32serviceutil.ServiceFramework):
         loop_code(yklocker=yklocker)
 
 
-def reg_query_key(key_name):
+def check_service_interruption(serviceObject: AppServerSvc) -> bool:
+    # Check if hWaitStop has been issued
+    if (
+        win32event.WaitForSingleObject(serviceObject.hWaitStop, 5000)
+        == win32event.WAIT_OBJECT_0
+    ):  # Then stop the loop
+        return False
+    else:
+        return True
+
+
+def reg_query_key(key_name: str):
     try:
         # Attemt to open the handle to registry
         key_handle = winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, REG_PATH)
