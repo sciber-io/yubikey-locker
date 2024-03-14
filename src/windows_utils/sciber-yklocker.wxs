@@ -3,7 +3,7 @@
 <!-- Define the variables in "$(var.*) expressions" -->
 <?define Name = "SciberYklocker" ?>
 <?define Manufacturer = "Sciber" ?>
-<?define Version = "1.0.0.1" ?>
+<?define Version = "1.0.0.2" ?>
 <?define UpgradeCode = "43768026-8bd2-4d87-8106-538f0e328174" ?> <!-- Generated with $([System.Guid]::NewGuid()).Guid -->
 
 
