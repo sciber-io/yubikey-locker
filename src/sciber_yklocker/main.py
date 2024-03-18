@@ -5,79 +5,28 @@ import platform
 import sys
 from time import sleep
 
-
-# Yubikey imports
-from ykman.device import list_all_devices  # , scan_devices
-
-from sciber_yklocker.lib import MyOS, RemovalOption
+from sciber_yklocker.models.myos import MyOS
+from sciber_yklocker.models.removaloption import RemovalOption
+from sciber_yklocker.models.yklock import YkLock
 
 # Import platform specific code
 if platform.system() == MyOS.WIN:
-    from sciber_yklocker.lib_win import (
+    from sciber_yklocker.lib.win import (
         check_service_interruption,
-        lock_system,
-        log_message,
+        win_main,
         reg_check_removal_option,
         reg_check_timeout,
         reg_check_updates,
-        win_main,
     )
-elif platform.system() == MyOS.LX:
-    from sciber_yklocker.lib_lx import lock_system, log_message
-
-elif platform.system() == MyOS.MAC:
-    from sciber_yklocker.lib_mac import lock_system, log_message
 
 
-class YkLock:
-    def __init__(self) -> None:
-        # Set default values
-        self.timeout: int = 10
-        self.removal_option: RemovalOption = RemovalOption.NOTHING
-        self.service_object = None
+# Function to handle interruption signals sent to the program
+def continue_looping(yklocker: YkLock) -> bool:
+    # Only the Windows service we need to check for incoming signals
+    if platform.system() == MyOS.WIN:
+        return check_service_interruption(yklocker.get_service_object())
 
-    def get_timeout(self) -> int:
-        return self.timeout
-
-    def set_timeout(self, timeout: int) -> None:
-        if isinstance(timeout, int):
-            if timeout > 0:
-                self.timeout = timeout
-
-    def get_removal_option(self) -> RemovalOption:
-        return self.removal_option
-
-    def set_removal_option(self, method: RemovalOption) -> None:
-        if method in RemovalOption.__members__.values():
-            self.removal_option = method
-
-    def get_service_object(self):
-        return self.service_object
-
-    def set_service_object(self, service_object) -> None:
-        self.service_object = service_object
-
-    def lock(self) -> None:
-        if self.get_removal_option() != RemovalOption.NOTHING:
-            lock_system(self.get_removal_option())
-
-    def logger(self, msg: str) -> None:
-        log_message(msg)
-
-    def is_yubikey_connected(self) -> bool:
-        devices = list_all_devices()
-        if len(devices) == 0:
-            return False
-        else:
-            return True
-
-    # Function to handle interruption signals sent to the program
-    def continue_looping(self) -> bool:
-        # Only the Windows service we need to check for incoming signals
-        if platform.system() == MyOS.WIN:
-            return check_service_interruption(self.get_service_object())
-
-        return True
+    return True
 
 
 def loop_code(yklocker: YkLock) -> None:
@@ -86,7 +35,7 @@ def loop_code(yklocker: YkLock) -> None:
 
     yklocker.logger(message1)
 
-    while yklocker.continue_looping():
+    while continue_looping(yklocker):
         sleep(yklocker.get_timeout())
 
         if platform.system() == MyOS.WIN:
@@ -125,38 +74,43 @@ def init_yklocker(removal_option: RemovalOption, timeout: int) -> YkLock:
     return yklocker
 
 
-def main(argv) -> None:
+def check_arguments() -> tuple[RemovalOption, int]:
+    # Default values
+    removal_option: RemovalOption = RemovalOption.NOTHING
+    timeout: int = 10
+
+    # Check arguments
+    opts, args = getopt.getopt(sys.argv[1:], "l:t:z")
+    for opt, arg in opts:
+        if opt == "-l":
+            if arg == RemovalOption.LOGOUT:
+                removal_option = RemovalOption.LOGOUT
+            if arg == RemovalOption.LOCK:
+                removal_option = RemovalOption.LOCK
+            elif arg == RemovalOption.NOTHING:
+                removal_option = RemovalOption.NOTHING
+        elif opt == "-t":
+            if arg.isdecimal():
+                timeout = int(arg)
+        elif opt == "-z":
+            # Used for execution and logging test
+            yklocker = YkLock()
+            yklocker.logger("Sciber-Yklocker test logging")
+            sys.exit(0)
+
+    return removal_option, timeout
+
+
+def main() -> None:
     # If Windows, start a service based on the class AppServerSvc
     if platform.system() == MyOS.WIN:
         win_main()
     # If LX or MAC, check arguments then initiate yklock object and then run code
     elif platform.system() == MyOS.LX or platform.system() == MyOS.MAC:
-        # Default values
-        removal_option: RemovalOption = RemovalOption.NOTHING
-        timeout: int = 10
-
-        # Check arguments
-        opts, args = getopt.getopt(argv, "l:t:z")
-        for opt, arg in opts:
-            if opt == "-l":
-                if arg == RemovalOption.LOGOUT:
-                    removal_option = RemovalOption.LOGOUT
-                if arg == RemovalOption.LOCK:
-                    removal_option = RemovalOption.LOCK
-                elif arg == RemovalOption.NOTHING:
-                    removal_option = RemovalOption.NOTHING
-            elif opt == "-t":
-                if arg.isdecimal():
-                    timeout = int(arg)
-            elif opt == "-z":
-                # Used for execution and logging test
-                yklocker = YkLock()
-                yklocker.logger("Sciber-Yklocker test logging")
-                sys.exit(0)
-
+        removal_option, timeout = check_arguments()
         yklocker = init_yklocker(removal_option, timeout)
         loop_code(yklocker=yklocker)
 
 
 if __name__ == "__main__":
-    main(sys.argv[1:])  # pragma: no cover
+    main()  # pragma: no cover
