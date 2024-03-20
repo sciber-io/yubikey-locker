@@ -11,7 +11,7 @@ Description=Sciber Yklocker
 
 [Service]
 Type=simple
-ExecStart=/home/opt/sciber-yklocker-linux
+ExecStart=/home/<user>/.sciber/sciber-yklocker-linux
 Restart=always
 
 [Install]
