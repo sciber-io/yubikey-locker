@@ -1,0 +1,18 @@
+#/etc/systemd/user/yklocker.service 
+
+#
+# systemctl status yklocker --user
+# systemctl enable yklocker --user
+# systemctl start yklocker --user
+#
+
+[Unit]
+Description=Sciber Yklocker
+
+[Service]
+Type=simple
+ExecStart=/home/opt/sciber-yklocker-linux
+Restart=always
+
+[Install]
+WantedBy=user.target
