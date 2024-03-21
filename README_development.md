@@ -15,8 +15,20 @@ ____
 
 After changing code make sure to run tests, and then build your excecutable:
 ```
+# Run in virtual environment
+python3-11 -m venv .venv
+
+# Activate virtual environment
+## Windows
+.venv/Scripts/activate.ps1
+## other
+source .venv/bin/activate
+
 # Install tox
-python3.11 -m pip install tox --user
+python3.11 -m pip install tox
+
+# Install sciber_yklocker package in edit mode
+pip install -e .
 
 # Install requirements and run tests
 python3.11 -m tox

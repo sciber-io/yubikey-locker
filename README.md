@@ -21,6 +21,10 @@ For YubiKey users to enable automatic device locking when removing the YubiKey.
 | Intune        | ✅       | ✅   | ❌
 | Manual        | ✅       | ✅   | ✅    |
 
+### How to inspect application logs:
+Windows: Get-EventLog -LogName Application -Source SciberYklocker | Select TimeGenerated,ReplacementStrings  
+Mac :  log show --predicate 'process = "sciber-yklocker-macos"'  
+Linux (Ubuntu) : cat /var/log/syslog | grep sciber-yklocker  
 
 
 ## Installation via Intune
@@ -43,16 +47,12 @@ For YubiKey users to enable automatic device locking when removing the YubiKey.
 2. Locally: download the amdx and adml file to your computer and place them in C:\Windows\PolicyDefinitions, then start local group policy editor -> Computer Configuration -> Administrative Templates -> Sciber Yklocker Settings --> turn on to get registry values
 
 ### Mac
-- Output is written to syslog, view with Console.app
-
 1. Download sciber-yklocker-macos.pkg from releases and execute it.
 2. Download src/macos_utils/post_install_script.sh and execute it
 3. Perform a logout or a reboot
 
 ### Linux (Ubuntu)
 Download sciber-yklocker-linux and execute it in a terminal (requires you to keep that terminal window open).
-
-- Output is written to syslog.
 
 ## Default behavior
 sciber-yklocker will check if there is a YubiKey present every 10 seconds. If no command-line arguments / registry values instruments the application to lock the computer it will do nothing.
