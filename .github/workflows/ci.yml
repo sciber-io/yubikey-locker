@@ -44,7 +44,10 @@ jobs:
         name: "Ubuntu specific APT install" # Make sure we install necessary prerequisites
         run: |
           sudo apt install -y libpcsclite-dev python3.11-dev swig pcscd python3.11
-          which python
+          sudo unlink /usr/bin/python
+          sudo ln -s /usr/bin/python3.11 /usr/bin/python
+          python -V
+          
 
       - if: matrix.os == 'macos-13'
         name: "MacOS specific install" # Make sure we install necessary prerequisites
