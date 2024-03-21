@@ -13,7 +13,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-22.04, macos-12, windows-2022]
+        os: [ubuntu-22.04, macos-13, windows-2022]
         python-version: ["3.11"]
         #exclude:
         #
@@ -26,7 +26,7 @@ jobs:
           - os: ubuntu-22.04
             build_filename: sciber-yklocker-linux
             toxbuild: build_linux
-          - os: macos-12
+          - os: macos-13
             toxbuild: build_macos
             build_filename: sciber-yklocker-macos
             build_appname: sciber-yklocker-macos.app
@@ -68,7 +68,7 @@ jobs:
           echo $?
           cat /var/log/syslog | grep sciber-yklocker
 
-      - if: matrix.os == 'macos-12'
+      - if: matrix.os == 'macos-13'
         name: "MacOS binary execution test"
         run: |
           file dist/${{matrix.build_appname}}/Contents/MacOS/sciber-yklocker-macos
@@ -76,12 +76,12 @@ jobs:
           echo $?
           log show --predicate 'process = "sciber-yklocker-macos"' --last 10s
 
-      - if: matrix.os == 'macos-12'
+      - if: matrix.os == 'macos-13'
         name: "MacOS pkg build"
         run: |
           pkgbuild --identifier "io.sciber.sciberyklocker" --install-location ${{matrix.install_target_location}} --component dist/${{matrix.build_appname}} dist/${{matrix.build_pkgname}}
 
-      - if: matrix.os == 'macos-12'
+      - if: matrix.os == 'macos-13'
         name: "MacOS pkg install"
         run: |
           sudo installer -pkg dist/${{matrix.build_pkgname}} -target /Applications -verbose
@@ -119,8 +119,7 @@ jobs:
         with:
           pytest-xml-coverage-path: ./cov.xml
 
-      - if: contains(github.ref,'dev')
-        name: "Dev: Publish release files"
+      - name: "Dev: Publish release files"
         uses: softprops/action-gh-release@v1
         with:
           token: "${{ secrets.GITHUB_TOKEN }}"
