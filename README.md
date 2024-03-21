@@ -52,7 +52,16 @@ Linux (Ubuntu): cat /var/log/syslog | grep sciber-yklocker
 3. Perform a logout or a reboot
 
 ### Linux (Ubuntu)
-Download sciber-yklocker-linux and execute it in a terminal (requires you to keep that terminal window open).
+Either 
+- Download sciber-yklocker-linux and execute it in a terminal and keep that terminal running
+Or 
+1. Download sciber-yklocker-linux into /home/<your-user>/.sciber/sciber-yklocker-linux
+2. Download [the service file](https://github.com/sciber-io/yklocker/blob/main/src/linux_utils/sciber-yklocker.service) to /etc/systemd/user/yklocker.service 
+3. Modify the service file to specify the correct path to the binary
+4. Enable the service to start on reboot: systemctl enable yklocker --user
+5. Start the service: systemctl start yklocker --user
+
+
 
 ## Default behavior
 sciber-yklocker will check if there is a YubiKey present every 10 seconds. If no command-line arguments / registry values instruments the application to lock the computer it will do nothing.
