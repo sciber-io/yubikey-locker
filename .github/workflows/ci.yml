@@ -45,6 +45,11 @@ jobs:
         run: |
           sudo apt install -y libpcsclite-dev python3.11-dev swig pcscd
 
+      - if: matrix.os == 'macos-13'
+        name: "MacOS specific install" # Make sure we install necessary prerequisites
+        run: |
+          brew install swig
+
       - name: Install dependencies # Common for all OS's
         run: |
           python -m pip install --upgrade pip
