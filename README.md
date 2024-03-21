@@ -23,8 +23,8 @@ For YubiKey users to enable automatic device locking when removing the YubiKey.
 
 ### How to inspect application logs:
 Windows: Get-EventLog -LogName Application -Source SciberYklocker | Select TimeGenerated,ReplacementStrings  
-Mac :  log show --predicate 'process = "sciber-yklocker-macos"'  
-Linux (Ubuntu) : cat /var/log/syslog | grep sciber-yklocker  
+Mac:  log show --predicate 'process = "sciber-yklocker-macos"'  
+Linux (Ubuntu): cat /var/log/syslog | grep sciber-yklocker  
 
 
 ## Installation via Intune
@@ -83,5 +83,8 @@ sciber-yklocker -l Logout -t 30
 ### Credits
 Special thanks to [Jonas Markström](https://github.com/JMarkstrom/) for valuable feedback and support during this project.
 
+
+## Known Issues
+[MacOS: The check for the Yubikey may cause issues with gpg](https://github.com/sciber-io/yklocker/issues/78)
 ____
 For information regarding how to continue development and build your own binaries see [README-development.md](README-development.md)
