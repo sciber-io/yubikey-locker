@@ -35,10 +35,10 @@ jobs:
     # Get access to repo contents
     steps:
       - uses: actions/checkout@v4
-      - name: Set up Python # Get Python with the minimum required version
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
+      #- name: Set up Python # Get Python with the minimum required version
+      #  uses: actions/setup-python@v5
+      #  with:
+      #    python-version: '3.11'
 
       - if: matrix.os == 'ubuntu-22.04'
         name: "Ubuntu specific APT install" # Make sure we install necessary prerequisites
