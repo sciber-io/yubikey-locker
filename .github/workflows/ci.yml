@@ -13,7 +13,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-22.04, macos-13, windows-2022]
+        os: [ubuntu-22.04, macos-13, macos-13-xlarge, windows-2022]
         python-version: ["3.11"]
         #exclude:
         #
@@ -35,18 +35,18 @@ jobs:
     # Get access to repo contents
     steps:
       - uses: actions/checkout@v4
-      #- name: Set up Python # Get Python with the minimum required version
-      #  uses: actions/setup-python@v5
-      #  with:
-      #    python-version: '3.11'
+      - name: Set up Python # Get Python with the minimum required version
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
 
       - if: matrix.os == 'ubuntu-22.04'
         name: "Ubuntu specific APT install" # Make sure we install necessary prerequisites
         run: |
           sudo apt install -y libpcsclite-dev python3.11-dev swig pcscd python3.11
-          sudo unlink /usr/bin/python
-          sudo ln -s /usr/bin/python3.11 /usr/bin/python
-          python -V
+          #sudo unlink /usr/bin/python
+          #sudo ln -s /usr/bin/python3.11 /usr/bin/python
+          #python -V
           
 
       - if: matrix.os == 'macos-13'
