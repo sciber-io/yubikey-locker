@@ -53,6 +53,8 @@ jobs:
         name: "MacOS specific install" # Make sure we install necessary prerequisites
         run: |
           brew install swig
+          uname -m
+          file /usr/bin/python*
 
       - name: Install dependencies # Common for all OS's
         run: |
