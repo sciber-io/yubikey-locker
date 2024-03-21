@@ -85,6 +85,16 @@ jobs:
           echo $?
           cat /var/log/syslog | grep sciber-yklocker
 
+      - if: matrix.os == 'macos-13'
+        name: "MacOS rename release binary"
+        run: |
+          mv dist/${{matrix.build_filename}} dist/${{matrix.build_filename}}-x86_64
+
+      - if: matrix.os == 'macos-14'
+        name: "MacOS rename release binary"
+        run: |
+          mv dist/${{matrix.build_filename}} dist/${{matrix.build_filename}}-arm64
+
       - if: contains(matrix.os, 'macos')
         name: "MacOS binary execution test"
         run: |
