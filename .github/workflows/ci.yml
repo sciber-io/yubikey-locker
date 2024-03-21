@@ -43,7 +43,8 @@ jobs:
       - if: matrix.os == 'ubuntu-22.04'
         name: "Ubuntu specific APT install" # Make sure we install necessary prerequisites
         run: |
-          sudo apt install -y libpcsclite-dev python3.11-dev swig pcscd
+          sudo apt install -y libpcsclite-dev python3.11-dev swig pcscd python3.11
+          which python
 
       - if: matrix.os == 'macos-13'
         name: "MacOS specific install" # Make sure we install necessary prerequisites
@@ -52,17 +53,17 @@ jobs:
 
       - name: Install dependencies # Common for all OS's
         run: |
-          python3.11 -m pip install --upgrade pip
+          python -m pip install --upgrade pip
           pip install tox
 
         # Per OS install reqs and run tests
       - name: Install requirements.txt and run tests for ${{matrix.os}}
         run: |
-          python3.11 -m tox
+          python -m tox
 
       - name: Build for ${{matrix.os}}
         run: |
-          python3.11 -m tox -e ${{matrix.toxbuild}}
+          python -m tox -e ${{matrix.toxbuild}}
           ls dist
 
       - if: matrix.os == 'ubuntu-22.04'
