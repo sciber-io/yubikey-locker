@@ -22,44 +22,44 @@ For YubiKey users to enable automatic device locking when removing the YubiKey.
 | Manual        | ✅       | ✅   | ✅    |
 
 ### How to inspect application logs:
-Windows: Get-EventLog -LogName Application -Source SciberYklocker | Select TimeGenerated,ReplacementStrings  
-Mac:  log show --predicate 'process = "sciber-yklocker-macos"'  
-Linux (Ubuntu): cat /var/log/syslog | grep sciber-yklocker  
+Windows: ```Get-EventLog -LogName Application -Source SciberYklocker | Select TimeGenerated,ReplacementStrings ```  
+Mac:   ```log show --predicate 'process = "sciber-yklocker-macos"' ```  
+Linux (Ubuntu):  ```cat /var/log/syslog | grep sciber-yklocker ```  
 
 
 ## Installation via Intune
 ### Windows
-1. Download the .admx and .adml files from the "src/windows_utils/Administrative template" folder
+1. Download the .admx and .adml files from the `src/windows_utils/Administrative template` folder
 2. Intune/GPO: Follow Jonas guide on his blog: https://swjm.blog/locking-the-workstation-on-fido2-security-key-removal-part-2-80962c944c78 to set up GPO/Intune control to decide what you want to do if the YubiKey is removed.
 ### Mac
-- Add an macOS app, upload sciber-yklocker-macos.pkg
-- Add the contents of src/macos_utils/post_install_script.sh to the post-install-script box in Intune
-- Depending on the groups that the app is pushed to, change contents of the post-install-script to pass apropriate arguments to the application
+1. Add an macOS app, upload sciber-yklocker-macos.pkg
+2. Add the contents of `src/macos_utils/post_install_script.sh` to the post-install-script box in Intune
+3. Depending on the groups that the app is pushed to, change contents of the post-install-script to pass apropriate arguments to the application
 
 
 ## Manual Installation
 ### Windows
-1. Download the installer sciber-yklocker.msi from [releases](https://github.com/sciber-io/yklocker/releases)
-2. Run the installer (installs the service SciberYklocker for you)
+1. Download and execute sciber-yklocker.msi from [releases](https://github.com/sciber-io/yklocker/releases)
 #### Set registry values
 
-1. Download the .admx and .adml files from the "src/windows_utils/Administrative template" folder
-2. Locally: download the amdx and adml file to your computer and place them in C:\Windows\PolicyDefinitions, then start local group policy editor -> Computer Configuration -> Administrative Templates -> Sciber Yklocker Settings --> turn on to get registry values
+1. Download the .admx and .adml files from the `src/windows_utils/Administrative template` to `C:\Windows\PolicyDefinitions`
+2. Start "local group policy editor" and navigate to:
+  - "Computer Configuration"
+    - "Administrative Templates"
+      - "Sciber Yklocker Settings"
+        - Turn on to set registry values
 
 ### Mac
-1. Download sciber-yklocker-macos.pkg from releases and execute it.
-2. Download src/macos_utils/post_install_script.sh and execute it
+1. Download and execute sciber-yklocker-macos.pkg from [releases](https://github.com/sciber-io/yklocker/releases)
+2. Download, modify script content if necessary, and execute `src/macos_utils/post_install_script.sh`
 3. Perform a logout or a reboot
 
 ### Linux (Ubuntu)
-Either 
-- Download sciber-yklocker-linux and execute it in a terminal and keep that terminal running
-Or 
-1. Download sciber-yklocker-linux into /home/<your-user>/.sciber/sciber-yklocker-linux
-2. Download [the service file](https://github.com/sciber-io/yklocker/blob/main/src/linux_utils/sciber-yklocker.service) to /etc/systemd/user/yklocker.service 
+1. Download sciber-yklocker-linux from [releases](https://github.com/sciber-io/yklocker/releases) into  `/home/<your-user>/.sciber/sciber-yklocker-linux `
+2. Download [the service file](https://github.com/sciber-io/yklocker/blob/main/src/linux_utils/sciber-yklocker.service) to `/etc/systemd/user/yklocker.service`
 3. Modify the service file to specify the correct path to the binary
-4. Enable the service to start on reboot: systemctl enable yklocker --user
-5. Start the service: systemctl start yklocker --user
+4. Enable the service to start on reboot:  ```systemctl enable yklocker --user ```
+5. Start the service:  ```systemctl start yklocker --user ```
 
 
 
