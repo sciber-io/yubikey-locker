@@ -51,7 +51,7 @@ Linux (Ubuntu):  ```cat /var/log/syslog | grep sciber-yklocker ```
 
 ### Mac
 1. Download and execute sciber-yklocker-macos.pkg from [releases](https://github.com/sciber-io/yklocker/releases)
-2. Download, modify script content if necessary, and execute `src/macos_utils/post_install_script.sh`
+2. Download, modify script content if necessary, and execute [src/macos_utils/post_install_script.sh](src/macos_utils/post_install_script.sh)
 3. Perform a logout or a reboot
 
 ### Linux (Ubuntu)
