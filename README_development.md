@@ -7,7 +7,7 @@
 
 
 
-The automated test and buildflow in used for the GitHub builds can be seen in `.github/workflows/ci.yml` 
+The automated test and buildflow in used for the GitHub builds can be seen in [.github/workflows/ci.yml](.github/workflows/ci.yml)
 For example: 
 - How tox is used to install requirements and build executables
 - How the Windows MSI executable is built
@@ -48,8 +48,8 @@ python3.11 -m tox -e build_win|build_linux|build_macos
 
 ### Intune version of app:
 This needs to be increased for Intune to roll out a new version of the app.
-- Version number is changed in `src/macos_utils/sciber-yklocker-macos.spec`
-- Version number is changed in `src\windows_utils\sciber-yklocker.wxs`
+- Version number is changed in [src/macos_utils/sciber-yklocker-macos.spec](src/macos_utils/sciber-yklocker-macos.spec)
+- Version number is changed in [src\windows_utils\sciber-yklocker.wxs](src\windows_utils\sciber-yklocker.wxs)
 
 ### Linux prerequisites
 Necessary to install a few packages:

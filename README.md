@@ -29,11 +29,11 @@ Linux (Ubuntu):  ```cat /var/log/syslog | grep sciber-yklocker ```
 
 ## Installation via Intune
 ### Windows
-1. Download the .admx and .adml files from the `src/windows_utils/Administrative template` folder
+1. Download the .admx and .adml files from [src/windows_utils/Administrative template (ADMX)/](src/windows_utils/Administrative%20template%20(ADMX)/)
 2. Intune/GPO: Follow Jonas guide on his blog: https://swjm.blog/locking-the-workstation-on-fido2-security-key-removal-part-2-80962c944c78 to set up GPO/Intune control to decide what you want to do if the YubiKey is removed.
 ### Mac
 1. Add an macOS app, upload sciber-yklocker-macos.pkg
-2. Add the contents of `src/macos_utils/post_install_script.sh` to the post-install-script box in Intune
+2. Add the contents of [src/macos_utils/post_install_script.sh](src/macos_utils/post_install_script.sh) to the post-install-script box in Intune
 3. Depending on the groups that the app is pushed to, change contents of the post-install-script to pass apropriate arguments to the application
 
 
@@ -42,7 +42,7 @@ Linux (Ubuntu):  ```cat /var/log/syslog | grep sciber-yklocker ```
 1. Download and execute sciber-yklocker.msi from [releases](https://github.com/sciber-io/yklocker/releases)
 #### Set registry values
 
-1. Download the .admx and .adml files from the `src/windows_utils/Administrative template` to `C:\Windows\PolicyDefinitions`
+1. Download the .admx and .adml files from [src/windows_utils/Administrative template (ADMX)/](src/windows_utils/Administrative%20template%20(ADMX)/) to `C:\Windows\PolicyDefinitions`
 2. Start "local group policy editor" and navigate to:
   - "Computer Configuration"
     - "Administrative Templates"
@@ -56,7 +56,7 @@ Linux (Ubuntu):  ```cat /var/log/syslog | grep sciber-yklocker ```
 
 ### Linux (Ubuntu)
 1. Download sciber-yklocker-linux from [releases](https://github.com/sciber-io/yklocker/releases) into  `/home/<your-user>/.sciber/sciber-yklocker-linux `
-2. Download [the service file](https://github.com/sciber-io/yklocker/blob/main/src/linux_utils/sciber-yklocker.service) to `/etc/systemd/user/yklocker.service`
+2. Download [src/linux_utils/sciber-yklocker.service](src/linux_utils/sciber-yklocker.service) to `/etc/systemd/user/yklocker.service`
 3. Modify the service file to specify the correct path to the binary
 4. Enable the service to start on reboot:  ```systemctl enable yklocker --user ```
 5. Start the service:  ```systemctl start yklocker --user ```
@@ -96,4 +96,4 @@ Special thanks to [Jonas Markström](https://github.com/JMarkstrom/) for valuabl
 ## Known Issues
 [MacOS: The check for the Yubikey may cause issues with gpg](https://github.com/sciber-io/yklocker/issues/78)
 ____
-For information regarding how to continue development and build your own binaries see [README-development.md](README-development.md)
+For information regarding how to continue development and build your own binaries see [README-development.md](README_development.md)
