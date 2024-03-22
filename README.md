@@ -21,6 +21,10 @@ For YubiKey users to enable automatic device locking when removing the YubiKey.
 | Intune        | ✅       | ✅   | ❌
 | Manual        | ✅       | ✅   | ✅    |
 
+### How to inspect application logs:
+Windows: Get-EventLog -LogName Application -Source SciberYklocker | Select TimeGenerated,ReplacementStrings  
+Mac:  log show --predicate 'process = "sciber-yklocker-macos"'  
+Linux (Ubuntu): cat /var/log/syslog | grep sciber-yklocker  
 
 
 ## Installation via Intune
@@ -43,16 +47,21 @@ For YubiKey users to enable automatic device locking when removing the YubiKey.
 2. Locally: download the amdx and adml file to your computer and place them in C:\Windows\PolicyDefinitions, then start local group policy editor -> Computer Configuration -> Administrative Templates -> Sciber Yklocker Settings --> turn on to get registry values
 
 ### Mac
-- Output is written to syslog, view with Console.app
-
 1. Download sciber-yklocker-macos.pkg from releases and execute it.
 2. Download src/macos_utils/post_install_script.sh and execute it
 3. Perform a logout or a reboot
 
 ### Linux (Ubuntu)
-Download sciber-yklocker-linux and execute it in a terminal (requires you to keep that terminal window open).
+Either 
+- Download sciber-yklocker-linux and execute it in a terminal and keep that terminal running
+Or 
+1. Download sciber-yklocker-linux into /home/<your-user>/.sciber/sciber-yklocker-linux
+2. Download [the service file](https://github.com/sciber-io/yklocker/blob/main/src/linux_utils/sciber-yklocker.service) to /etc/systemd/user/yklocker.service 
+3. Modify the service file to specify the correct path to the binary
+4. Enable the service to start on reboot: systemctl enable yklocker --user
+5. Start the service: systemctl start yklocker --user
 
-- Output is written to syslog.
+
 
 ## Default behavior
 sciber-yklocker will check if there is a YubiKey present every 10 seconds. If no command-line arguments / registry values instruments the application to lock the computer it will do nothing.
@@ -83,5 +92,8 @@ sciber-yklocker -l Logout -t 30
 ### Credits
 Special thanks to [Jonas Markström](https://github.com/JMarkstrom/) for valuable feedback and support during this project.
 
+
+## Known Issues
+[MacOS: The check for the Yubikey may cause issues with gpg](https://github.com/sciber-io/yklocker/issues/78)
 ____
 For information regarding how to continue development and build your own binaries see [README-development.md](README-development.md)

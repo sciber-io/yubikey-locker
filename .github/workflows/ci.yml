@@ -13,7 +13,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-22.04, macos-12, windows-2022]
+        os: [ubuntu-22.04, macos-13, macos-14, windows-2022]
         python-version: ["3.11"]
         #exclude:
         #
@@ -26,11 +26,17 @@ jobs:
           - os: ubuntu-22.04
             build_filename: sciber-yklocker-linux
             toxbuild: build_linux
-          - os: macos-12
+          - os: macos-13
             toxbuild: build_macos
             build_filename: sciber-yklocker-macos
             build_appname: sciber-yklocker-macos.app
-            build_pkgname: sciber-yklocker-macos.pkg
+            build_pkgname: sciber-yklocker-macos-x86_64.pkg
+            install_target_location: /Applications
+          - os: macos-14
+            toxbuild: build_macos
+            build_filename: sciber-yklocker-macos
+            build_appname: sciber-yklocker-macos.app
+            build_pkgname: sciber-yklocker-macos-arm64.pkg
             install_target_location: /Applications
     # Get access to repo contents
     steps:
@@ -43,7 +49,18 @@ jobs:
       - if: matrix.os == 'ubuntu-22.04'
         name: "Ubuntu specific APT install" # Make sure we install necessary prerequisites
         run: |
-          sudo apt install -y libpcsclite-dev python3.11-dev swig pcscd
+          sudo apt install -y libpcsclite-dev python3.11-dev swig pcscd python3.11
+          #sudo unlink /usr/bin/python
+          #sudo ln -s /usr/bin/python3.11 /usr/bin/python
+          #python -V
+
+
+      - if: contains(matrix.os, 'macos')
+        name: "MacOS specific install" # Make sure we install necessary prerequisites
+        run: |
+          brew install swig
+          uname -m
+          file /usr/bin/python*
 
       - name: Install dependencies # Common for all OS's
         run: |
@@ -68,7 +85,19 @@ jobs:
           echo $?
           cat /var/log/syslog | grep sciber-yklocker
 
-      - if: matrix.os == 'macos-12'
+      - if: matrix.os == 'macos-13'
+        name: "MacOS rename release binary"
+        run: |
+          mv dist/${{matrix.build_filename}} dist/${{matrix.build_filename}}-x86_64
+          file dist/${{matrix.build_filename}}-x86_64
+
+      - if: matrix.os == 'macos-14'
+        name: "MacOS rename release binary"
+        run: |
+          mv dist/${{matrix.build_filename}} dist/${{matrix.build_filename}}-arm64
+          file dist/${{matrix.build_filename}}-arm64
+
+      - if: contains(matrix.os, 'macos')
         name: "MacOS binary execution test"
         run: |
           file dist/${{matrix.build_appname}}/Contents/MacOS/sciber-yklocker-macos
@@ -76,12 +105,12 @@ jobs:
           echo $?
           log show --predicate 'process = "sciber-yklocker-macos"' --last 10s
 
-      - if: matrix.os == 'macos-12'
+      - if: contains(matrix.os, 'macos')
         name: "MacOS pkg build"
         run: |
           pkgbuild --identifier "io.sciber.sciberyklocker" --install-location ${{matrix.install_target_location}} --component dist/${{matrix.build_appname}} dist/${{matrix.build_pkgname}}
 
-      - if: matrix.os == 'macos-12'
+      - if: contains(matrix.os, 'macos')
         name: "MacOS pkg install"
         run: |
           sudo installer -pkg dist/${{matrix.build_pkgname}} -target /Applications -verbose
@@ -119,8 +148,7 @@ jobs:
         with:
           pytest-xml-coverage-path: ./cov.xml
 
-      - if: contains(github.ref,'dev')
-        name: "Dev: Publish release files"
+      - name: "Dev: Publish release files"
         uses: softprops/action-gh-release@v1
         with:
           token: "${{ secrets.GITHUB_TOKEN }}"
