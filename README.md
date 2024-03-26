@@ -1,5 +1,5 @@
 # Sciber YubiKey Locker
-[![main - tests and build](https://github.com/sciber-io/yklocker/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/sciber-io/yklocker/actions/workflows/ci.yml)
+[![main - tests and build](https://github.com/sciber-io/yubikey-locker/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/sciber-io/yubikey-locker/actions/workflows/ci.yml)
 
 For YubiKey users to enable automatic device locking when removing the YubiKey.
 
@@ -39,7 +39,7 @@ Linux (Ubuntu):  ```cat /var/log/syslog | grep sciber-yklocker ```
 
 ## Manual Installation
 ### Windows
-1. Download and execute sciber-yklocker.msi from [releases](https://github.com/sciber-io/yklocker/releases)
+1. Download and execute sciber-yklocker.msi from [releases](https://github.com/sciber-io/yubikey-locker/releases)
 #### Set registry values
 
 1. Download the .admx and .adml files from [src/windows_utils/Administrative template (ADMX)/](src/windows_utils/Administrative%20template%20(ADMX)/) to `C:\Windows\PolicyDefinitions`
@@ -50,12 +50,12 @@ Linux (Ubuntu):  ```cat /var/log/syslog | grep sciber-yklocker ```
         - Turn on to set registry values
 
 ### Mac
-1. Download and execute sciber-yklocker-macos.pkg from [releases](https://github.com/sciber-io/yklocker/releases)
+1. Download and execute sciber-yklocker-macos.pkg from [releases](https://github.com/sciber-io/yubikey-locker/releases)
 2. Download, modify script content if necessary, and execute [src/macos_utils/post_install_script.sh](src/macos_utils/post_install_script.sh)
 3. Perform a logout or a reboot
 
 ### Linux (Ubuntu)
-1. Download sciber-yklocker-linux from [releases](https://github.com/sciber-io/yklocker/releases) into  `/home/<your-user>/.sciber/sciber-yklocker-linux `
+1. Download sciber-yklocker-linux from [releases](https://github.com/sciber-io/yubikey-locker/releases) into  `/home/<your-user>/.sciber/sciber-yklocker-linux `
 2. Download [src/linux_utils/sciber-yklocker.service](src/linux_utils/sciber-yklocker.service) to `/etc/systemd/user/yklocker.service`
 3. Modify the service file to specify the correct path to the binary
 4. Enable the service to start on reboot:  ```systemctl enable yklocker --user ```
@@ -94,6 +94,6 @@ Special thanks to [Jonas Markström](https://github.com/JMarkstrom/) for valuabl
 
 
 ## Known Issues
-[MacOS: The check for the Yubikey may cause issues with gpg](https://github.com/sciber-io/yklocker/issues/78)
+[MacOS: The check for the Yubikey may cause issues with gpg](https://github.com/sciber-io/yubikey-locker/issues/78)
 ____
 For information regarding how to continue development and build your own binaries see [README-development.md](README_development.md)
