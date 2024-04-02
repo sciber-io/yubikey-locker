@@ -4,8 +4,7 @@ name: sciber-yklocker test and build
 
 on: [ push ]
 
-permissions:
-  contents: write # to enable releases
+
 
 # Create one job per specified OS
 jobs:
@@ -144,17 +143,20 @@ jobs:
           # ls 'C:\Program Files\Sciber\SciberYklocker\'
           #Get-EventLog -LogName Application -Source SciberYklocker -Newest 5 | Select TimeGenerated,ReplacementStrings
 
-      - if: github.ref == 'refs/heads/main'
-        name: Pytest coverage comment
+      - name: Pytest coverage comment
         uses: MishaKav/pytest-coverage-comment@main
         with:
           pytest-xml-coverage-path: ./cov.xml
 
-      - if: contains(github.ref,'main')
-        name: "Main: Publish release files"
-        uses: softprops/action-gh-release@v1
-        with:
-          token: "${{ secrets.GITHUB_TOKEN }}"
-          tag_name: "v1.0-main"
-          prerelease: False
-          files: dist/*
+      on:
+        release:
+          permissions:
+            contents: write # to enable releases
+            
+          name: "Main: Publish release files"
+          uses: softprops/action-gh-release@v1
+          with:
+            token: "${{ secrets.GITHUB_TOKEN }}"
+            tag_name: "${{github.ref}}"
+            prerelease: False
+            files: dist/*
