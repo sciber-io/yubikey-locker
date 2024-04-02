@@ -2,9 +2,10 @@
 name: sciber-yklocker test and build
 
 
-on: [ push ]
+on: [ push, release ]
 
-
+permissions:
+  contents: write # to enable releases
 
 # Create one job per specified OS
 jobs:
@@ -148,15 +149,11 @@ jobs:
         with:
           pytest-xml-coverage-path: ./cov.xml
 
-      on:
-        release:
-          permissions:
-            contents: write # to enable releases
-            
-          name: "Main: Publish release files"
-          uses: softprops/action-gh-release@v1
-          with:
-            token: "${{ secrets.GITHUB_TOKEN }}"
-            tag_name: "${{github.ref}}"
-            prerelease: False
-            files: dist/*
+      - if: "!contains(github.ref, 'refs/')"
+        name: "Main: Publish release files"
+        uses: softprops/action-gh-release@v1
+        with:
+          token: "${{ secrets.GITHUB_TOKEN }}"
+          tag_name: "${{github.ref}}"
+          prerelease: False
+          files: dist/*
