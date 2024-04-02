@@ -41,5 +41,5 @@ app = BUNDLE(
     name='sciber-yklocker-macos.app',
     icon='../../images/sciber_yklocker.png',
     bundle_identifier='io.sciber.sciberyklocker',
-    version='0.0.56',
+    version='1.0.0.2',
 )
