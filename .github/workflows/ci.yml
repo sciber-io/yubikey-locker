@@ -2,7 +2,7 @@
 name: sciber-yklocker test and build
 
 
-on: [ push ]
+on: [ push, release ]
 
 permissions:
   contents: write # to enable releases
@@ -53,6 +53,7 @@ jobs:
           #sudo unlink /usr/bin/python
           #sudo ln -s /usr/bin/python3.11 /usr/bin/python
           #python -V
+          echo ${{github.ref}}
 
 
       - if: contains(matrix.os, 'macos')
@@ -148,19 +149,11 @@ jobs:
         with:
           pytest-xml-coverage-path: ./cov.xml
 
-      - name: "Dev: Publish release files"
-        uses: softprops/action-gh-release@v1
-        with:
-          token: "${{ secrets.GITHUB_TOKEN }}"
-          tag_name: "v1.0-dev"
-          prerelease: True
-          files: dist/*
-
-      - if: contains(github.ref,'main')
+      - if: "!contains(github.ref, 'refs/')"
         name: "Main: Publish release files"
         uses: softprops/action-gh-release@v1
         with:
           token: "${{ secrets.GITHUB_TOKEN }}"
-          tag_name: "v1.0-main"
+          tag_name: "${{github.ref}}"
           prerelease: False
           files: dist/*
