@@ -53,6 +53,7 @@ jobs:
           #sudo unlink /usr/bin/python
           #sudo ln -s /usr/bin/python3.11 /usr/bin/python
           #python -V
+          echo ${{github.ref}}
 
 
       - if: contains(matrix.os, 'macos')
