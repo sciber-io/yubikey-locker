@@ -4,8 +4,7 @@ name: sciber-yklocker test and build
 
 on:
   push:
-    tags:
-      - '*'
+
 
 permissions:
   contents: write # to enable releases
