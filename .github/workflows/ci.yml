@@ -1,8 +1,16 @@
 
 name: sciber-yklocker test and build
 
-on:
+
+on: 
   push:
+    paths:
+      - 'src/**'
+      - '.github/workflows/**'
+      - 'tests/**'
+      - 'setup.py'
+      - 'tox.ini'
+  release:
 
 permissions:
   contents: write # to enable releases
