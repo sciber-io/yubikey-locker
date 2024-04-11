@@ -118,9 +118,7 @@ def reg_check_removal_option(yklocker) -> RemovalOption:
     lockValue = reg_query_key(REG_REMOVALOPTION)
     if lockValue is not False:
         yklocker.set_removal_option(lockValue)
-    else:
-        # If no Windows Registry option is set. Default to doNothing
-        yklocker.set_removal_option(RemovalOption.NOTHING)
+
     # Return current RemovalOption
     return yklocker.get_removal_option()
 
