@@ -11,6 +11,8 @@ on:
       - 'setup.py'
       - 'tox.ini'
   release:
+    types: [created]
+    
 
 permissions:
   contents: write # to enable releases
@@ -153,12 +155,16 @@ jobs:
           # ls 'D:\Program Files\Sciber\SciberYklocker\'
           # ls 'C:\Program Files\Sciber\SciberYklocker\'
           #Get-EventLog -LogName Application -Source SciberYklocker -Newest 5 | Select TimeGenerated,ReplacementStrings
-
-      - name: Pytest coverage comment
+      
+      # Only add comments on pushes
+      - if: ${{ !startsWith(github.ref, 'refs/tags/') }}
+        name: Pytest coverage comment 
         uses: MishaKav/pytest-coverage-comment@main
         with:
           pytest-xml-coverage-path: ./cov.xml
 
+
+      # Only publish files on release
       - if: startsWith(github.ref, 'refs/tags/')
         name: "Publish release files"
         uses: softprops/action-gh-release@v1
