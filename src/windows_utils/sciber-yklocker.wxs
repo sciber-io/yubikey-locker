@@ -23,18 +23,13 @@
 
 
         <!-- Define the directory structure -->
-        <!-- Do not change this line! default values: -->
-        <Directory Id="TARGETDIR" Name="SourceDir">
-            <Directory Id="ProgramFiles64Folder">
-
-                <!-- Create a folder inside program files -->
-                <Directory Id="ROOTDIRECTORY" Name="$(Manufacturer)">
-
-                    <!-- Create a folder within the parent folder given the name -->
-                    <Directory Id="INSTALLFOLDER" Name="$(Name)" />
-                </Directory>
-            </Directory>
-        </Directory>
+                 <!-- Create a folder inside program files  -->
+                <StandardDirectory Id="ProgramFiles64Folder">
+                    <Directory  Name="$(Manufacturer)">
+                        <!-- Create a folder within the parent folder given the name -->
+                        <Directory Id="INSTALLFOLDER" Name="$(Name)" />
+                    </Directory>
+                </StandardDirectory>
 
         <!-- The files inside this DirectoryRef are linked to
              the App.WindowsService directory via INSTALLFOLDER -->
