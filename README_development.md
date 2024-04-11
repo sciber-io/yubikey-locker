@@ -48,7 +48,7 @@ python3.11 -m tox -e build_win|build_linux|build_macos
 
 ### Intune version of app:
 This needs to be increased for Intune to roll out a new version of the app.  
-Current version: 1.0.0.2  
+Current version: 1.0.0.3  
 - Version number is changed in [src/macos_utils/sciber-yklocker-macos.spec](src/macos_utils/sciber-yklocker-macos.spec)
 - Version number is changed in [src\windows_utils\sciber-yklocker.wxs](src\windows_utils\sciber-yklocker.wxs)
 
