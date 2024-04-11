@@ -1,5 +1,4 @@
 import socket
-import traceback
 import winreg
 
 import servicemanager
@@ -101,8 +100,8 @@ def reg_query_key(key_name: str):
         # Close the handle to the key
         key_handle.Close()
         return ret
-    except (OSError, TypeError, FileNotFoundError, KeyError):
-        traceback.print_exc()
+    except (OSError, TypeError, FileNotFoundError, KeyError) as e:
+        log_message("Error when attempting to read the registry: " + str(e))
         return False
 
 

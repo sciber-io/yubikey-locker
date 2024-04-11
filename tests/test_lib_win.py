@@ -101,9 +101,11 @@ if platform.system() == MyOS.WIN:
     def test_reg_query_key_empty() -> None:
         # Use fake registry
         with patch("sciber_yklocker.lib.win.winreg", fake_winreg):
-            # Empty registry should return False
-            assert reg_query_key(REG_REMOVALOPTION) is False
-            assert reg_query_key(REG_TIMEOUT) is False
+            with patch("sciber_yklocker.lib.win.log_message", MagicMock()) as m:
+                # Empty registry should return False
+                assert reg_query_key(REG_REMOVALOPTION) is False
+                assert reg_query_key(REG_TIMEOUT) is False
+                assert "Error when attempting to read the registry" in m.call_args[0][0]
 
     def test_reg_query_key_with_values() -> None:
         # Use fake registry - with values
