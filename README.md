@@ -24,7 +24,7 @@ For YubiKey users to enable automatic device locking when removing the YubiKey.
 ### How to inspect application logs:
 Windows: ```Get-EventLog -LogName Application -Source YubiKeyLocker | Select TimeGenerated,ReplacementStrings ```  
 Mac:   ```log show --predicate 'process = "yubikey-locker-macos"' ```  
-Linux (Ubuntu):  ```cat /var/log/syslog | grep yubikeylocker ```  
+Linux (Ubuntu):  ```cat /var/log/syslog | grep yubikey-locker ```  
 
 
 ## Installation via Intune
