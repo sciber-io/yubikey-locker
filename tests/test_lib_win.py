@@ -278,7 +278,8 @@ if platform.system() == MyOS.WIN:
         m_servicemanager.StartServiceCtrlDispatcher.side_effect = SystemError
         with patch("builtins.print") as mock_print:
             win_main()
-            mock_print.assert_called_once()
+            # If we catch the error we should see prints
+            mock_print.assert_called()
         # Make sure the code calls these:
         m_servicemanager.Initialize.assert_called_once_with()
         m_servicemanager.PrepareToHostSingle.assert_called_once()

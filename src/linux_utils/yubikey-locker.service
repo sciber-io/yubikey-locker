@@ -1,0 +1,18 @@
+#/etc/systemd/user/yubikeylocker.service 
+
+#
+# systemctl status yubikeylocker --user
+# systemctl enable yubikeylocker --user
+# systemctl start yubikeylocker --user
+#
+
+[Unit]
+Description=Sciber YubiKey Locker
+
+[Service]
+Type=simple
+ExecStart=/home/<user>/.sciber/yubikey-locker-linux
+Restart=always
+
+[Install]
+WantedBy=user.target

@@ -48,9 +48,9 @@ python3.11 -m tox -e build_win|build_linux|build_macos
 
 ### Intune version of app:
 This needs to be increased for Intune to roll out a new version of the app.  
-Current version: 1.0.0.3  
-- Version number is changed in [src/macos_utils/sciber-yklocker-macos.spec](src/macos_utils/sciber-yklocker-macos.spec)
-- Version number is changed in [src\windows_utils\sciber-yklocker.wxs](src\windows_utils\sciber-yklocker.wxs)
+Current version: 1.0.0.4  
+- Version number is changed in [src/macos_utils/yubikey-locker-macos.spec](src/macos_utils/yubikey-locker-macos.spec)
+- Version number is changed in [src\windows_utils\yubikey-locker.wxs](src\windows_utils\yubikey-locker.wxs)
 
 ### Linux prerequisites
 Necessary to install a few packages:
@@ -61,5 +61,5 @@ Necessary to install a few packages:
 
 In case you do want to skip the MSI:
 ```
-sc.exe create SciberYkLocker binPath="C:\Program Files\Sciber\sciber-yklocker\sciber-yklocker.exe" start=auto
+sc.exe create SciberYkLocker binPath="C:\Program Files\Sciber\YubiKeyLocker\yubikey-locker.exe" start=auto
 sc.exe start SciberYkLocker```

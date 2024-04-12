@@ -30,23 +30,23 @@ jobs:
         # Define variable names
         include:
           - os: windows-2022
-            build_filename: sciber-yklocker.exe
-            msi_filename:  sciber-yklocker.msi
+            build_filename: yubikey-locker.exe
+            msi_filename:  yubikey-locker.msi
             toxbuild: build_win
           - os: ubuntu-22.04
-            build_filename: sciber-yklocker-linux
+            build_filename: yubikey-locker-linux
             toxbuild: build_linux
           - os: macos-13
             toxbuild: build_macos
-            build_filename: sciber-yklocker-macos
-            build_appname: sciber-yklocker-macos.app
-            build_pkgname: sciber-yklocker-macos-x86_64.pkg
+            build_filename: yubikey-locker-macos
+            build_appname: yubikey-locker-macos.app
+            build_pkgname: yubikey-locker-macos-x86_64.pkg
             install_target_location: /Applications
           - os: macos-14
             toxbuild: build_macos
-            build_filename: sciber-yklocker-macos
-            build_appname: sciber-yklocker-macos.app
-            build_pkgname: sciber-yklocker-macos-arm64.pkg
+            build_filename: yubikey-locker-macos
+            build_appname: yubikey-locker-macos.app
+            build_pkgname: yubikey-locker-macos-arm64.pkg
             install_target_location: /Applications
     # Get access to repo contents
     steps:
@@ -96,7 +96,7 @@ jobs:
           file dist/${{matrix.build_filename}}
           dist/${{matrix.build_filename}} -z
           echo $?
-          cat /var/log/syslog | grep sciber-yklocker
+          cat /var/log/syslog | grep yubikey-locker
 
       - if: matrix.os == 'macos-13'
         name: "MacOS rename release binary"
@@ -113,15 +113,15 @@ jobs:
       - if: contains(matrix.os, 'macos')
         name: "MacOS binary execution test"
         run: |
-          file dist/${{matrix.build_appname}}/Contents/MacOS/sciber-yklocker-macos
-          dist/${{matrix.build_appname}}/Contents/MacOS/sciber-yklocker-macos -z
+          file dist/${{matrix.build_appname}}/Contents/MacOS/yubikey-locker-macos
+          dist/${{matrix.build_appname}}/Contents/MacOS/yubikey-locker-macos -z
           echo $?
-          log show --predicate 'process = "sciber-yklocker-macos"' --last 10s
+          log show --predicate 'process = "yubikey-locker-macos"' --last 10s
 
       - if: contains(matrix.os, 'macos')
         name: "MacOS pkg build"
         run: |
-          pkgbuild --identifier "io.sciber.sciberyklocker" --install-location ${{matrix.install_target_location}} --component dist/${{matrix.build_appname}} dist/${{matrix.build_pkgname}}
+          pkgbuild --identifier "io.sciber.yubikeylocker" --install-location ${{matrix.install_target_location}} --component dist/${{matrix.build_appname}} dist/${{matrix.build_pkgname}}
 
       - if: contains(matrix.os, 'macos')
         name: "MacOS pkg install"
@@ -132,7 +132,7 @@ jobs:
         name: "Windows MSI build"
         run: |
           dotnet tool install --global wix
-          wix.exe build -arch x64 .\src\windows_utils\sciber-yklocker.wxs
+          wix.exe build -arch x64 .\src\windows_utils\yubikey-locker.wxs
           cp .\src\windows_utils\${{matrix.msi_filename}} dist/${{matrix.msi_filename}}
           ls dist
 
@@ -152,9 +152,7 @@ jobs:
           ls
           type install_log
           #Start-Sleep -Seconds 20
-          # ls 'D:\Program Files\Sciber\SciberYklocker\'
-          # ls 'C:\Program Files\Sciber\SciberYklocker\'
-          #Get-EventLog -LogName Application -Source SciberYklocker -Newest 5 | Select TimeGenerated,ReplacementStrings
+          #Get-EventLog -LogName Application -Source YubiKeyLocker -Newest 5 | Select TimeGenerated,ReplacementStrings
       
       # Only add comments on pushes
       - if: github.event_name ==  'push'
@@ -165,7 +163,7 @@ jobs:
 
 
       # Only publish files on release
-      - if: startsWith(github.ref, 'refs/tags/')
+      - if: github.event_name ==  'release'
         name: "Publish release files"
         uses: softprops/action-gh-release@v2
         with:

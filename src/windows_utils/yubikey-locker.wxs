@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <!-- Define the variables in "$(var.*) expressions" -->
-<?define Name = "SciberYklocker" ?>
+<?define Name = "YubiKeyLocker" ?>
 <?define Manufacturer = "Sciber" ?>
-<?define Version = "1.0.0.3" ?>
+<?define Version = "1.0.0.4" ?>
 <?define UpgradeCode = "43768026-8bd2-4d87-8106-538f0e328174" ?> <!-- Generated with $([System.Guid]::NewGuid()).Guid -->
 
 
@@ -32,16 +32,13 @@
                 </StandardDirectory>
 
         <!-- The files inside this DirectoryRef are linked to
-             the App.WindowsService directory via INSTALLFOLDER -->
+             the YubiKeyLocker directory via INSTALLFOLDER -->
         <DirectoryRef Id="INSTALLFOLDER">
 
-            <!-- Create a single component which is the sciber-yklocker.exe file -->
+            <!-- Create a single component which is the yubikey-locker.exe file -->
             <Component Id="ServiceExecutable" Bitness="always64">
-
-                <!-- Copies the App.WindowsService.exe file using the
-                     project reference preprocessor variables -->
-                <File Id="SciberYklocker"
-                      Source="dist/sciber-yklocker.exe"
+                <File Id="YubiKeyLocker"
+                      Source="dist/yubikey-locker.exe"
                       KeyPath="true" />
 
                 <!-- Remove all files from the INSTALLFOLDER on uninstall -->
@@ -50,9 +47,9 @@
                 <!-- Tell WiX to install the Service -->
                 <ServiceInstall Id="ServiceInstaller"
                                 Type="ownProcess"
-                                Name="SciberYklocker"
+                                Name="YubiKeyLocker"
                                 DisplayName="$(Name)"
-                                Description="YubiKey Autolocker by Sciber"
+                                Description="YubiKey Locker by Sciber"
                                 Start="auto"
                                 ErrorControl="normal" />
 
@@ -61,14 +58,14 @@
                                 Start="install"
                                 Stop="both"
                                 Remove="uninstall"
-                                Name="SciberYklocker"
+                                Name="YubikeyLocker"
                                 Wait="true" />
             </Component>
         </DirectoryRef>
 
 
         <!-- Tell WiX to install the files -->
-        <Feature Id="Service" Title="YubiKey Autolocker by Sciber installer" Level="1">
+        <Feature Id="Service" Title="YubiKey Locker by Sciber installer" Level="1">
             <ComponentRef Id="ServiceExecutable" />
         </Feature>
     </Package>

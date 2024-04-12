@@ -1,5 +1,3 @@
-# sciber_yklocker.py
-# General imports
 import getopt
 import platform
 import sys
@@ -31,7 +29,7 @@ def continue_looping(yklocker: YkLock) -> bool:
 
 def loop_code(yklocker: YkLock) -> None:
     # Print start messages
-    message1 = f"Initiated Sciber-YkLocker with RemovalOption {yklocker.get_removal_option()} after {yklocker.get_timeout()} seconds without a detected YubiKey"
+    message1 = f"Initiated YubiKeyLocker with RemovalOption {yklocker.get_removal_option()} after {yklocker.get_timeout()} seconds without a detected YubiKey"
 
     yklocker.logger(message1)
 
@@ -95,7 +93,7 @@ def check_arguments() -> tuple[RemovalOption, int]:
         elif opt == "-z":
             # Used for execution and logging test
             yklocker = YkLock()
-            yklocker.logger("Sciber-Yklocker test logging")
+            yklocker.logger("YubiKeyLocker test logging")
             sys.exit(0)
 
     return removal_option, timeout

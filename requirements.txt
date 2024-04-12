@@ -8,3 +8,5 @@ pyoslog
 fake_winreg
 pytest-random-order
 pillow # Needed for pyinstaller to convert .jpg to correct icon formats
+# On Windows
+# pywin32
