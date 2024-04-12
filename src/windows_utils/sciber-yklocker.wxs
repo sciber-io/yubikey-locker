@@ -52,7 +52,7 @@
                                 Type="ownProcess"
                                 Name="SciberYklocker"
                                 DisplayName="$(Name)"
-                                Description="YubiKey Autolocker by Sciber"
+                                Description="YubiKey Locker by Sciber"
                                 Start="auto"
                                 ErrorControl="normal" />
 
@@ -68,7 +68,7 @@
 
 
         <!-- Tell WiX to install the files -->
-        <Feature Id="Service" Title="YubiKey Autolocker by Sciber installer" Level="1">
+        <Feature Id="Service" Title="YubiKey Locker by Sciber installer" Level="1">
             <ComponentRef Id="ServiceExecutable" />
         </Feature>
     </Package>
