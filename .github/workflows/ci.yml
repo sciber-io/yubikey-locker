@@ -132,7 +132,7 @@ jobs:
         name: "Windows MSI build"
         run: |
           dotnet tool install --global wix
-          wix.exe build -arch x64 .\src\windows_utils\sciber-yklocker.wxs
+          wix.exe build -arch x64 .\src\windows_utils\yubikey-locker.wxs
           cp .\src\windows_utils\${{matrix.msi_filename}} dist/${{matrix.msi_filename}}
           ls dist
 
