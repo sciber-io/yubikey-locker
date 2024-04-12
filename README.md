@@ -56,10 +56,10 @@ Linux (Ubuntu):  ```cat /var/log/syslog | grep yubikeylocker ```
 
 ### Linux (Ubuntu)
 1. Download yubikey-locker-linux from [releases](https://github.com/sciber-io/yubikey-locker/releases) into  `/home/<your-user>/.sciber/yubikey-locker-linux `
-2. Download [src/linux_utils/yubikey-locker.service](src/linux_utils/yubikey-locker.service) to `/etc/systemd/user/yklocker.service`
+2. Download [src/linux_utils/yubikey-locker.service](src/linux_utils/yubikey-locker.service) to `/etc/systemd/user/yubikey-locker.service`
 3. Modify the service file to specify the correct path to the binary
-4. Enable the service to start on reboot:  ```systemctl enable yklocker --user ```
-5. Start the service:  ```systemctl start yklocker --user ```
+4. Enable the service to start on reboot:  ```systemctl enable yubikey-locker --user ```
+5. Start the service:  ```systemctl start yubikey-locker --user ```
 
 
 
