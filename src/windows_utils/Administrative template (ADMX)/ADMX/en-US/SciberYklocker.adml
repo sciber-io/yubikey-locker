@@ -4,10 +4,10 @@
   <description>Sciber Policy Definitions</description>
   <resources>
     <stringTable>
-      <string id="Sciber">Sciber Yklocker</string>
-      <string id="SciberPolicies">Sciber Yklocker Settings</string>
-      <string id="SciberYklocker">Sciber Yklocker Settings</string>
-      <string id="SciberYklocker_Help">Policy settings for Sciber Yklocker.
+      <string id="Sciber">Sciber YubiKey Locker</string>
+      <string id="SciberPolicies">Sciber YubiKey Locker Settings</string>
+      <string id="SciberYklocker">Sciber YubiKey Locker Settings</string>
+      <string id="SciberYklocker_Help">Policy settings for Sciber YubiKey Locker.
 
 * removalOption sets what action to take when no connected YubiKey is detected.
 * timeout sets at which interval to check for a connected YubiKey.

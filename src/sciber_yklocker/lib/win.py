@@ -52,7 +52,7 @@ def lock_system(removal_option: RemovalOption) -> None:
 
 # Windows Service Class Definition
 class AppServerSvc(win32serviceutil.ServiceFramework):
-    _svc_name_ = "SciberYklocker"
+    _svc_name_ = "YubiKeyLocker"
     _svc_display_name_ = "Sciber YubiKey Locker"
 
     def __init__(self, args) -> None:
@@ -131,7 +131,7 @@ def reg_check_updates(yklocker) -> None:
     removalOption2 = reg_check_removal_option(yklocker)
 
     if timeoutValue != timeoutValue2 or removalOption != removalOption2:
-        message = f"Updated Sciber-YkLocker with RemovalOption {yklocker.get_removal_option()} after {yklocker.get_timeout()} seconds without a detected YubiKey"
+        message = f"Updated YubiKeyLocker with RemovalOption {yklocker.get_removal_option()} after {yklocker.get_timeout()} seconds without a detected YubiKey"
         yklocker.logger(message)
 
 

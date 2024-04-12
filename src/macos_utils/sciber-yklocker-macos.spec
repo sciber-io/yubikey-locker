@@ -21,7 +21,7 @@ exe = EXE(
     a.binaries,
     a.datas,
     [],
-    name='sciber-yklocker-macos',
+    name='yubikey-locker-macos',
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
@@ -38,8 +38,8 @@ exe = EXE(
 )
 app = BUNDLE(
     exe,
-    name='sciber-yklocker-macos.app',
+    name='yubikey-locker-macos.app',
     icon='../../images/sciber_yklocker.png',
-    bundle_identifier='io.sciber.sciberyklocker',
+    bundle_identifier='io.sciber.yubikeylocker',
     version='1.0.0.3',
 )

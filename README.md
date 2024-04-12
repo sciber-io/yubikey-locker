@@ -43,10 +43,10 @@ Linux (Ubuntu):  ```cat /var/log/syslog | grep sciber-yklocker ```
 #### Set registry values
 
 1. Download the .admx and .adml files from [src/windows_utils/Administrative template (ADMX)/](src/windows_utils/Administrative%20template%20(ADMX)/) to `C:\Windows\PolicyDefinitions`
-2. Start "local group policy editor" and navigate to:
+2. Start "local group policy editor" from Control Panel -> "Edit group policy" and navigate to:
   - "Computer Configuration"
     - "Administrative Templates"
-      - "Sciber Yklocker Settings"
+      - "Sciber YubiKey Locker Settings"
         - Turn on to set registry values
 
 ### Mac
