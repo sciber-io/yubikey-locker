@@ -1,5 +1,3 @@
-# sciber_yklocker.py
-# General imports
 import getopt
 import platform
 import sys
