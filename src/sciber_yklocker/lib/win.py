@@ -140,5 +140,6 @@ def win_main() -> None:
     servicemanager.PrepareToHostSingle(AppServerSvc)
     try:
         servicemanager.StartServiceCtrlDispatcher()
-    except SystemError:
+    except BaseException as e:
         print("The executable needs to be installed and started as a service.")
+        print(e)
