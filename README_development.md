@@ -48,7 +48,7 @@ python3.11 -m tox -e build_win|build_linux|build_macos
 
 ### Intune version of app:
 This needs to be increased for Intune to roll out a new version of the app.  
-Current version: 1.0.0.3  
+Current version: 1.0.0.4  
 - Version number is changed in [src/macos_utils/yubikey-locker-macos.spec](src/macos_utils/yubikey-locker-macos.spec)
 - Version number is changed in [src\windows_utils\yubikey-locker.wxs](src\windows_utils\yubikey-locker.wxs)
 
