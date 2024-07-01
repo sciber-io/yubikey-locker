@@ -4,6 +4,7 @@ from sciber_yklocker.models.myos import MyOS
 
 if platform.system() == MyOS.WIN:
     from unittest.mock import MagicMock, patch
+
     import fake_winreg
 
     from sciber_yklocker.lib.win import (
@@ -12,12 +13,12 @@ if platform.system() == MyOS.WIN:
         REG_TIMEOUT,
         AppServerSvc,
         check_service_interruption,
+        lock_system,
+        log_message,
         reg_check_removal_option,
         reg_check_timeout,
         reg_check_updates,
         reg_query_key,
-        lock_system,
-        log_message,
         servicemanager,
         socket,
         win32event,

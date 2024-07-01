@@ -7,5 +7,5 @@ setup(
         where="src", include=["sciber_yklocker", "sciber_yklocker.*"]
     ),
     package_dir={"": "src"},
-    versions="0.0.1",
+    version="0.0.1",
 )

@@ -1,9 +1,10 @@
 import platform
-from sciber_yklocker.models.myos import MyOS
-from sciber_yklocker.models.removaloption import RemovalOption
 
 # Yubikey imports
 from ykman.device import list_all_devices  # , scan_devices
+
+from sciber_yklocker.models.myos import MyOS
+from sciber_yklocker.models.removaloption import RemovalOption
 
 # Import platform specific code
 if platform.system() == MyOS.WIN:

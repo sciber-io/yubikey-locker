@@ -2,11 +2,10 @@ import platform
 from unittest.mock import MagicMock, patch
 
 from sciber_yklocker.main import (
+    check_arguments,
     continue_looping,
     init_yklocker,
     loop_code,
-    main,
-    check_arguments,
 )
 from sciber_yklocker.models.myos import MyOS
 from sciber_yklocker.models.removaloption import RemovalOption
