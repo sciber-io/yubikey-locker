@@ -83,9 +83,9 @@ def check_arguments() -> tuple[RemovalOption, int]:
         if opt == "-l":
             if arg == RemovalOption.LOGOUT:
                 removal_option = RemovalOption.LOGOUT
-            if arg == RemovalOption.LOCK:
+            elif arg == RemovalOption.LOCK:
                 removal_option = RemovalOption.LOCK
-            if arg == RemovalOption.NOTHING:
+            elif arg == RemovalOption.NOTHING:
                 removal_option = RemovalOption.NOTHING
             else:
                 print("Invalid RemovalOption entered, defaulting to nothing")
