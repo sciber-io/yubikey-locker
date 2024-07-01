@@ -41,5 +41,5 @@ app = BUNDLE(
     name='yubikey-locker-macos.app',
     icon='../../images/sciber_yklocker.png',
     bundle_identifier='io.sciber.yubikeylocker',
-    version='1.0.0.4',
+    version='1.0.0.5',
 )
