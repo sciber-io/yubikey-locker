@@ -2,7 +2,7 @@
 name: sciber-yklocker test and build
 
 
-on: 
+on:
   push:
     paths:
       - 'src/**'
@@ -12,7 +12,7 @@ on:
       - 'tox.ini'
   release:
     types: [created]
-    
+
 
 permissions:
   contents: write # to enable releases
@@ -78,7 +78,7 @@ jobs:
           echo ${{github.ref}}
           python -m pip install --upgrade pip
           pip install tox
-          
+
 
         # Per OS install reqs and run tests
       - name: Install requirements.txt and run tests for ${{matrix.os}}
@@ -153,10 +153,10 @@ jobs:
           type install_log
           #Start-Sleep -Seconds 20
           #Get-EventLog -LogName Application -Source YubiKeyLocker -Newest 5 | Select TimeGenerated,ReplacementStrings
-      
+
       # Only add comments on pushes
       - if: github.event_name ==  'push'
-        name: Pytest coverage comment 
+        name: Pytest coverage comment
         uses: MishaKav/pytest-coverage-comment@main
         with:
           pytest-xml-coverage-path: ./cov.xml

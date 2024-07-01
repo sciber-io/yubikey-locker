@@ -12,7 +12,6 @@ import win32ts
 
 from sciber_yklocker.models.removaloption import RemovalOption
 
-
 REG_REMOVALOPTION = "RemovalOption"
 REG_TIMEOUT = "Timeout"
 REG_PATH = r"SOFTWARE\\Policies\\Sciber\\YubiKey Removal Behavior\\"

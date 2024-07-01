@@ -11,10 +11,10 @@ from sciber_yklocker.models.yklock import YkLock
 if platform.system() == MyOS.WIN:
     from sciber_yklocker.lib.win import (
         check_service_interruption,
-        win_main,
         reg_check_removal_option,
         reg_check_timeout,
         reg_check_updates,
+        win_main,
     )
 
 
@@ -74,8 +74,8 @@ def init_yklocker(removal_option: RemovalOption, timeout: int) -> YkLock:
 
 def check_arguments() -> tuple[RemovalOption, int]:
     # Default values
-    removal_option: RemovalOption = RemovalOption.NOTHING
-    timeout: int = 10
+    removal_option: RemovalOption = None
+    timeout: int | any = None
 
     # Check arguments
     opts, args = getopt.getopt(sys.argv[1:], "l:t:z")
@@ -83,13 +83,18 @@ def check_arguments() -> tuple[RemovalOption, int]:
         if opt == "-l":
             if arg == RemovalOption.LOGOUT:
                 removal_option = RemovalOption.LOGOUT
-            if arg == RemovalOption.LOCK:
+            elif arg == RemovalOption.LOCK:
                 removal_option = RemovalOption.LOCK
             elif arg == RemovalOption.NOTHING:
                 removal_option = RemovalOption.NOTHING
+            else:
+                print("Invalid RemovalOption entered, defaulting to nothing")
         elif opt == "-t":
             if arg.isdecimal():
                 timeout = int(arg)
+            else:
+                print("Invalid Timeout entered, defaulting to 10s")
+
         elif opt == "-z":
             # Used for execution and logging test
             yklocker = YkLock()

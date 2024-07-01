@@ -2,11 +2,10 @@ import platform
 from unittest.mock import MagicMock, patch
 
 from sciber_yklocker.main import (
+    check_arguments,
     continue_looping,
     init_yklocker,
     loop_code,
-    main,
-    check_arguments,
 )
 from sciber_yklocker.models.myos import MyOS
 from sciber_yklocker.models.removaloption import RemovalOption
@@ -136,19 +135,41 @@ def test_init_yklocker_lx() -> None:
 
 def test_check_arguments_no_args() -> None:
     with patch("sys.argv", ["yklocker.exe"]):
-        assert RemovalOption.NOTHING, 10 == check_arguments()
+        with patch("builtins.print", MagicMock()) as mock_p:
+            assert RemovalOption.NOTHING, 10 == check_arguments()
+            mock_p.assert_not_called()
 
 
 def test_check_arguments_with_logout() -> None:
     with patch("sys.argv", ["yklocker.exe", "-l", "Logout", "-t", "5"]):
-        assert RemovalOption.LOGOUT, 5 == check_arguments()
+        with patch("builtins.print", MagicMock()) as mock_p:
+            assert RemovalOption.LOGOUT, 5 == check_arguments()
+            mock_p.assert_not_called()
 
 
 def test_check_arguments_with_doNothing() -> None:
     with patch("sys.argv", ["yklocker.exe", "-l", "doNothing", "-t", "5"]):
-        assert RemovalOption.NOTHING, 5 == check_arguments()
+        with patch("builtins.print", MagicMock()) as mock_p:
+            assert RemovalOption.NOTHING, 5 == check_arguments()
+            mock_p.assert_not_called()
 
 
 def test_check_arguments_with_lock() -> None:
     with patch("sys.argv", ["yklocker.exe", "-l", "Lock", "-t", "5"]):
-        assert RemovalOption.LOCK, 5 == check_arguments()
+        with patch("builtins.print", MagicMock()) as mock_p:
+            assert RemovalOption.LOCK, 5 == check_arguments()
+            mock_p.assert_not_called()
+
+
+def test_check_arguments_with_wrong_removalOption() -> None:
+    with patch("sys.argv", ["yklocker.exe", "-l", "wrong", "-t", "5"]):
+        with patch("builtins.print", MagicMock()) as mock_p:
+            assert (None, 5) == check_arguments()
+            assert "Invalid RemovalOption" in mock_p.call_args[0][0]
+
+
+def test_check_arguments_with_wrong_timout() -> None:
+    with patch("sys.argv", ["yklocker.exe", "-l", "Lock", "-t", "notTime"]):
+        with patch("builtins.print", MagicMock()) as mock_p:
+            assert (RemovalOption.LOCK, None) == check_arguments()
+            assert "Invalid Timeout" in mock_p.call_args[0][0]

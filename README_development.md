@@ -1,14 +1,14 @@
 
 # Development
-> [!IMPORTANT]  
-> Requirements: Python3.11+  
-> Since we use yubikey-manager for checking if a YubiKey is present we get dependencies from that to Windows, Linux, Mac: https://developers.yubico.com/yubikey-manager/Development.html  
->   
+> [!IMPORTANT]
+> Requirements: Python3.11+
+> Since we use yubikey-manager for checking if a YubiKey is present we get dependencies from that to Windows, Linux, Mac: https://developers.yubico.com/yubikey-manager/Development.html
+>
 
 
 
 The automated test and buildflow in used for the GitHub builds can be seen in [.github/workflows/ci.yml](.github/workflows/ci.yml)
-For example: 
+For example:
 - How tox is used to install requirements and build executables
 - How the Windows MSI executable is built
 
@@ -47,8 +47,8 @@ python3.11 -m tox -e build_win|build_linux|build_macos
 ```
 
 ### Intune version of app:
-This needs to be increased for Intune to roll out a new version of the app.  
-Current version: 1.0.0.4  
+This needs to be increased for Intune to roll out a new version of the app.
+Current version: 1.0.0.4
 - Version number is changed in [src/macos_utils/yubikey-locker-macos.spec](src/macos_utils/yubikey-locker-macos.spec)
 - Version number is changed in [src\windows_utils\yubikey-locker.wxs](src\windows_utils\yubikey-locker.wxs)
 

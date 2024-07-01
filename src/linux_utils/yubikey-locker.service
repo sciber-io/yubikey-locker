@@ -1,4 +1,4 @@
-#/etc/systemd/user/yubikey-locker.service 
+#/etc/systemd/user/yubikey-locker.service
 
 #
 # systemctl status yubikey-locker --user
