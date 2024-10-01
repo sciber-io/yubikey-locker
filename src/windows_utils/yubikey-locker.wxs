@@ -6,6 +6,15 @@
 <?define Version = "1.0.0.5" ?>
 <?define UpgradeCode = "43768026-8bd2-4d87-8106-538f0e328174" ?> <!-- Generated with $([System.Guid]::NewGuid()).Guid -->
 
+import ctypes
+
+# Set the AUMID for YubiKeyLocker
+def set_aumid(manufacturer, name):
+    app_user_model_id = f"{manufacturer}.{name}"
+    ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(app_user_model_id)
+
+# Call this function with actual values during app initialization
+set_aumid("Sciber", "YubiKeyLocker")
 
 <Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
   <Package Name="$(Name)"
