@@ -16,13 +16,13 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-24.04, macos-26, windows-2025]
+        os: [ubuntu-24.04, macos-26, windows-2025-vs2026]
         python-version: ["3.13"]
         #exclude:
         #
         # Define variable names
         include:
-          - os: windows-2025
+          - os: windows-2025-vs2026
             build_filename: yubikey-locker.exe
             msi_filename:  yubikey-locker.msi
             toxbuild: build_win
@@ -109,7 +109,7 @@ jobs:
         run: |
           sudo installer -pkg dist/${{matrix.build_pkgname}} -target /Applications -verbose
 
-      - if: matrix.os == 'windows-2025'
+      - if: matrix.os == 'windows-2025-vs2026'
         name: "Windows MSI build"
         run: |
           dotnet tool install --global wix --version 5.0.0
@@ -117,7 +117,7 @@ jobs:
           cp .\src\windows_utils\${{matrix.msi_filename}} dist/${{matrix.msi_filename}}
           ls dist
 
-      - if: matrix.os == 'windows-2025'
+      - if: matrix.os == 'windows-2025-vs2026'
         name: "Windows MSI install"
         run: |
           $pwd = pwd
