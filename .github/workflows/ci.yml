@@ -1,15 +1,8 @@
 
 name: sciber-yklocker test and build
-
-
 on:
-  push:
-    paths:
-      - 'src/**'
-      - '.github/workflows/**'
-      - 'tests/**'
-      - 'setup.py'
-      - 'tox.ini'
+  workflow_dispatch:
+
   release:
     types: [created]
 
@@ -154,12 +147,13 @@ jobs:
           #Start-Sleep -Seconds 20
           #Get-EventLog -LogName Application -Source YubiKeyLocker -Newest 5 | Select TimeGenerated,ReplacementStrings
 
-      # Only add comments on pushes
-      - if: github.event_name ==  'push'
-        name: Pytest coverage comment
-        uses: MishaKav/pytest-coverage-comment@main
+      - if: github.event_name ==  'workflow_dispatch'
+        name: Upload binaries
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a #v7.0.1
         with:
-          pytest-xml-coverage-path: ./cov.xml
+          name: binaries
+          path: dist/
+          retention-days: 7
 
 
       # Only publish files on release
