@@ -112,7 +112,7 @@ jobs:
       - if: matrix.os == 'windows-2025'
         name: "Windows MSI build"
         run: |
-          dotnet tool install --global wix
+          dotnet tool install --global wix --version 5.0.0
           wix.exe build -arch x64 .\src\windows_utils\yubikey-locker.wxs
           cp .\src\windows_utils\${{matrix.msi_filename}} dist/${{matrix.msi_filename}}
           ls dist
