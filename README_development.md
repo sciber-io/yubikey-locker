@@ -1,7 +1,7 @@
 
 # Development
 > [!IMPORTANT]
-> Requirements: Python3.11+
+> Built with: Python3.13
 > Since we use yubikey-manager for checking if a YubiKey is present we get dependencies from that to Windows, Linux, Mac: https://developers.yubico.com/yubikey-manager/Development.html
 >
 
@@ -18,7 +18,7 @@ ____
 After changing code make sure to run tests, and then build your excecutable:
 ```
 # Run in virtual environment
-python3-11 -m venv .venv
+python -m venv .venv
 
 # Activate virtual environment
 ## Windows
@@ -28,19 +28,19 @@ python3-11 -m venv .venv
 source .venv/bin/activate
 
 # Install tox
-python3.11 -m pip install tox
+python -m pip install tox
 
 # Install sciber_yklocker package in edit mode
 pip install -e .
 
 # Install requirements and run tests
-python3.11 -m tox
+python -m tox
 
 # Run linting
-python3.11 -m tox -e lint
+python -m tox -e lint
 
 # Build binary
-python3.11 -m tox -e build_win|build_linux|build_macos
+python -m tox -e build_win|build_linux|build_macos
 
 ## Binaries will be placd in ./build/
 
@@ -54,7 +54,7 @@ Current version: 1.0.0.5
 
 ### Linux prerequisites
 Necessary to install a few packages:
-```sudo apt install -y libpcsclite-dev python3.11-dev swig pcscd```
+```sudo apt install -y libpcsclite-dev swig pcscd```
 
 
 ### Windows install service

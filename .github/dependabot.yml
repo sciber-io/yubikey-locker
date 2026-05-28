@@ -10,10 +10,8 @@ updates:
     directory: "/" # Location of package manifests
     schedule:
       interval: "weekly"
-    target-branch: "dev"
   # Maintain dependencies for GitHub Actions
   - package-ecosystem: "pip"
     directory: "/" # Location of package manifests
     schedule:
       interval: "weekly"
-    target-branch: "dev"
