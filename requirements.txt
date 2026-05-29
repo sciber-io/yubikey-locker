@@ -1,6 +1,6 @@
 yubikey-manager==5.9.1
 pyinstaller==6.20.0
-tox==4.54.0
+tox==4.55.0
 pytest==9.0.3
 pytest-cov==7.1.0
 pre-commit==4.6.0
