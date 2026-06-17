@@ -5,7 +5,7 @@ pytest==9.0.3
 pytest-cov==7.1.0
 pre-commit==4.6.0
 pyoslog==1.2.0
-fake_winreg==1.9.0
+fake_winreg==1.9.1
 pytest-random-order==1.2.0
 pillow==12.2.0 # Needed for pyinstaller to convert .jpg to correct icon formats
 pywin32==311; sys_platform == "win32"
